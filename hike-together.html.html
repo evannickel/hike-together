@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Hiking Adventures</title>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Lucide React icons as inline SVG components
+        const Mountain = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m8 3 4 8 5-5 5 15H2L8 3z"/>
+            </svg>
+        );
+
+        const Award = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="8" r="6"/>
+                <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+            </svg>
+        );
+
+        const TrendingUp = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+                <polyline points="16 7 22 7 22 13"/>
+            </svg>
+        );
+
+        const Plus = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14"/>
+                <path d="M12 5v14"/>
+            </svg>
+        );
+
+        const Calendar = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                <line x1="16" x2="16" y1="2" y2="6"/>
+                <line x1="8" x2="8" y1="2" y2="6"/>
+                <line x1="3" x2="21" y1="10" y2="10"/>
+            </svg>
+        );
+
+        const MapPin = () => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                <circle cx="12" cy="10" r="3"/>
+            </svg>
+        );
+
+        const BADGES = [
+          // Milestone Badges
+          { id: 'first', name: 'First Steps', icon: '🥾', type: 'count', requirement: 1, desc: 'Complete your first hike' },
+          { id: 'explorer', name: 'Explorer', icon: '🗺️', type: 'count', requirement: 5, desc: 'Complete 5 hikes' },
+          { id: 'adventurer', name: 'Adventurer', icon: '⛰️', type: 'count', requirement: 10, desc: 'Complete 10 hikes' },
+          { id: 'trailblazer', name: 'Trailblazer', icon: '🔥', type: 'count', requirement: 25, desc: 'Complete 25 hikes' },
+          { id: 'legend', name: 'Hiking Legend', icon: '👑', type: 'count', requirement: 50, desc: 'Complete 50 hikes' },
+          { id: 'century', name: 'Century Club', icon: '💯', type: 'count', requirement: 100, desc: 'Complete 100 hikes' },
+          
+          // Distance Badges
+          { id: 'distance10', name: 'First 10', icon: '🏃', type: 'distance', requirement: 10, desc: 'Hike 10 total miles' },
+          { id: 'distance25', name: 'Quarter Century', icon: '🚶', type: 'distance', requirement: 25, desc: 'Hike 25 total miles' },
+          { id: 'distance50', name: 'Half Century', icon: '🥇', type: 'distance', requirement: 50, desc: 'Hike 50 total miles' },
+          { id: 'distance100', name: 'Centurion', icon: '⭐', type: 'distance', requirement: 100, desc: 'Hike 100 total miles' },
+          { id: 'distance250', name: 'Ultra Hiker', icon: '💪', type: 'distance', requirement: 250, desc: 'Hike 250 total miles' },
+          { id: 'distance500', name: 'Marathon Master', icon: '🏆', type: 'distance', requirement: 500, desc: 'Hike 500 total miles' },
+          
+          // Elevation Badges
+          { id: 'climber1k', name: 'Hill Climber', icon: '🧗', type: 'elevation', requirement: 1000, desc: 'Climb 1,000 feet total' },
+          { id: 'climber5k', name: 'Peak Climber', icon: '🏔️', type: 'elevation', requirement: 5000, desc: 'Climb 5,000 feet total' },
+          { id: 'climber10k', name: 'Mountain Goat', icon: '🐐', type: 'elevation', requirement: 10000, desc: 'Climb 10,000 feet total' },
+          { id: 'climber25k', name: 'Everest Base', icon: '🗻', type: 'elevation', requirement: 25000, desc: 'Climb 25,000 feet total' },
+          
+          // Nature Discovery Badges (Repeatable)
+          { id: 'waterfall', name: 'Waterfall Finder', icon: '💦', type: 'discovery', desc: 'Find a waterfall' },
+          { id: 'wildlife', name: 'Wildlife Spotter', icon: '🦌', type: 'discovery', desc: 'See a wild animal' },
+          { id: 'bird', name: 'Bird Watcher', icon: '🦅', type: 'discovery', desc: 'Spot a bird' },
+          { id: 'butterfly', name: 'Butterfly Hunter', icon: '🦋', type: 'discovery', desc: 'See a butterfly' },
+          { id: 'mushroom', name: 'Fungi Finder', icon: '🍄', type: 'discovery', desc: 'Discover mushrooms' },
+          { id: 'wildflower', name: 'Flower Power', icon: '🌸', type: 'discovery', desc: 'Find wildflowers' },
+          { id: 'treeclimb', name: 'Tree Hugger', icon: '🌳', type: 'discovery', desc: 'Hug a big tree' },
+          { id: 'pinecone', name: 'Pine Collector', icon: '🌲', type: 'discovery', desc: 'Collect a pinecone' },
+          { id: 'rock', name: 'Rock Hound', icon: '🪨', type: 'discovery', desc: 'Find a cool rock' },
+          { id: 'feather', name: 'Feather Finder', icon: '🪶', type: 'discovery', desc: 'Find a feather' },
+          { id: 'stream', name: 'Stream Crosser', icon: '🌊', type: 'discovery', desc: 'Cross a stream' },
+          { id: 'cave', name: 'Cave Explorer', icon: '🕳️', type: 'discovery', desc: 'Explore a cave' },
+          { id: 'bridge', name: 'Bridge Walker', icon: '🌉', type: 'discovery', desc: 'Cross a bridge' },
+          { id: 'sunset', name: 'Sunset Chaser', icon: '🌅', type: 'discovery', desc: 'Watch a sunset' },
+          { id: 'sunrise', name: 'Early Bird', icon: '🌄', type: 'discovery', desc: 'Watch a sunrise' },
+          { id: 'rainbow', name: 'Rainbow Finder', icon: '🌈', type: 'discovery', desc: 'See a rainbow' },
+          { id: 'fog', name: 'Mist Walker', icon: '🌫️', type: 'discovery', desc: 'Hike in fog' },
+          { id: 'snow', name: 'Snow Trekker', icon: '❄️', type: 'discovery', desc: 'Hike in snow' },
+          { id: 'rain', name: 'Rain Ranger', icon: '🌧️', type: 'discovery', desc: 'Hike in rain' },
+          { id: 'frog', name: 'Frog Friend', icon: '🐸', type: 'discovery', desc: 'See a frog or toad' },
+          { id: 'squirrel', name: 'Squirrel Scout', icon: '🐿️', type: 'discovery', desc: 'Spot a squirrel' },
+          { id: 'snake', name: 'Snake Spotter', icon: '🐍', type: 'discovery', desc: 'See a snake (safely!)' },
+          { id: 'turtle', name: 'Turtle Tracker', icon: '🐢', type: 'discovery', desc: 'Find a turtle' },
+          { id: 'rabbit', name: 'Bunny Buddy', icon: '🐰', type: 'discovery', desc: 'Spot a rabbit' },
+          { id: 'fish', name: 'Fish Finder', icon: '🐟', type: 'discovery', desc: 'See fish in water' },
+          { id: 'acorn', name: 'Acorn Collector', icon: '🌰', type: 'discovery', desc: 'Collect an acorn' },
+          { id: 'leaf', name: 'Leaf Lover', icon: '🍂', type: 'discovery', desc: 'Find a pretty leaf' },
+          { id: 'stick', name: 'Walking Stick', icon: '🦯', type: 'discovery', desc: 'Find a hiking stick' },
+          
+          // Location Type Badges
+          { id: 'beach', name: 'Beach Comber', icon: '🏖️', type: 'location', desc: 'Hike at the beach' },
+          { id: 'desert', name: 'Desert Wanderer', icon: '🏜️', type: 'location', desc: 'Hike in the desert' },
+          { id: 'forest', name: 'Forest Friend', icon: '🌲', type: 'location', desc: 'Hike in a forest' },
+          { id: 'mountain', name: 'Mountain Master', icon: '⛰️', type: 'location', desc: 'Hike in mountains' },
+          { id: 'canyon', name: 'Canyon Explorer', icon: '🏞️', type: 'location', desc: 'Hike in a canyon' },
+          { id: 'lake', name: 'Lake Lover', icon: '🏞️', type: 'location', desc: 'Hike around a lake' },
+          { id: 'river', name: 'River Runner', icon: '🏞️', type: 'location', desc: 'Hike along a river' },
+          { id: 'statepark', name: 'Park Visitor', icon: '🏕️', type: 'location', desc: 'Visit a state park' },
+          { id: 'nationalpark', name: 'Park Ranger', icon: '🎖️', type: 'location', desc: 'Visit a national park' },
+          { id: 'meadow', name: 'Meadow Walker', icon: '🌾', type: 'location', desc: 'Hike through a meadow' },
+          { id: 'wetland', name: 'Wetland Explorer', icon: '🦆', type: 'location', desc: 'Visit a wetland or marsh' },
+          
+          // Special Achievement Badges
+          { id: 'family', name: 'Family Time', icon: '👨‍👩‍👧‍👦', type: 'special', desc: 'Whole family hikes together' },
+          { id: 'picnic', name: 'Trail Feast', icon: '🧺', type: 'special', desc: 'Have a trail picnic' },
+          { id: 'camping', name: 'Happy Camper', icon: '⛺', type: 'special', desc: 'Camp overnight' },
+          { id: 'stargazing', name: 'Star Gazer', icon: '⭐', type: 'special', desc: 'Stargaze on trail' },
+          { id: 'geocache', name: 'Treasure Hunter', icon: '💎', type: 'special', desc: 'Find a geocache' },
+          { id: 'summit', name: 'Summit Seeker', icon: '🎯', type: 'special', desc: 'Reach a summit' },
+          { id: 'lighthouse', name: 'Light Keeper', icon: '🗼', type: 'special', desc: 'Visit a lighthouse' },
+          { id: 'historic', name: 'Time Traveler', icon: '🏛️', type: 'special', desc: 'Visit historic site' },
+          { id: 'photog', name: 'Photo Pro', icon: '📸', type: 'special', desc: 'Take amazing photos' },
+          { id: 'notrail', name: 'Off the Beaten Path', icon: '🧭', type: 'special', desc: 'Hike off-trail' },
+          { id: 'leader', name: 'Trail Leader', icon: '🧑‍🏫', type: 'special', desc: 'Lead the group' },
+          { id: 'map', name: 'Navigator', icon: '🗺️', type: 'special', desc: 'Use a map/compass' },
+          { id: 'journal', name: 'Nature Writer', icon: '📓', type: 'special', desc: 'Write in nature journal' },
+          { id: 'art', name: 'Trail Artist', icon: '🎨', type: 'special', desc: 'Draw or paint on trail' },
+          { id: 'song', name: 'Trail Singer', icon: '🎵', type: 'special', desc: 'Sing hiking songs' },
+          { id: 'story', name: 'Story Teller', icon: '📚', type: 'special', desc: 'Tell stories on trail' },
+          { id: 'game', name: 'Trail Games', icon: '🎲', type: 'special', desc: 'Play trail games' },
+          { id: 'clean', name: 'Trail Keeper', icon: '♻️', type: 'special', desc: 'Pick up litter' },
+          { id: 'help', name: 'Helpful Hiker', icon: '🤝', type: 'special', desc: 'Help another hiker' },
+          { id: 'courage', name: 'Brave Heart', icon: '💪', type: 'special', desc: 'Overcome a fear' },
+          { id: 'early', name: 'Morning Glory', icon: '🌞', type: 'special', desc: 'Start before 7am' },
+          { id: 'long', name: 'Endurance Pro', icon: '⏱️', type: 'special', desc: 'Hike 4+ hours' },
+        ];
+
+        function FamilyHikeTracker() {
+          const [hikes, setHikes] = useState([]);
+          const [showForm, setShowForm] = useState(false);
+          const [loading, setLoading] = useState(true);
+          const [formData, setFormData] = useState({
+            name: '',
+            date: new Date().toISOString().split('T')[0],
+            distance: '',
+            elevation: '',
+            location: '',
+            notes: '',
+            photoUrl: '',
+            activities: []
+          });
+
+          useEffect(() => {
+            loadHikes();
+          }, []);
+
+          const loadHikes = () => {
+            try {
+              const savedHikes = localStorage.getItem('familyHikes');
+              if (savedHikes) {
+                const loadedHikes = JSON.parse(savedHikes);
+                setHikes(loadedHikes.sort((a, b) => new Date(b.date) - new Date(a.date)));
+              }
+            } catch (error) {
+              console.log('Starting fresh - no saved hikes yet');
+            }
+            setLoading(false);
+          };
+
+          const saveHike = () => {
+            if (!formData.name || !formData.distance) return;
+
+            const newHike = {
+              ...formData,
+              id: Date.now().toString(),
+              distance: parseFloat(formData.distance),
+              elevation: parseFloat(formData.elevation) || 0,
+              activities: formData.activities || []
+            };
+
+            const updatedHikes = [newHike, ...hikes];
+            setHikes(updatedHikes);
+            localStorage.setItem('familyHikes', JSON.stringify(updatedHikes));
+            
+            setFormData({
+              name: '',
+              date: new Date().toISOString().split('T')[0],
+              distance: '',
+              elevation: '',
+              location: '',
+              notes: '',
+              photoUrl: '',
+              activities: []
+            });
+            setShowForm(false);
+          };
+
+          const deleteHike = (id) => {
+            const updatedHikes = hikes.filter(h => h.id !== id);
+            setHikes(updatedHikes);
+            localStorage.setItem('familyHikes', JSON.stringify(updatedHikes));
+          };
+
+          const toggleActivity = (activityId) => {
+            const newActivities = formData.activities.includes(activityId)
+              ? formData.activities.filter(id => id !== activityId)
+              : [...formData.activities, activityId];
+            setFormData({ ...formData, activities: newActivities });
+          };
+
+          const totalDistance = hikes.reduce((sum, h) => sum + h.distance, 0);
+          const totalElevation = hikes.reduce((sum, h) => sum + h.elevation, 0);
+          
+          const activityCounts = {};
+          hikes.forEach(hike => {
+            if (hike.activities) {
+              hike.activities.forEach(activityId => {
+                activityCounts[activityId] = (activityCounts[activityId] || 0) + 1;
+              });
+            }
+          });
+          
+          const badgeStats = BADGES.map(badge => {
+            let earned = false;
+            let count = 0;
+            
+            if (badge.type === 'count') {
+              earned = hikes.length >= badge.requirement;
+              count = hikes.length;
+            } else if (badge.type === 'distance') {
+              earned = totalDistance >= badge.requirement;
+              count = Math.floor(totalDistance);
+            } else if (badge.type === 'elevation') {
+              earned = totalElevation >= badge.requirement;
+              count = Math.floor(totalElevation);
+            } else {
+              count = activityCounts[badge.id] || 0;
+              earned = count > 0;
+            }
+            
+            return { ...badge, earned, count };
+          });
+          
+          const earnedBadges = badgeStats.filter(b => b.earned);
+          const availableBadges = badgeStats.filter(b => !b.earned);
+          
+          const selectableActivities = BADGES.filter(b => 
+            b.type === 'discovery' || b.type === 'location' || b.type === 'special'
+          );
+
+          if (loading) {
+            return (
+              <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+                <div className="text-2xl text-green-600">Loading adventures...</div>
+              </div>
+            );
+          }
+
+          return (
+            <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-4">
+              <div className="max-w-4xl mx-auto">
+                <div className="text-center mb-8">
+                  <h1 className="text-4xl font-bold text-green-800 mb-2 flex items-center justify-center gap-2">
+                    <Mountain />
+                    Family Hiking Adventures
+                  </h1>
+                  <p className="text-green-600">Track your amazing outdoor journeys!</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                  <div className="bg-white rounded-lg shadow-md p-6 text-center">
+                    <Mountain className="w-8 h-8 mx-auto mb-2 text-green-600" />
+                    <div className="text-3xl font-bold text-green-800">{hikes.length}</div>
+                    <div className="text-gray-600">Total Hikes</div>
+                  </div>
+                  <div className="bg-white rounded-lg shadow-md p-6 text-center">
+                    <TrendingUp className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                    <div className="text-3xl font-bold text-blue-800">{totalDistance.toFixed(1)}</div>
+                    <div className="text-gray-600">Miles Hiked</div>
+                  </div>
+                  <div className="bg-white rounded-lg shadow-md p-6 text-center">
+                    <Award className="w-8 h-8 mx-auto mb-2 text-yellow-600" />
+                    <div className="text-3xl font-bold text-yellow-800">{earnedBadges.length}</div>
+                    <div className="text-gray-600">Badges Earned</div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                  <h2 className="text-2xl font-bold text-green-800 mb-4 flex items-center gap-2">
+                    <Award />
+                    Achievement Badges ({earnedBadges.length}/{BADGES.length})
+                  </h2>
+                  
+                  {earnedBadges.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-green-700 mb-3">🎉 Earned Badges</h3>
+                      <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3">
+                        {earnedBadges.map(badge => (
+                          <div
+                            key={badge.id}
+                            className="text-center p-3 rounded-lg bg-yellow-50 border-2 border-yellow-400 relative"
+                            title={badge.desc}
+                          >
+                            <div className="text-3xl mb-1">{badge.icon}</div>
+                            <div className="font-semibold text-xs leading-tight">{badge.name}</div>
+                            {badge.count > 0 && badge.type !== 'count' && (
+                              <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                                {badge.count}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-600 mb-3">🔒 Locked Badges</h3>
+                    <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 max-h-96 overflow-y-auto">
+                      {availableBadges.map(badge => (
+                        <div
+                          key={badge.id}
+                          className="text-center p-3 rounded-lg bg-gray-50 border-2 border-gray-200 opacity-50"
+                          title={badge.desc}
+                        >
+                          <div className="text-3xl mb-1">{badge.icon}</div>
+                          <div className="font-semibold text-xs leading-tight">{badge.name}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowForm(!showForm)}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg shadow-lg mb-6 flex items-center justify-center gap-2 transition"
+                >
+                  <Plus />
+                  Add New Hike
+                </button>
+
+                {showForm && (
+                  <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <h2 className="text-2xl font-bold text-green-800 mb-4">Record Your Adventure</h2>
+                    <div className="space-y-4">
+                      <input
+                        type="text"
+                        placeholder="Hike Name (e.g., Sunset Trail)"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none"
+                      />
+                      <input
+                        type="date"
+                        value={formData.date}
+                        onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                        className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none"
+                      />
+                      <input
+                        type="number"
+                        step="0.1"
+                        placeholder="Distance (miles)"
+                        value={formData.distance}
+                        onChange={(e) => setFormData({ ...formData, distance: e.target.value })}
+                        className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Elevation Gain (feet, optional)"
+                        value={formData.elevation}
+                        onChange={(e) => setFormData({ ...formData, elevation: e.target.value })}
+                        className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Location (optional)"
+                        value={formData.location}
+                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                        className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none"
+                      />
+                      <input
+                        type="url"
+                        placeholder="Photo URL (optional)"
+                        value={formData.photoUrl}
+                        onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
+                        className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none"
+                      />
+                      <textarea
+                        placeholder="Notes about your adventure (optional)"
+                        value={formData.notes}
+                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                        className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none h-24"
+                      />
+                      
+                      <div className="border-2 border-green-200 rounded-lg p-4">
+                        <h3 className="font-semibold text-green-800 mb-2">🏆 What did you do/see on this hike?</h3>
+                        <p className="text-sm text-gray-600 mb-3">Select everything you experienced!</p>
+                        <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 max-h-64 overflow-y-auto p-2">
+                          {selectableActivities.map(badge => {
+                            const selected = formData.activities.includes(badge.id);
+                            return (
+                              <button
+                                key={badge.id}
+                                type="button"
+                                onClick={() => toggleActivity(badge.id)}
+                                className={`p-2 rounded-lg border-2 transition transform ${
+                                  selected
+                                    ? 'bg-yellow-50 border-yellow-400 scale-105 shadow-md'
+                                    : 'bg-white border-gray-200 hover:border-green-300 hover:shadow'
+                                }`}
+                                title={badge.desc}
+                              >
+                                <div className="text-2xl mb-1">{badge.icon}</div>
+                                <div className="text-xs font-medium leading-tight">{badge.name}</div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <button
+                          onClick={saveHike}
+                          className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition"
+                        >
+                          Save Hike
+                        </button>
+                        <button
+                          onClick={() => setShowForm(false)}
+                          className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 rounded-lg transition"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <h2 className="text-2xl font-bold text-green-800 mb-4">Your Hiking Journey</h2>
+                  {hikes.length === 0 ? (
+                    <div className="bg-white rounded-lg shadow-md p-8 text-center text-gray-500">
+                      <Mountain className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                      <p className="text-xl">No hikes recorded yet!</p>
+                      <p className="mt-2">Click "Add New Hike" to start your adventure log.</p>
+                    </div>
+                  ) : (
+                    hikes.map(hike => (
+                      <div key={hike.id} className="bg-white rounded-lg shadow-md p-6">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h3 className="text-xl font-bold text-green-800">{hike.name}</h3>
+                            <div className="flex items-center gap-4 text-gray-600 text-sm mt-1">
+                              <span className="flex items-center gap-1">
+                                <Calendar />
+                                {new Date(hike.date).toLocaleDateString()}
+                              </span>
+                              {hike.location && (
+                                <span className="flex items-center gap-1">
+                                  <MapPin />
+                                  {hike.location}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => deleteHike(hike.id)}
+                            className="text-red-500 hover:text-red-700 text-sm"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                        {hike.photoUrl && (
+                          <img
+                            src={hike.photoUrl}
+                            alt={hike.name}
+                            className="w-full h-48 object-cover rounded-lg mb-3"
+                          />
+                        )}
+                        <div className="flex gap-4 mb-3">
+                          <div className="bg-blue-50 px-4 py-2 rounded-lg">
+                            <div className="text-blue-800 font-bold">{hike.distance} mi</div>
+                            <div className="text-blue-600 text-sm">Distance</div>
+                          </div>
+                          {hike.elevation > 0 && (
+                            <div className="bg-purple-50 px-4 py-2 rounded-lg">
+                              <div className="text-purple-800 font-bold">{hike.elevation} ft</div>
+                              <div className="text-purple-600 text-sm">Elevation</div>
+                            </div>
+                          )}
+                        </div>
+                        {hike.notes && (
+                          <p className="text-gray-700 bg-gray-50 p-3 rounded-lg mb-3">{hike.notes}</p>
+                        )}
+                        {hike.activities && hike.activities.length > 0 && (
+                          <div className="mt-3">
+                            <div className="text-sm font-semibold text-gray-700 mb-2">Badges Earned on This Hike:</div>
+                            <div className="flex flex-wrap gap-2">
+                              {hike.activities.map(activityId => {
+                                const badge = BADGES.find(b => b.id === activityId);
+                                return badge ? (
+                                  <div
+                                    key={activityId}
+                                    className="bg-yellow-50 border-2 border-yellow-400 rounded-lg px-3 py-1 flex items-center gap-2"
+                                    title={badge.desc}
+                                  >
+                                    <span className="text-xl">{badge.icon}</span>
+                                    <span className="text-sm font-medium">{badge.name}</span>
+                                  </div>
+                                ) : null;
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        ReactDOM.render(<FamilyHikeTracker />, document.getElementById('root'));
+    </script>
+</body>
+</html>
+                                
