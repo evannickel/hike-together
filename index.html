@@ -22,6 +22,49 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
+        // Modal component for badge info
+        const BadgeModal = ({ badge, onClose }) => {
+          if (!badge) return null;
+          
+          return (
+            <div 
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+              onClick={onClose}
+            >
+              <div 
+                className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="text-center">
+                  <div className="text-6xl mb-4">{badge.icon}</div>
+                  <h3 className="text-2xl font-bold text-green-800 mb-2">{badge.name}</h3>
+                  <p className="text-gray-600 mb-4">{badge.desc}</p>
+                  {badge.requirement && (
+                    <div className="bg-green-50 rounded-lg p-3 mb-4">
+                      <p className="text-sm font-semibold text-green-800">
+                        Requirement: {badge.requirement} {badge.type === 'count' ? 'hikes' : badge.type === 'distance' ? 'miles' : 'feet'}
+                      </p>
+                    </div>
+                  )}
+                  {badge.earned && badge.count > 0 && (
+                    <div className="bg-yellow-50 rounded-lg p-3 mb-4">
+                      <p className="text-sm font-semibold text-yellow-800">
+                        ✨ Achieved {badge.count} time{badge.count !== 1 ? 's' : ''}!
+                      </p>
+                    </div>
+                  )}
+                  <button
+                    onClick={onClose}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        };
+
         // Lucide React icons as inline SVG components
         const Mountain = () => (
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -161,6 +204,7 @@
           const [hikes, setHikes] = useState([]);
           const [showForm, setShowForm] = useState(false);
           const [loading, setLoading] = useState(true);
+          const [selectedBadge, setSelectedBadge] = useState(null);
           const [formData, setFormData] = useState({
             name: '',
             date: new Date().toISOString().split('T')[0],
@@ -280,16 +324,23 @@
 
           return (
             <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-4">
+              {selectedBadge && (
+                <BadgeModal 
+                  badge={selectedBadge} 
+                  onClose={() => setSelectedBadge(null)} 
+                />
+              )}
+              
               <div className="max-w-4xl mx-auto">
                 <div className="text-center mb-8">
                   <h1 className="text-4xl font-bold text-green-800 mb-2 flex items-center justify-center gap-2">
                     <Mountain />
-                    Family Hiking Adventures
+                    Hike Together
                   </h1>
                   <p className="text-green-600">Track your amazing outdoor journeys!</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                   <div className="bg-white rounded-lg shadow-md p-6 text-center">
                     <Mountain className="w-8 h-8 mx-auto mb-2 text-green-600" />
                     <div className="text-3xl font-bold text-green-800">{hikes.length}</div>
@@ -299,6 +350,14 @@
                     <TrendingUp className="w-8 h-8 mx-auto mb-2 text-blue-600" />
                     <div className="text-3xl font-bold text-blue-800">{totalDistance.toFixed(1)}</div>
                     <div className="text-gray-600">Miles Hiked</div>
+                  </div>
+                  <div className="bg-white rounded-lg shadow-md p-6 text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 mx-auto mb-2 text-purple-600">
+                      <polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/>
+                      <polyline points="16 17 22 17 22 11"/>
+                    </svg>
+                    <div className="text-3xl font-bold text-purple-800">{totalElevation.toLocaleString()}</div>
+                    <div className="text-gray-600">Feet Climbed</div>
                   </div>
                   <div className="bg-white rounded-lg shadow-md p-6 text-center">
                     <Award className="w-8 h-8 mx-auto mb-2 text-yellow-600" />
@@ -320,8 +379,8 @@
                         {earnedBadges.map(badge => (
                           <div
                             key={badge.id}
-                            className="text-center p-3 rounded-lg bg-yellow-50 border-2 border-yellow-400 relative"
-                            title={badge.desc}
+                            className="text-center p-3 rounded-lg bg-yellow-50 border-2 border-yellow-400 relative cursor-pointer hover:shadow-lg transition group"
+                            onClick={() => setSelectedBadge(badge)}
                           >
                             <div className="text-3xl mb-1">{badge.icon}</div>
                             <div className="font-semibold text-xs leading-tight">{badge.name}</div>
@@ -330,6 +389,9 @@
                                 {badge.count}
                               </div>
                             )}
+                            <div className="absolute top-1 right-1 bg-green-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">
+                              ?
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -342,11 +404,14 @@
                       {availableBadges.map(badge => (
                         <div
                           key={badge.id}
-                          className="text-center p-3 rounded-lg bg-gray-50 border-2 border-gray-200 opacity-50"
-                          title={badge.desc}
+                          className="text-center p-3 rounded-lg bg-gray-50 border-2 border-gray-200 opacity-50 relative cursor-pointer hover:opacity-70 transition group"
+                          onClick={() => setSelectedBadge(badge)}
                         >
                           <div className="text-3xl mb-1">{badge.icon}</div>
                           <div className="font-semibold text-xs leading-tight">{badge.name}</div>
+                          <div className="absolute top-1 right-1 bg-gray-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">
+                            ?
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -544,6 +609,9 @@
         }
 
         ReactDOM.render(<FamilyHikeTracker />, document.getElementById('root'));
+    </script>
+</body>
+</html>
     </script>
 </body>
 </html>
