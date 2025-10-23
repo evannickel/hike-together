@@ -1,4 +1,23 @@
-<!DOCTYPE html>
+<div key={category} className="mb-6">
+                            <h4 className="text-md font-semibold text-green-600 mb-3">
+                              {category}
+                            </h4>
+                            <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 pl-4">
+                              {earnedInCategory.map(badge => (
+                                <div
+                                  key={badge.id}
+                                  className="text-center p-3 rounded-lg bg-yellow-50 border-2 border-yellow-400 relative cursor-pointer hover:shadow-lg transition group"
+                                  onClick={() => setSelectedBadge(badge)}
+                                >
+                                  <div className="text-3xl mb-1">{badge.icon}</div>
+                                  <div className="font-semibold text-xs leading-tight break-words overflow-hidden" style={{minHeight: '2.5rem'}}>{badge.name}</div>
+                                  {badge.count > 0 && badge.type !== 'count' && (
+                                    <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                                      {badge.count}
+                                    </div>
+                                  )}
+                                  <div className="absolute top-1 right-1 bg-green-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">
+                                    ?<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -131,6 +150,8 @@
           { id: 'climber5k', name: 'Peak Climber', icon: '🏔️', type: 'elevation', requirement: 5000, desc: 'Climb 5,000 feet total' },
           { id: 'climber10k', name: 'Mountain Goat', icon: '🐐', type: 'elevation', requirement: 10000, desc: 'Climb 10,000 feet total' },
           { id: 'climber25k', name: 'Everest Base', icon: '🗻', type: 'elevation', requirement: 25000, desc: 'Climb 25,000 feet total' },
+          { id: 'climber50k', name: 'Sky Walker', icon: '☁️', type: 'elevation', requirement: 50000, desc: 'Climb 50,000 feet total' },
+          { id: 'climber100k', name: 'Altitude King', icon: '👑', type: 'elevation', requirement: 100000, desc: 'Climb 100,000 feet total' },
           
           // Nature Discovery Badges (Repeatable)
           { id: 'waterfall', name: 'Waterfall Finder', icon: '💦', type: 'discovery', desc: 'Find a waterfall' },
@@ -154,13 +175,23 @@
           { id: 'rain', name: 'Rain Ranger', icon: '🌧️', type: 'discovery', desc: 'Hike in rain' },
           { id: 'frog', name: 'Frog Friend', icon: '🐸', type: 'discovery', desc: 'See a frog or toad' },
           { id: 'squirrel', name: 'Squirrel Scout', icon: '🐿️', type: 'discovery', desc: 'Spot a squirrel' },
-          { id: 'snake', name: 'Snake Spotter', icon: '🐍', type: 'discovery', desc: 'See a snake (safely!)' },
+          { id: 'snake', name: 'Snake Spotter', icon: '🐍', type: 'discovery', desc: 'See a snake safely' },
           { id: 'turtle', name: 'Turtle Tracker', icon: '🐢', type: 'discovery', desc: 'Find a turtle' },
           { id: 'rabbit', name: 'Bunny Buddy', icon: '🐰', type: 'discovery', desc: 'Spot a rabbit' },
           { id: 'fish', name: 'Fish Finder', icon: '🐟', type: 'discovery', desc: 'See fish in water' },
           { id: 'acorn', name: 'Acorn Collector', icon: '🌰', type: 'discovery', desc: 'Collect an acorn' },
           { id: 'leaf', name: 'Leaf Lover', icon: '🍂', type: 'discovery', desc: 'Find a pretty leaf' },
           { id: 'stick', name: 'Walking Stick', icon: '🦯', type: 'discovery', desc: 'Find a hiking stick' },
+          { id: 'bee', name: 'Bee Keeper', icon: '🐝', type: 'discovery', desc: 'See a bee or wasp' },
+          { id: 'spider', name: 'Spider Scout', icon: '🕷️', type: 'discovery', desc: 'Find a spider web' },
+          { id: 'tracks', name: 'Track Finder', icon: '🐾', type: 'discovery', desc: 'Find animal tracks' },
+          { id: 'berries', name: 'Berry Scout', icon: '🫐', type: 'discovery', desc: 'Find wild berries' },
+          { id: 'nest', name: 'Nest Finder', icon: '🪹', type: 'discovery', desc: 'Find a bird nest' },
+          { id: 'fossil', name: 'Time Detective', icon: '🦴', type: 'discovery', desc: 'Find a fossil' },
+          { id: 'crystal', name: 'Crystal Hunter', icon: '💎', type: 'discovery', desc: 'Find crystals' },
+          { id: 'clouds', name: 'Cloud Watcher', icon: '☁️', type: 'discovery', desc: 'Watch the clouds' },
+          { id: 'wind', name: 'Wind Rider', icon: '💨', type: 'discovery', desc: 'Hike in strong wind' },
+          { id: 'moon', name: 'Moon Gazer', icon: '🌙', type: 'discovery', desc: 'See the moon' },
           
           // Location Type Badges
           { id: 'beach', name: 'Beach Comber', icon: '🏖️', type: 'location', desc: 'Hike at the beach' },
@@ -174,6 +205,10 @@
           { id: 'nationalpark', name: 'Park Ranger', icon: '🎖️', type: 'location', desc: 'Visit a national park' },
           { id: 'meadow', name: 'Meadow Walker', icon: '🌾', type: 'location', desc: 'Hike through a meadow' },
           { id: 'wetland', name: 'Wetland Explorer', icon: '🦆', type: 'location', desc: 'Visit a wetland or marsh' },
+          { id: 'jungle', name: 'Jungle Trekker', icon: '🌴', type: 'location', desc: 'Hike in a jungle' },
+          { id: 'prairie', name: 'Prairie Walker', icon: '🌻', type: 'location', desc: 'Hike on the prairie' },
+          { id: 'tundra', name: 'Tundra Explorer', icon: '🧊', type: 'location', desc: 'Hike in tundra' },
+          { id: 'volcano', name: 'Volcano Adventurer', icon: '🌋', type: 'location', desc: 'Hike near a volcano' },
           
           // Special Achievement Badges
           { id: 'family', name: 'Family Time', icon: '👨‍👩‍👧‍👦', type: 'special', desc: 'Whole family hikes together' },
@@ -187,7 +222,7 @@
           { id: 'photog', name: 'Photo Pro', icon: '📸', type: 'special', desc: 'Take amazing photos' },
           { id: 'notrail', name: 'Off the Beaten Path', icon: '🧭', type: 'special', desc: 'Hike off-trail' },
           { id: 'leader', name: 'Trail Leader', icon: '🧑‍🏫', type: 'special', desc: 'Lead the group' },
-          { id: 'map', name: 'Navigator', icon: '🗺️', type: 'special', desc: 'Use a map/compass' },
+          { id: 'map', name: 'Navigator', icon: '🗺️', type: 'special', desc: 'Use a map or compass' },
           { id: 'journal', name: 'Nature Writer', icon: '📓', type: 'special', desc: 'Write in nature journal' },
           { id: 'art', name: 'Trail Artist', icon: '🎨', type: 'special', desc: 'Draw or paint on trail' },
           { id: 'song', name: 'Trail Singer', icon: '🎵', type: 'special', desc: 'Sing hiking songs' },
@@ -198,6 +233,19 @@
           { id: 'courage', name: 'Brave Heart', icon: '💪', type: 'special', desc: 'Overcome a fear' },
           { id: 'early', name: 'Morning Glory', icon: '🌞', type: 'special', desc: 'Start before 7am' },
           { id: 'long', name: 'Endurance Pro', icon: '⏱️', type: 'special', desc: 'Hike 4+ hours' },
+          { id: 'quiet', name: 'Silent Steps', icon: '🤫', type: 'special', desc: 'Hike in silence' },
+          { id: 'backwards', name: 'Backwards Walker', icon: '🔄', type: 'special', desc: 'Walk backwards safely' },
+          { id: 'barefoot', name: 'Nature Feet', icon: '🦶', type: 'special', desc: 'Walk barefoot safely' },
+          { id: 'night', name: 'Night Hiker', icon: '🌃', type: 'special', desc: 'Hike at night' },
+          { id: 'firstaid', name: 'Trail Medic', icon: '🩹', type: 'special', desc: 'Use first aid skills' },
+          { id: 'fire', name: 'Fire Starter', icon: '🔥', type: 'special', desc: 'Build a safe fire' },
+          { id: 'knots', name: 'Knot Master', icon: '🪢', type: 'special', desc: 'Tie useful knots' },
+          { id: 'binoculars', name: 'Far Seer', icon: '🔭', type: 'special', desc: 'Use binoculars' },
+          { id: 'whistle', name: 'Signal Master', icon: '📣', type: 'special', desc: 'Use safety whistle' },
+          { id: 'fishing', name: 'Trail Fisher', icon: '🎣', type: 'special', desc: 'Fish on the trail' },
+          { id: 'wade', name: 'Water Walker', icon: '👣', type: 'special', desc: 'Wade through water' },
+          { id: 'climb', name: 'Rock Climber', icon: '🧗‍♀️', type: 'special', desc: 'Climb rocks safely' },
+          { id: 'meditation', name: 'Trail Zen', icon: '🧘', type: 'special', desc: 'Meditate in nature' },
         ];
 
         function FamilyHikeTracker() {
@@ -267,6 +315,51 @@
             localStorage.setItem('familyHikes', JSON.stringify(updatedHikes));
           };
 
+          const exportData = () => {
+            const dataStr = JSON.stringify(hikes, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `hike-together-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          };
+
+          const importData = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              try {
+                const importedHikes = JSON.parse(e.target.result);
+                if (Array.isArray(importedHikes)) {
+                  // Merge with existing hikes, avoiding duplicates by ID
+                  const existingIds = new Set(hikes.map(h => h.id));
+                  const newHikes = importedHikes.filter(h => !existingIds.has(h.id));
+                  const mergedHikes = [...hikes, ...newHikes].sort((a, b) => new Date(b.date) - new Date(a.date));
+                  
+                  setHikes(mergedHikes);
+                  localStorage.setItem('familyHikes', JSON.stringify(mergedHikes));
+                  alert(`Successfully imported ${newHikes.length} new hike(s)!`);
+                } else {
+                  alert('Invalid file format. Please select a valid backup file.');
+                }
+              } catch (error) {
+                alert('Error reading file. Please make sure it\'s a valid Hike Together backup.');
+              }
+            };
+            reader.readAsText(file);
+            event.target.value = ''; // Reset file input
+          };
+
+          const triggerImport = () => {
+            document.getElementById('importFile').click();
+          };
+
           const toggleActivity = (activityId) => {
             const newActivities = formData.activities.includes(activityId)
               ? formData.activities.filter(id => id !== activityId)
@@ -313,8 +406,8 @@
           // Group badges by category
           const badgeCategories = {
             'Milestones': badgeStats.filter(b => b.type === 'count' || b.type === 'distance' || b.type === 'elevation'),
-            'Wildlife & Creatures': badgeStats.filter(b => ['wildlife', 'bird', 'butterfly', 'frog', 'squirrel', 'snake', 'turtle', 'rabbit', 'fish'].includes(b.id)),
-            'Nature & Scenery': badgeStats.filter(b => ['waterfall', 'mushroom', 'wildflower', 'treeclimb', 'pinecone', 'rock', 'feather', 'stream', 'cave', 'bridge', 'sunset', 'sunrise', 'rainbow', 'fog', 'snow', 'rain', 'acorn', 'leaf', 'stick'].includes(b.id)),
+            'Wildlife & Creatures': badgeStats.filter(b => ['wildlife', 'bird', 'butterfly', 'frog', 'squirrel', 'snake', 'turtle', 'rabbit', 'fish', 'bee', 'spider'].includes(b.id)),
+            'Nature & Scenery': badgeStats.filter(b => ['waterfall', 'mushroom', 'wildflower', 'treeclimb', 'pinecone', 'rock', 'feather', 'stream', 'cave', 'bridge', 'sunset', 'sunrise', 'rainbow', 'fog', 'snow', 'rain', 'acorn', 'leaf', 'stick', 'tracks', 'berries', 'nest', 'fossil', 'crystal', 'clouds', 'wind', 'moon'].includes(b.id)),
             'Locations': badgeStats.filter(b => b.type === 'location'),
             'Activities & Challenges': badgeStats.filter(b => b.type === 'special')
           };
@@ -347,6 +440,41 @@
                     Hike Together
                   </h1>
                   <p className="text-green-600">Track your amazing outdoor journeys!</p>
+                  
+                  {/* Backup Controls */}
+                  <div className="flex gap-2 justify-center mt-4">
+                    <button
+                      onClick={exportData}
+                      className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition flex items-center gap-2"
+                      title="Download a backup of all your hikes"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" x2="12" y1="15" y2="3"/>
+                      </svg>
+                      Download Backup
+                    </button>
+                    <button
+                      onClick={triggerImport}
+                      className="bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition flex items-center gap-2"
+                      title="Restore hikes from a backup file"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" x2="12" y1="3" y2="15"/>
+                      </svg>
+                      Restore Backup
+                    </button>
+                    <input
+                      id="importFile"
+                      type="file"
+                      accept=".json"
+                      onChange={importData}
+                      style={{ display: 'none' }}
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -399,8 +527,7 @@
                         
                         return (
                           <div key={category} className="mb-6">
-                            <h4 className="text-md font-semibold text-green-600 mb-3 flex items-center">
-                              <span className="mr-2">▸</span>
+                            <h4 className="text-md font-semibold text-green-600 mb-3">
                               {category}
                             </h4>
                             <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 pl-4">
@@ -411,7 +538,7 @@
                                   onClick={() => setSelectedBadge(badge)}
                                 >
                                   <div className="text-3xl mb-1">{badge.icon}</div>
-                                  <div className="font-semibold text-xs leading-tight">{badge.name}</div>
+                                  <div className="font-semibold text-xs leading-tight break-words overflow-hidden" style={{minHeight: '2.5rem'}}>{badge.name}</div>
                                   {badge.count > 0 && badge.type !== 'count' && (
                                     <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
                                       {badge.count}
@@ -438,8 +565,7 @@
                       
                       return (
                         <div key={category} className="mb-6">
-                          <h4 className="text-md font-semibold text-gray-600 mb-3 flex items-center">
-                            <span className="mr-2">▸</span>
+                          <h4 className="text-md font-semibold text-gray-600 mb-3">
                             {category}
                           </h4>
                           <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 pl-4">
@@ -450,7 +576,7 @@
                                 onClick={() => setSelectedBadge(badge)}
                               >
                                 <div className="text-3xl mb-1">{badge.icon}</div>
-                                <div className="font-semibold text-xs leading-tight">{badge.name}</div>
+                                <div className="font-semibold text-xs leading-tight break-words overflow-hidden" style={{minHeight: '2.5rem'}}>{badge.name}</div>
                                 <div className="absolute top-1 right-1 bg-gray-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">
                                   ?
                                 </div>
@@ -510,13 +636,6 @@
                         onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                         className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none"
                       />
-                      <input
-                        type="url"
-                        placeholder="Photo URL (optional)"
-                        value={formData.photoUrl}
-                        onChange={(e) => setFormData({ ...formData, photoUrl: e.target.value })}
-                        className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none"
-                      />
                       <textarea
                         placeholder="Notes about your adventure (optional)"
                         value={formData.notes}
@@ -532,7 +651,7 @@
                         <div className="mb-4">
                           <h4 className="text-xs font-semibold text-gray-600 mb-2">Wildlife & Creatures</h4>
                           <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-                            {selectableActivities.filter(b => ['wildlife', 'bird', 'butterfly', 'frog', 'squirrel', 'snake', 'turtle', 'rabbit', 'fish'].includes(b.id)).map(badge => {
+                            {selectableActivities.filter(b => ['wildlife', 'bird', 'butterfly', 'frog', 'squirrel', 'snake', 'turtle', 'rabbit', 'fish', 'bee', 'spider'].includes(b.id)).map(badge => {
                               const selected = formData.activities.includes(badge.id);
                               return (
                                 <button
@@ -547,7 +666,7 @@
                                   title={badge.desc}
                                 >
                                   <div className="text-2xl mb-1">{badge.icon}</div>
-                                  <div className="text-xs font-medium leading-tight">{badge.name}</div>
+                                  <div className="text-xs font-medium leading-tight break-words" style={{minHeight: '2rem'}}>{badge.name}</div>
                                 </button>
                               );
                             })}
@@ -558,7 +677,7 @@
                         <div className="mb-4">
                           <h4 className="text-xs font-semibold text-gray-600 mb-2">Nature & Scenery</h4>
                           <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-                            {selectableActivities.filter(b => ['waterfall', 'mushroom', 'wildflower', 'treeclimb', 'pinecone', 'rock', 'feather', 'stream', 'cave', 'bridge', 'sunset', 'sunrise', 'rainbow', 'fog', 'snow', 'rain', 'acorn', 'leaf', 'stick'].includes(b.id)).map(badge => {
+                            {selectableActivities.filter(b => ['waterfall', 'mushroom', 'wildflower', 'treeclimb', 'pinecone', 'rock', 'feather', 'stream', 'cave', 'bridge', 'sunset', 'sunrise', 'rainbow', 'fog', 'snow', 'rain', 'acorn', 'leaf', 'stick', 'tracks', 'berries', 'nest', 'fossil', 'crystal', 'clouds', 'wind', 'moon'].includes(b.id)).map(badge => {
                               const selected = formData.activities.includes(badge.id);
                               return (
                                 <button
@@ -573,7 +692,7 @@
                                   title={badge.desc}
                                 >
                                   <div className="text-2xl mb-1">{badge.icon}</div>
-                                  <div className="text-xs font-medium leading-tight">{badge.name}</div>
+                                  <div className="text-xs font-medium leading-tight break-words" style={{minHeight: '2rem'}}>{badge.name}</div>
                                 </button>
                               );
                             })}
@@ -599,7 +718,7 @@
                                   title={badge.desc}
                                 >
                                   <div className="text-2xl mb-1">{badge.icon}</div>
-                                  <div className="text-xs font-medium leading-tight">{badge.name}</div>
+                                  <div className="text-xs font-medium leading-tight break-words" style={{minHeight: '2rem'}}>{badge.name}</div>
                                 </button>
                               );
                             })}
@@ -625,7 +744,7 @@
                                   title={badge.desc}
                                 >
                                   <div className="text-2xl mb-1">{badge.icon}</div>
-                                  <div className="text-xs font-medium leading-tight">{badge.name}</div>
+                                  <div className="text-xs font-medium leading-tight break-words" style={{minHeight: '2rem'}}>{badge.name}</div>
                                 </button>
                               );
                             })}
