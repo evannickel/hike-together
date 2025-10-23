@@ -310,6 +310,15 @@
           const earnedBadges = badgeStats.filter(b => b.earned);
           const availableBadges = badgeStats.filter(b => !b.earned);
           
+          // Group badges by category
+          const badgeCategories = {
+            'Milestones': badgeStats.filter(b => b.type === 'count' || b.type === 'distance' || b.type === 'elevation'),
+            'Wildlife & Creatures': badgeStats.filter(b => ['wildlife', 'bird', 'butterfly', 'frog', 'squirrel', 'snake', 'turtle', 'rabbit', 'fish'].includes(b.id)),
+            'Nature & Scenery': badgeStats.filter(b => ['waterfall', 'mushroom', 'wildflower', 'treeclimb', 'pinecone', 'rock', 'feather', 'stream', 'cave', 'bridge', 'sunset', 'sunrise', 'rainbow', 'fog', 'snow', 'rain', 'acorn', 'leaf', 'stick'].includes(b.id)),
+            'Locations': badgeStats.filter(b => b.type === 'location'),
+            'Activities & Challenges': badgeStats.filter(b => b.type === 'special')
+          };
+          
           const selectableActivities = BADGES.filter(b => 
             b.type === 'discovery' || b.type === 'location' || b.type === 'special'
           );
@@ -375,54 +384,82 @@
                 </div>
 
                 <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                  <h2 className="text-2xl font-bold text-green-800 mb-4 flex items-center gap-2">
+                  <h2 className="text-2xl font-bold text-green-800 mb-6 flex items-center gap-2">
                     <Award />
                     Achievement Badges ({earnedBadges.length}/{BADGES.length})
                   </h2>
                   
                   {earnedBadges.length > 0 && (
-                    <div className="mb-6">
-                      <h3 className="text-lg font-semibold text-green-700 mb-3">🎉 Earned Badges</h3>
-                      <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                        {earnedBadges.map(badge => (
-                          <div
-                            key={badge.id}
-                            className="text-center p-3 rounded-lg bg-yellow-50 border-2 border-yellow-400 relative cursor-pointer hover:shadow-lg transition group"
-                            onClick={() => setSelectedBadge(badge)}
-                          >
-                            <div className="text-3xl mb-1">{badge.icon}</div>
-                            <div className="font-semibold text-xs leading-tight">{badge.name}</div>
-                            {badge.count > 0 && badge.type !== 'count' && (
-                              <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
-                                {badge.count}
-                              </div>
-                            )}
-                            <div className="absolute top-1 right-1 bg-green-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">
-                              ?
+                    <div className="mb-8">
+                      <h3 className="text-xl font-semibold text-green-700 mb-4 pb-2 border-b-2 border-green-200">🎉 Earned Badges</h3>
+                      
+                      {Object.entries(badgeCategories).map(([category, badges]) => {
+                        const earnedInCategory = badges.filter(b => b.earned);
+                        if (earnedInCategory.length === 0) return null;
+                        
+                        return (
+                          <div key={category} className="mb-6">
+                            <h4 className="text-md font-semibold text-green-600 mb-3 flex items-center">
+                              <span className="mr-2">▸</span>
+                              {category}
+                            </h4>
+                            <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 pl-4">
+                              {earnedInCategory.map(badge => (
+                                <div
+                                  key={badge.id}
+                                  className="text-center p-3 rounded-lg bg-yellow-50 border-2 border-yellow-400 relative cursor-pointer hover:shadow-lg transition group"
+                                  onClick={() => setSelectedBadge(badge)}
+                                >
+                                  <div className="text-3xl mb-1">{badge.icon}</div>
+                                  <div className="font-semibold text-xs leading-tight">{badge.name}</div>
+                                  {badge.count > 0 && badge.type !== 'count' && (
+                                    <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                                      {badge.count}
+                                    </div>
+                                  )}
+                                  <div className="absolute top-1 right-1 bg-green-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">
+                                    ?
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
-                        ))}
-                      </div>
+                        );
+                      })}
                     </div>
                   )}
                   
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-600 mb-3">🔒 Locked Badges</h3>
-                    <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 max-h-96 overflow-y-auto">
-                      {availableBadges.map(badge => (
-                        <div
-                          key={badge.id}
-                          className="text-center p-3 rounded-lg bg-gray-50 border-2 border-gray-200 opacity-50 relative cursor-pointer hover:opacity-70 transition group"
-                          onClick={() => setSelectedBadge(badge)}
-                        >
-                          <div className="text-3xl mb-1">{badge.icon}</div>
-                          <div className="font-semibold text-xs leading-tight">{badge.name}</div>
-                          <div className="absolute top-1 right-1 bg-gray-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">
-                            ?
+                    <h3 className="text-xl font-semibold text-gray-700 mb-4 pb-2 border-b-2 border-gray-200">🔒 Locked Badges</h3>
+                    
+                    {Object.entries(badgeCategories).map(([category, badges]) => {
+                      const lockedInCategory = badges.filter(b => !b.earned);
+                      if (lockedInCategory.length === 0) return null;
+                      
+                      return (
+                        <div key={category} className="mb-6">
+                          <h4 className="text-md font-semibold text-gray-600 mb-3 flex items-center">
+                            <span className="mr-2">▸</span>
+                            {category}
+                          </h4>
+                          <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 pl-4">
+                            {lockedInCategory.map(badge => (
+                              <div
+                                key={badge.id}
+                                className="text-center p-3 rounded-lg bg-gray-50 border-2 border-gray-200 opacity-50 relative cursor-pointer hover:opacity-70 transition group"
+                                onClick={() => setSelectedBadge(badge)}
+                              >
+                                <div className="text-3xl mb-1">{badge.icon}</div>
+                                <div className="font-semibold text-xs leading-tight">{badge.name}</div>
+                                <div className="absolute top-1 right-1 bg-gray-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">
+                                  ?
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -490,26 +527,109 @@
                       <div className="border-2 border-green-200 rounded-lg p-4">
                         <h3 className="font-semibold text-green-800 mb-2">🏆 What did you do/see on this hike?</h3>
                         <p className="text-sm text-gray-600 mb-3">Select everything you experienced!</p>
-                        <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2 max-h-64 overflow-y-auto p-2">
-                          {selectableActivities.map(badge => {
-                            const selected = formData.activities.includes(badge.id);
-                            return (
-                              <button
-                                key={badge.id}
-                                type="button"
-                                onClick={() => toggleActivity(badge.id)}
-                                className={`p-2 rounded-lg border-2 transition transform ${
-                                  selected
-                                    ? 'bg-yellow-50 border-yellow-400 scale-105 shadow-md'
-                                    : 'bg-white border-gray-200 hover:border-green-300 hover:shadow'
-                                }`}
-                                title={badge.desc}
-                              >
-                                <div className="text-2xl mb-1">{badge.icon}</div>
-                                <div className="text-xs font-medium leading-tight">{badge.name}</div>
-                              </button>
-                            );
-                          })}
+                        
+                        {/* Wildlife & Creatures */}
+                        <div className="mb-4">
+                          <h4 className="text-xs font-semibold text-gray-600 mb-2">Wildlife & Creatures</h4>
+                          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                            {selectableActivities.filter(b => ['wildlife', 'bird', 'butterfly', 'frog', 'squirrel', 'snake', 'turtle', 'rabbit', 'fish'].includes(b.id)).map(badge => {
+                              const selected = formData.activities.includes(badge.id);
+                              return (
+                                <button
+                                  key={badge.id}
+                                  type="button"
+                                  onClick={() => toggleActivity(badge.id)}
+                                  className={`p-2 rounded-lg border-2 transition transform ${
+                                    selected
+                                      ? 'bg-yellow-50 border-yellow-400 scale-105 shadow-md'
+                                      : 'bg-white border-gray-200 hover:border-green-300 hover:shadow'
+                                  }`}
+                                  title={badge.desc}
+                                >
+                                  <div className="text-2xl mb-1">{badge.icon}</div>
+                                  <div className="text-xs font-medium leading-tight">{badge.name}</div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        
+                        {/* Nature & Scenery */}
+                        <div className="mb-4">
+                          <h4 className="text-xs font-semibold text-gray-600 mb-2">Nature & Scenery</h4>
+                          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                            {selectableActivities.filter(b => ['waterfall', 'mushroom', 'wildflower', 'treeclimb', 'pinecone', 'rock', 'feather', 'stream', 'cave', 'bridge', 'sunset', 'sunrise', 'rainbow', 'fog', 'snow', 'rain', 'acorn', 'leaf', 'stick'].includes(b.id)).map(badge => {
+                              const selected = formData.activities.includes(badge.id);
+                              return (
+                                <button
+                                  key={badge.id}
+                                  type="button"
+                                  onClick={() => toggleActivity(badge.id)}
+                                  className={`p-2 rounded-lg border-2 transition transform ${
+                                    selected
+                                      ? 'bg-yellow-50 border-yellow-400 scale-105 shadow-md'
+                                      : 'bg-white border-gray-200 hover:border-green-300 hover:shadow'
+                                  }`}
+                                  title={badge.desc}
+                                >
+                                  <div className="text-2xl mb-1">{badge.icon}</div>
+                                  <div className="text-xs font-medium leading-tight">{badge.name}</div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        
+                        {/* Locations */}
+                        <div className="mb-4">
+                          <h4 className="text-xs font-semibold text-gray-600 mb-2">Locations</h4>
+                          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                            {selectableActivities.filter(b => b.type === 'location').map(badge => {
+                              const selected = formData.activities.includes(badge.id);
+                              return (
+                                <button
+                                  key={badge.id}
+                                  type="button"
+                                  onClick={() => toggleActivity(badge.id)}
+                                  className={`p-2 rounded-lg border-2 transition transform ${
+                                    selected
+                                      ? 'bg-yellow-50 border-yellow-400 scale-105 shadow-md'
+                                      : 'bg-white border-gray-200 hover:border-green-300 hover:shadow'
+                                  }`}
+                                  title={badge.desc}
+                                >
+                                  <div className="text-2xl mb-1">{badge.icon}</div>
+                                  <div className="text-xs font-medium leading-tight">{badge.name}</div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        
+                        {/* Activities & Challenges */}
+                        <div>
+                          <h4 className="text-xs font-semibold text-gray-600 mb-2">Activities & Challenges</h4>
+                          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                            {selectableActivities.filter(b => b.type === 'special').map(badge => {
+                              const selected = formData.activities.includes(badge.id);
+                              return (
+                                <button
+                                  key={badge.id}
+                                  type="button"
+                                  onClick={() => toggleActivity(badge.id)}
+                                  className={`p-2 rounded-lg border-2 transition transform ${
+                                    selected
+                                      ? 'bg-yellow-50 border-yellow-400 scale-105 shadow-md'
+                                      : 'bg-white border-gray-200 hover:border-green-300 hover:shadow'
+                                  }`}
+                                  title={badge.desc}
+                                >
+                                  <div className="text-2xl mb-1">{badge.icon}</div>
+                                  <div className="text-xs font-medium leading-tight">{badge.name}</div>
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
                       
