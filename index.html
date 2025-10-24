@@ -1,9 +1,558 @@
-<!DOCTYPE html>
+const createMember = async () => {
+            if (!newMemberName.trim()) return;
+            try {
+              const memberRef = await db.collection('families').doc(familyId).collection('members').add({
+                name: newMemberName,
+                avatar: newMemberAvatar,
+                color: newMemberColor,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+              });
+              const newMember = { id: memberRef.id, name: newMemberName, avatar: newMemberAvatar, color: newMemberColor };
+              setMembers([...members, newMember]);
+              setCurrentMember(newMember);
+              localStorage.setItem('currentMemberId', memberRef.id);
+              setShowSetup(false);
+              setNewMemberName('');
+            } catch (error) {
+              alert('Error creating member: ' + error.message);
+            }
+          };
+
+          const switchMember = (member) => {
+            setCurrentMember(member);
+            localStorage.setItem('currentMemberId', member.id);
+            setShowMemberMenu(false);
+          };
+
+          const saveHike = async () => {
+            if (!formData.name || !formData.distance || !currentMember) return;
+            try {
+              await db.collection('families').doc(familyId).collection('hikes').add({
+                name: formData.name,
+                date: formData.date,
+                distance: parseFloat(formData.distance),
+                elevation: parseFloat(formData.elevation) || 0,
+                location: formData.location,
+                notes: formData.notes,
+                activities: formData.activities,
+                hikerId: currentMember.id,
+                hikerName: currentMember.name,
+                hikerAvatar: currentMember.avatar,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+              });
+              setFormData({
+                name: '',
+                date: new Date().toISOString().split('T')[0],
+                distance: '',
+                elevation: '',
+                location: '',
+                notes: '',
+                activities: []
+              });
+              setShowForm(false);
+            } catch (error) {
+              alert('Error saving hike: ' + error.message);
+            }
+          };
+
+          const deleteHike = async (id) => {
+            try {
+              await db.collection('families').doc(familyId).collection('hikes').doc(id).delete();
+            } catch (error) {
+              alert('Error deleting hike: ' + error.message);
+            }
+          };
+
+          const toggleActivity = (activityId) => {
+            const newActivities = formData.activities.includes(activityId)
+              ? formData.activities.filter(id => id !== activityId)
+              : [...formData.activities, activityId];
+            setFormData({ ...formData, activities: newActivities });
+          };
+
+          const copyFamilyCode = () => {
+            navigator.clipboard.writeText(familyId);
+            alert('Family code copied! Share it with family members to join.');
+          };
+
+          const memberHikes = hikes.filter(h => !currentMember || h.hikerId === currentMember.id);
+          const totalDistance = memberHikes.reduce((sum, h) => sum + h.distance, 0);
+          const totalElevation = memberHikes.reduce((sum, h) => sum + h.elevation, 0);
+          
+          const activityCounts = {};
+          memberHikes.forEach(hike => {
+            if (hike.activities) {
+              hike.activities.forEach(activityId => {
+                activityCounts[activityId] = (activityCounts[activityId] || 0) + 1;
+              });
+            }
+          });
+          
+          const badgeStats = BADGES.map(badge => {
+            let earned = false;
+            let count = 0;
+            
+            if (badge.type === 'count') {
+              earned = memberHikes.length >= badge.requirement;
+              count = memberHikes.length;
+            } else if (badge.type === 'distance') {
+              earned = totalDistance >= badge.requirement;
+              count = Math.floor(totalDistance);
+            } else if (badge.type === 'elevation') {
+              earned = totalElevation >= badge.requirement;
+              count = Math.floor(totalElevation);
+            } else {
+              count = activityCounts[badge.id] || 0;
+              earned = count > 0;
+            }
+            
+            return { ...badge, earned, count };
+          });
+          
+          const earnedBadges = badgeStats.filter(b => b.earned);
+          
+          const badgeCategories = {
+            'Milestones': badgeStats.filter(b => b.type === 'count' || b.type === 'distance' || b.type === 'elevation'),
+            'Wildlife & Creatures': badgeStats.filter(b => ['wildlife', 'bird', 'butterfly', 'frog', 'squirrel', 'snake', 'turtle', 'rabbit', 'fish', 'bee', 'spider'].includes(b.id)),
+            'Nature & Scenery': badgeStats.filter(b => ['waterfall', 'mushroom', 'wildflower', 'treeclimb', 'pinecone', 'rock', 'feather', 'stream', 'cave', 'bridge', 'sunset', 'sunrise', 'rainbow', 'fog', 'snow', 'rain', 'acorn', 'leaf', 'stick', 'tracks', 'berries', 'nest', 'fossil', 'crystal', 'clouds', 'wind', 'moon'].includes(b.id)),
+            'Locations': badgeStats.filter(b => b.type === 'location'),
+            'Activities & Challenges': badgeStats.filter(b => b.type === 'special')
+          };
+          
+          const selectableActivities = BADGES.filter(b => 
+            b.type === 'discovery' || b.type === 'location' || b.type === 'special'
+          );
+
+          if (loading) {
+            return (
+              <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
+                <div className="text-2xl text-green-600">Loading...</div>
+              </div>
+            );
+          }
+
+          if (showSetup) {
+            if (setupStep === 'family') {
+              return (
+                <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+                    <div className="text-center mb-6">
+                      <Mountain className="w-16 h-16 mx-auto mb-4 text-green-600" />
+                      <h1 className="text-3xl font-bold text-green-800 mb-2">Welcome to Hike Together!</h1>
+                      <p className="text-gray-600">Create a family or join an existing one</p>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Create New Family</label>
+                        <input
+                          type="text"
+                          placeholder="Family name (e.g., The Smiths)"
+                          value={newFamilyName}
+                          onChange={(e) => setNewFamilyName(e.target.value)}
+                          className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none"
+                        />
+                        <button
+                          onClick={createFamily}
+                          className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition"
+                        >
+                          Create Family
+                        </button>
+                      </div>
+
+                      <div className="text-center text-gray-500 font-semibold">OR</div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Join Existing Family</label>
+                        <input
+                          type="text"
+                          placeholder="Enter family code"
+                          value={joinCode}
+                          onChange={(e) => setJoinCode(e.target.value)}
+                          className="w-full p-3 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none"
+                        />
+                        <button
+                          onClick={joinFamily}
+                          className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition"
+                        >
+                          Join Family
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            } else {
+              return (
+                <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+                    <div className="text-center mb-6">
+                      <h2 className="text-3xl font-bold text-green-800 mb-2">Create Your Profile</h2>
+                      <p className="text-gray-600">Choose your name and avatar</p>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <input
+                        type="text"
+                        placeholder="Your name"
+                        value={newMemberName}
+                        onChange={(e) => setNewMemberName(e.target.value)}
+                        className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none"
+                      />
+                      
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Choose Avatar</label>
+                        <div className="grid grid-cols-8 gap-2">
+                          {AVATARS.map(avatar => (
+                            <button
+                              key={avatar}
+                              onClick={() => setNewMemberAvatar(avatar)}
+                              className={`text-3xl p-2 rounded-lg border-2 transition ${
+                                newMemberAvatar === avatar ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'
+                              }`}
+                            >
+                              {avatar}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Choose Color</label>
+                        <div className="grid grid-cols-5 gap-2">
+                          {COLORS.map(color => (
+                            <button
+                              key={color}
+                              onClick={() => setNewMemberColor(color)}
+                              className={`h-12 rounded-lg border-2 transition ${
+                                newMemberColor === color ? 'border-gray-800 scale-110' : 'border-gray-200'
+                              }`}
+                              style={{ backgroundColor: color }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={createMember}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition mt-6"
+                      >
+                        Start Hiking!
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+          }
+
+          return (
+            <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-4">
+              {selectedBadge && <BadgeModal badge={selectedBadge} onClose={() => setSelectedBadge(null)} />}
+              
+              <div className="max-w-4xl mx-auto">
+                <div className="text-center mb-6">
+                  <h1 className="text-4xl font-bold text-green-800 mb-2 flex items-center justify-center gap-2">
+                    <Mountain />
+                    Hike Together
+                  </h1>
+                  <p className="text-green-600 mb-3">{familyName}</p>
+                  
+                  <div className="flex gap-2 justify-center items-center flex-wrap">
+                    {currentMember && (
+                      <button
+                        onClick={() => setShowMemberMenu(!showMemberMenu)}
+                        className="px-4 py-2 rounded-lg shadow-md font-semibold text-white transition hover:shadow-lg flex items-center gap-2"
+                        style={{ backgroundColor: currentMember.color }}
+                      >
+                        <span className="text-2xl">{currentMember.avatar}</span>
+                        {currentMember.name}
+                      </button>
+                    )}
+                    
+                    <button
+                      onClick={copyFamilyCode}
+                      className="bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition flex items-center gap-2"
+                      title="Share family code"
+                    >
+                      <Copy />
+                      Share Code
+                    </button>
+                  </div>
+
+                  {showMemberMenu && (
+                    <div className="mt-4 bg-white rounded-lg shadow-xl p-4 inline-block">
+                      <h3 className="font-semibold text-gray-700 mb-3">Switch Profile</h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        {members.map(member => (
+                          <button
+                            key={member.id}
+                            onClick={() => switchMember(member)}
+                            className={`p-3 rounded-lg border-2 transition flex items-center gap-2 ${
+                              currentMember.id === member.id ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            <span className="text-2xl">{member.avatar}</span>
+                            <span className="font-medium">{member.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => { setSetupStep('member'); setShowSetup(true); setShowMemberMenu(false); }}
+                        className="w-full mt-3 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 rounded-lg transition"
+                      >
+                        + Add Family Member
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                  <div className="bg-white rounded-lg shadow-md p-6 text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 mx-auto mb-2 text-green-600">
+                      <path d="m8 3 4 8 5-5 5 15H2L8 3z"/>
+                    </svg>
+                    <div className="text-3xl font-bold text-green-800">{memberHikes.length}</div>
+                    <div className="text-gray-600 text-sm">Total Hikes</div>
+                  </div>
+                  <div className="bg-white rounded-lg shadow-md p-6 text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 mx-auto mb-2 text-blue-600">
+                      <path d="M5 12h14"/>
+                      <path d="m12 5 7 7-7 7"/>
+                    </svg>
+                    <div className="text-3xl font-bold text-blue-800">{totalDistance.toFixed(1)}</div>
+                    <div className="text-gray-600 text-sm">Miles Hiked</div>
+                  </div>
+                  <div className="bg-white rounded-lg shadow-md p-6 text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 mx-auto mb-2 text-purple-600">
+                      <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
+                      <polyline points="16 7 22 7 22 13"/>
+                    </svg>
+                    <div className="text-3xl font-bold text-purple-800">{totalElevation.toLocaleString()}</div>
+                    <div className="text-gray-600 text-sm">Feet Climbed</div>
+                  </div>
+                  <div className="bg-white rounded-lg shadow-md p-6 text-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 mx-auto mb-2 text-yellow-600">
+                      <circle cx="12" cy="8" r="6"/>
+                      <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+                    </svg>
+                    <div className="text-3xl font-bold text-yellow-800">{earnedBadges.length}</div>
+                    <div className="text-gray-600 text-sm">Badges Earned</div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                  <h2 className="text-2xl font-bold text-green-800 mb-6 flex items-center gap-2">
+                    <Award />
+                    Achievement Badges ({earnedBadges.length}/{BADGES.length})
+                  </h2>
+                  
+                  {earnedBadges.length > 0 && (
+                    <div className="mb-8">
+                      <h3 className="text-xl font-semibold text-green-700 mb-4 pb-2 border-b-2 border-green-200">🎉 Earned Badges</h3>
+                      
+                      {Object.entries(badgeCategories).map(([category, badges]) => {
+                        const earnedInCategory = badges.filter(b => b.earned);
+                        if (earnedInCategory.length === 0) return null;
+                        
+                        return (
+                          <div key={category} className="mb-6">
+                            <h4 className="text-md font-semibold text-green-600 mb-3">{category}</h4>
+                            <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 pl-4">
+                              {earnedInCategory.map(badge => (
+                                <div
+                                  key={badge.id}
+                                  className="text-center p-3 rounded-lg bg-yellow-50 border-2 border-yellow-400 relative cursor-pointer hover:shadow-lg transition group"
+                                  onClick={() => setSelectedBadge(badge)}
+                                >
+                                  <div className="text-3xl mb-1">{badge.icon}</div>
+                                  <div className="font-semibold text-xs leading-tight break-words overflow-hidden" style={{minHeight: '2.5rem'}}>{badge.name}</div>
+                                  {badge.count > 0 && badge.type !== 'count' && (
+                                    <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                                      {badge.count}
+                                    </div>
+                                  )}
+                                  <div className="absolute top-1 right-1 bg-green-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">?</div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-700 mb-4 pb-2 border-b-2 border-gray-200">🔒 Locked Badges</h3>
+                    
+                    {Object.entries(badgeCategories).map(([category, badges]) => {
+                      const lockedInCategory = badges.filter(b => !b.earned);
+                      if (lockedInCategory.length === 0) return null;
+                      
+                      return (
+                        <div key={category} className="mb-6">
+                          <h4 className="text-md font-semibold text-gray-600 mb-3">{category}</h4>
+                          <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 pl-4">
+                            {lockedInCategory.map(badge => (
+                              <div
+                                key={badge.id}
+                                className="text-center p-3 rounded-lg bg-gray-50 border-2 border-gray-200 opacity-50 relative cursor-pointer hover:opacity-70 transition group"
+                                onClick={() => setSelectedBadge(badge)}
+                              >
+                                <div className="text-3xl mb-1">{badge.icon}</div>
+                                <div className="font-semibold text-xs leading-tight break-words overflow-hidden" style={{minHeight: '2.5rem'}}>{badge.name}</div>
+                                <div className="absolute top-1 right-1 bg-gray-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">?</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowForm(!showForm)}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg shadow-lg mb-6 flex items-center justify-center gap-2 transition"
+                >
+                  <Plus />
+                  Add New Hike
+                </button>
+
+                {showForm && (
+                  <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <h2 className="text-2xl font-bold text-green-800 mb-4">Record Your Adventure</h2>
+                    <div className="space-y-4">
+                      <input type="text" placeholder="Hike Name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none" />
+                      <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none" />
+                      <input type="number" step="0.1" placeholder="Distance (miles)" value={formData.distance} onChange={(e) => setFormData({ ...formData, distance: e.target.value })} className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none" />
+                      <input type="number" placeholder="Elevation Gain (feet, optional)" value={formData.elevation} onChange={(e) => setFormData({ ...formData, elevation: e.target.value })} className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none" />
+                      <input type="text" placeholder="Location (optional)" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none" />
+                      <textarea placeholder="Notes" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none h-24" />
+                      
+                      <div className="border-2 border-green-200 rounded-lg p-4">
+                        <h3 className="font-semibold text-green-800 mb-2">🏆 What did you do/see?</h3>
+                        <p className="text-sm text-gray-600 mb-3">Select everything you experienced!</p>
+                        
+                        {[
+                          { title: 'Wildlife & Creatures', ids: ['wildlife', 'bird', 'butterfly', 'frog', 'squirrel', 'snake', 'turtle', 'rabbit', 'fish', 'bee', 'spider'] },
+                          { title: 'Nature & Scenery', ids: ['waterfall', 'mushroom', 'wildflower', 'treeclimb', 'pinecone', 'rock', 'feather', 'stream', 'cave', 'bridge', 'sunset', 'sunrise', 'rainbow', 'fog', 'snow', 'rain', 'acorn', 'leaf', 'stick', 'tracks', 'berries', 'nest', 'fossil', 'crystal', 'clouds', 'wind', 'moon'] },
+                          { title: 'Locations', type: 'location' },
+                          { title: 'Activities & Challenges', type: 'special' }
+                        ].map(section => (
+                          <div key={section.title} className="mb-4">
+                            <h4 className="text-xs font-semibold text-gray-600 mb-2">{section.title}</h4>
+                            <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                              {selectableActivities.filter(b => section.type ? b.type === section.type : section.ids.includes(b.id)).map(badge => {
+                                const selected = formData.activities.includes(badge.id);
+                                return (
+                                  <button
+                                    key={badge.id}
+                                    type="button"
+                                    onClick={() => toggleActivity(badge.id)}
+                                    className={`p-2 rounded-lg border-2 transition transform ${selected ? 'bg-yellow-50 border-yellow-400 scale-105 shadow-md' : 'bg-white border-gray-200 hover:border-green-300 hover:shadow'}`}
+                                    title={badge.desc}
+                                  >
+                                    <div className="text-2xl mb-1">{badge.icon}</div>
+                                    <div className="text-xs font-medium leading-tight break-words" style={{minHeight: '2rem'}}>{badge.name}</div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <button onClick={saveHike} className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition">Save Hike</button>
+                        <button onClick={() => setShowForm(false)} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 rounded-lg transition">Cancel</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <h2 className="text-2xl font-bold text-green-800 mb-4">Hiking Journey</h2>
+                  {memberHikes.length === 0 ? (
+                    <div className="bg-white rounded-lg shadow-md p-8 text-center text-gray-500">
+                      <Mountain className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                      <p className="text-xl">No hikes yet!</p>
+                      <p className="mt-2">Add your first hike above.</p>
+                    </div>
+                  ) : (
+                    memberHikes.map(hike => (
+                      <div key={hike.id} className="bg-white rounded-lg shadow-md p-6">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-2xl">{hike.hikerAvatar}</span>
+                              <h3 className="text-xl font-bold text-green-800">{hike.name}</h3>
+                            </div>
+                            <div className="flex items-center gap-4 text-gray-600 text-sm">
+                              <span className="flex items-center gap-1">
+                                <Calendar />
+                                {new Date(hike.date).toLocaleDateString()}
+                              </span>
+                              {hike.location && (
+                                <span className="flex items-center gap-1">
+                                  <MapPin />
+                                  {hike.location}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <button onClick={() => deleteHike(hike.id)} className="text-red-500 hover:text-red-700 text-sm">Delete</button>
+                        </div>
+                        <div className="flex gap-4 mb-3">
+                          <div className="bg-blue-50 px-4 py-2 rounded-lg">
+                            <div className="text-blue-800 font-bold">{hike.distance} mi</div>
+                            <div className="text-blue-600 text-sm">Distance</div>
+                          </div>
+                          {hike.elevation > 0 && (
+                            <div className="bg-purple-50 px-4 py-2 rounded-lg">
+                              <div className="text-purple-800 font-bold">{hike.elevation} ft</div>
+                              <div className="text-purple-600 text-sm">Elevation</div>
+                            </div>
+                          )}
+                        </div>
+                        {hike.notes && <p className="text-gray-700 bg-gray-50 p-3 rounded-lg mb-3">{hike.notes}</p>}
+                        {hike.activities && hike.activities.length > 0 && (
+                          <div className="mt-3">
+                            <div className="text-sm font-semibold text-gray-700 mb-2">Badges Earned:</div>
+                            <div className="flex flex-wrap gap-2">
+                              {hike.activities.map(activityId => {
+                                const badge = BADGES.find(b => b.id === activityId);
+                                return badge ? (
+                                  <div key={activityId} className="bg-yellow-50 border-2 border-yellow-400 rounded-lg px-3 py-1 flex items-center gap-2">
+                                    <span className="text-xl">{badge.icon}</span>
+                                    <span className="text-sm font-medium">{badge.name}</span>
+                                  </div>
+                                ) : null;
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hike Together</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
@@ -20,56 +569,39 @@
     <div id="root"></div>
 
     <script type="text/babel">
+     const firebaseConfig = {
+  apiKey: "AIzaSyDS6292P80pBlZ-rMVOAEwHfFEGo9RDDrk",
+  authDomain: "hike-together-app.firebaseapp.com",
+  projectId: "hike-together-app",
+  storageBucket: "hike-together-app.firebasestorage.app",
+  messagingSenderId: "773950556723",
+  appId: "1:773950556723:web:36b9faae2ec3ceaeaa7146",
+  measurementId: "G-WXFDKVVEER"
+};
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
         const { useState, useEffect } = React;
 
-        const Mountain = () => (
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m8 3 4 8 5-5 5 15H2L8 3z"/>
-            </svg>
-        );
+        const AVATARS = ['👨', '👩', '👦', '👧', '🧒', '👶', '🧑', '👴', '👵', '🐶', '🐱', '🐻', '🦊', '🦁', '🐯', '🦄', '🐼', '🐨', '🐸', '🦋'];
+        const COLORS = ['#4CAF50', '#2196F3', '#FF9800', '#E91E63', '#9C27B0', '#00BCD4', '#FF5722', '#795548', '#607D8B', '#3F51B5'];
 
-        const Award = () => (
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="8" r="6"/>
-                <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
-            </svg>
-        );
-
-        const Calendar = () => (
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
-                <line x1="16" x2="16" y1="2" y2="6"/>
-                <line x1="8" x2="8" y1="2" y2="6"/>
-                <line x1="3" x2="21" y1="10" y2="10"/>
-            </svg>
-        );
-
-        const MapPin = () => (
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
-                <circle cx="12" cy="10" r="3"/>
-            </svg>
-        );
-
-        const Plus = () => (
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14"/>
-                <path d="M12 5v14"/>
-            </svg>
-        );
+        const Mountain = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>;
+        const Award = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>;
+        const Calendar = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>;
+        const MapPin = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>;
+        const Plus = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>;
+        const Users = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+        const Copy = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>;
 
         const BadgeModal = ({ badge, onClose }) => {
           if (!badge) return null;
-          
           return (
-            <div 
-              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-              onClick={onClose}
-            >
-              <div 
-                className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl"
-                onClick={(e) => e.stopPropagation()}
-              >
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+              <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
                 <div className="text-center">
                   <div className="text-6xl mb-4">{badge.icon}</div>
                   <h3 className="text-2xl font-bold text-green-800 mb-2">{badge.name}</h3>
@@ -83,17 +615,10 @@
                   )}
                   {badge.earned && badge.count > 0 && (
                     <div className="bg-yellow-50 rounded-lg p-3 mb-4">
-                      <p className="text-sm font-semibold text-yellow-800">
-                        ✨ Achieved {badge.count} time{badge.count !== 1 ? 's' : ''}!
-                      </p>
+                      <p className="text-sm font-semibold text-yellow-800">✨ Achieved {badge.count} time{badge.count !== 1 ? 's' : ''}!</p>
                     </div>
                   )}
-                  <button
-                    onClick={onClose}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition"
-                  >
-                    Close
-                  </button>
+                  <button onClick={onClose} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition">Close</button>
                 </div>
               </div>
             </div>
@@ -209,10 +734,23 @@
           { id: 'meditation', name: 'Trail Zen', icon: '🧘', type: 'special', desc: 'Meditate in nature' },
         ];
 
-        function FamilyHikeTracker() {
+        function App() {
+          const [user, setUser] = useState(null);
+          const [familyId, setFamilyId] = useState(null);
+          const [familyName, setFamilyName] = useState('');
+          const [members, setMembers] = useState([]);
+          const [currentMember, setCurrentMember] = useState(null);
           const [hikes, setHikes] = useState([]);
-          const [showForm, setShowForm] = useState(false);
           const [loading, setLoading] = useState(true);
+          const [showSetup, setShowSetup] = useState(false);
+          const [setupStep, setSetupStep] = useState('family'); // 'family' or 'member'
+          const [newFamilyName, setNewFamilyName] = useState('');
+          const [joinCode, setJoinCode] = useState('');
+          const [newMemberName, setNewMemberName] = useState('');
+          const [newMemberAvatar, setNewMemberAvatar] = useState('👦');
+          const [newMemberColor, setNewMemberColor] = useState('#4CAF50');
+          const [showMemberMenu, setShowMemberMenu] = useState(false);
+          const [showForm, setShowForm] = useState(false);
           const [selectedBadge, setSelectedBadge] = useState(null);
           const [formData, setFormData] = useState({
             name: '',
@@ -225,559 +763,97 @@
           });
 
           useEffect(() => {
-            loadHikes();
+            const unsubscribe = auth.onAuthStateChanged(async (user) => {
+              if (user) {
+                setUser(user);
+                const storedFamilyId = localStorage.getItem('familyId');
+                const storedMemberId = localStorage.getItem('currentMemberId');
+                
+                if (storedFamilyId) {
+                  await loadFamily(storedFamilyId, storedMemberId);
+                } else {
+                  setShowSetup(true);
+                  setLoading(false);
+                }
+              } else {
+                await auth.signInAnonymously();
+              }
+            });
+            return unsubscribe;
           }, []);
 
-          const loadHikes = () => {
+          const loadFamily = async (famId, memberId) => {
             try {
-              const savedHikes = localStorage.getItem('familyHikes');
-              if (savedHikes) {
-                const loadedHikes = JSON.parse(savedHikes);
-                setHikes(loadedHikes.sort((a, b) => new Date(b.date) - new Date(a.date)));
+              setFamilyId(famId);
+              const familyDoc = await db.collection('families').doc(famId).get();
+              if (familyDoc.exists) {
+                setFamilyName(familyDoc.data().name);
+              }
+
+              const membersSnap = await db.collection('families').doc(famId).collection('members').get();
+              const membersList = membersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+              setMembers(membersList);
+
+              if (memberId && membersList.find(m => m.id === memberId)) {
+                setCurrentMember(membersList.find(m => m.id === memberId));
+              } else if (membersList.length > 0) {
+                setCurrentMember(membersList[0]);
+                localStorage.setItem('currentMemberId', membersList[0].id);
+              }
+
+              db.collection('families').doc(famId).collection('hikes').orderBy('date', 'desc')
+                .onSnapshot(snapshot => {
+                  setHikes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                });
+
+              setLoading(false);
+            } catch (error) {
+              console.error('Error loading family:', error);
+              setLoading(false);
+            }
+          };
+
+          const createFamily = async () => {
+            if (!newFamilyName.trim()) return;
+            try {
+              const familyRef = db.collection('families').doc();
+              await familyRef.set({
+                name: newFamilyName,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                ownerId: user.uid
+              });
+              localStorage.setItem('familyId', familyRef.id);
+              setFamilyId(familyRef.id);
+              setFamilyName(newFamilyName);
+              setSetupStep('member');
+            } catch (error) {
+              alert('Error creating family: ' + error.message);
+            }
+          };
+
+          const joinFamily = async () => {
+            if (!joinCode.trim()) return;
+            try {
+              const familyDoc = await db.collection('families').doc(joinCode).get();
+              if (familyDoc.exists) {
+                localStorage.setItem('familyId', joinCode);
+                await loadFamily(joinCode, null);
+                setShowSetup(false);
+              } else {
+                alert('Family not found. Check the code and try again.');
               }
             } catch (error) {
-              console.log('Starting fresh');
+              alert('Error joining family: ' + error.message);
             }
-            setLoading(false);
           };
 
-          const saveHike = () => {
-            if (!formData.name || !formData.distance) return;
-
-            const newHike = {
-              ...formData,
-              id: Date.now().toString(),
-              distance: parseFloat(formData.distance),
-              elevation: parseFloat(formData.elevation) || 0,
-              activities: formData.activities || []
-            };
-
-            const updatedHikes = [newHike, ...hikes];
-            setHikes(updatedHikes);
-            localStorage.setItem('familyHikes', JSON.stringify(updatedHikes));
-            
-            setFormData({
-              name: '',
-              date: new Date().toISOString().split('T')[0],
-              distance: '',
-              elevation: '',
-              location: '',
-              notes: '',
-              activities: []
-            });
-            setShowForm(false);
-          };
-
-          const deleteHike = (id) => {
-            const updatedHikes = hikes.filter(h => h.id !== id);
-            setHikes(updatedHikes);
-            localStorage.setItem('familyHikes', JSON.stringify(updatedHikes));
-          };
-
-          const exportData = () => {
-            const dataStr = JSON.stringify(hikes, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(dataBlob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `hike-together-backup-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-          };
-
-          const importData = (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              try {
-                const importedHikes = JSON.parse(e.target.result);
-                if (Array.isArray(importedHikes)) {
-                  const existingIds = new Set(hikes.map(h => h.id));
-                  const newHikes = importedHikes.filter(h => !existingIds.has(h.id));
-                  const mergedHikes = [...hikes, ...newHikes].sort((a, b) => new Date(b.date) - new Date(a.date));
-                  
-                  setHikes(mergedHikes);
-                  localStorage.setItem('familyHikes', JSON.stringify(mergedHikes));
-                  alert(`Successfully imported ${newHikes.length} new hike(s)!`);
-                } else {
-                  alert('Invalid file format.');
-                }
-              } catch (error) {
-                alert('Error reading file.');
-              }
-            };
-            reader.readAsText(file);
-            event.target.value = '';
-          };
-
-          const triggerImport = () => {
-            document.getElementById('importFile').click();
-          };
-
-          const toggleActivity = (activityId) => {
-            const newActivities = formData.activities.includes(activityId)
-              ? formData.activities.filter(id => id !== activityId)
-              : [...formData.activities, activityId];
-            setFormData({ ...formData, activities: newActivities });
-          };
-
-          const totalDistance = hikes.reduce((sum, h) => sum + h.distance, 0);
-          const totalElevation = hikes.reduce((sum, h) => sum + h.elevation, 0);
-          
-          const activityCounts = {};
-          hikes.forEach(hike => {
-            if (hike.activities) {
-              hike.activities.forEach(activityId => {
-                activityCounts[activityId] = (activityCounts[activityId] || 0) + 1;
+          const createMember = async () => {
+            if (!newMemberName.trim()) return;
+            try {
+              const memberRef = await db.collection('families').doc(familyId).collection('members').add({
+                name: newMemberName,
+                avatar: newMemberAvatar,
+                color: newMemberColor,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
               });
-            }
-          });
-          
-          const badgeStats = BADGES.map(badge => {
-            let earned = false;
-            let count = 0;
-            
-            if (badge.type === 'count') {
-              earned = hikes.length >= badge.requirement;
-              count = hikes.length;
-            } else if (badge.type === 'distance') {
-              earned = totalDistance >= badge.requirement;
-              count = Math.floor(totalDistance);
-            } else if (badge.type === 'elevation') {
-              earned = totalElevation >= badge.requirement;
-              count = Math.floor(totalElevation);
-            } else {
-              count = activityCounts[badge.id] || 0;
-              earned = count > 0;
-            }
-            
-            return { ...badge, earned, count };
-          });
-          
-          const earnedBadges = badgeStats.filter(b => b.earned);
-          
-          const badgeCategories = {
-            'Milestones': badgeStats.filter(b => b.type === 'count' || b.type === 'distance' || b.type === 'elevation'),
-            'Wildlife & Creatures': badgeStats.filter(b => ['wildlife', 'bird', 'butterfly', 'frog', 'squirrel', 'snake', 'turtle', 'rabbit', 'fish', 'bee', 'spider'].includes(b.id)),
-            'Nature & Scenery': badgeStats.filter(b => ['waterfall', 'mushroom', 'wildflower', 'treeclimb', 'pinecone', 'rock', 'feather', 'stream', 'cave', 'bridge', 'sunset', 'sunrise', 'rainbow', 'fog', 'snow', 'rain', 'acorn', 'leaf', 'stick', 'tracks', 'berries', 'nest', 'fossil', 'crystal', 'clouds', 'wind', 'moon'].includes(b.id)),
-            'Locations': badgeStats.filter(b => b.type === 'location'),
-            'Activities & Challenges': badgeStats.filter(b => b.type === 'special')
-          };
-          
-          const selectableActivities = BADGES.filter(b => 
-            b.type === 'discovery' || b.type === 'location' || b.type === 'special'
-          );
-
-          if (loading) {
-            return (
-              <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center">
-                <div className="text-2xl text-green-600">Loading adventures...</div>
-              </div>
-            );
-          }
-
-          return (
-            <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-4">
-              {selectedBadge && (
-                <BadgeModal 
-                  badge={selectedBadge} 
-                  onClose={() => setSelectedBadge(null)} 
-                />
-              )}
-              
-              <div className="max-w-4xl mx-auto">
-                <div className="text-center mb-8">
-                  <h1 className="text-4xl font-bold text-green-800 mb-2 flex items-center justify-center gap-2">
-                    <Mountain />
-                    Hike Together
-                  </h1>
-                  <p className="text-green-600">Track your amazing outdoor journeys!</p>
-                  
-                  <div className="flex gap-2 justify-center mt-4">
-                    <button
-                      onClick={exportData}
-                      className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition flex items-center gap-2"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="7 10 12 15 17 10"/>
-                        <line x1="12" x2="12" y1="15" y2="3"/>
-                      </svg>
-                      Download Backup
-                    </button>
-                    <button
-                      onClick={triggerImport}
-                      className="bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold py-2 px-4 rounded-lg shadow transition flex items-center gap-2"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="17 8 12 3 7 8"/>
-                        <line x1="12" x2="12" y1="3" y2="15"/>
-                      </svg>
-                      Restore Backup
-                    </button>
-                    <input
-                      id="importFile"
-                      type="file"
-                      accept=".json"
-                      onChange={importData}
-                      style={{ display: 'none' }}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                  <div className="bg-white rounded-lg shadow-md p-6 text-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 mx-auto mb-2 text-green-600">
-                      <path d="m8 3 4 8 5-5 5 15H2L8 3z"/>
-                    </svg>
-                    <div className="text-3xl font-bold text-green-800">{hikes.length}</div>
-                    <div className="text-gray-600 text-sm">Total Hikes</div>
-                  </div>
-                  <div className="bg-white rounded-lg shadow-md p-6 text-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 mx-auto mb-2 text-blue-600">
-                      <path d="M5 12h14"/>
-                      <path d="m12 5 7 7-7 7"/>
-                    </svg>
-                    <div className="text-3xl font-bold text-blue-800">{totalDistance.toFixed(1)}</div>
-                    <div className="text-gray-600 text-sm">Miles Hiked</div>
-                  </div>
-                  <div className="bg-white rounded-lg shadow-md p-6 text-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 mx-auto mb-2 text-purple-600">
-                      <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
-                      <polyline points="16 7 22 7 22 13"/>
-                    </svg>
-                    <div className="text-3xl font-bold text-purple-800">{totalElevation.toLocaleString()}</div>
-                    <div className="text-gray-600 text-sm">Feet Climbed</div>
-                  </div>
-                  <div className="bg-white rounded-lg shadow-md p-6 text-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 mx-auto mb-2 text-yellow-600">
-                      <circle cx="12" cy="8" r="6"/>
-                      <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
-                    </svg>
-                    <div className="text-3xl font-bold text-yellow-800">{earnedBadges.length}</div>
-                    <div className="text-gray-600 text-sm">Badges Earned</div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                  <h2 className="text-2xl font-bold text-green-800 mb-6 flex items-center gap-2">
-                    <Award />
-                    Achievement Badges ({earnedBadges.length}/{BADGES.length})
-                  </h2>
-                  
-                  {earnedBadges.length > 0 && (
-                    <div className="mb-8">
-                      <h3 className="text-xl font-semibold text-green-700 mb-4 pb-2 border-b-2 border-green-200">🎉 Earned Badges</h3>
-                      
-                      {Object.entries(badgeCategories).map(([category, badges]) => {
-                        const earnedInCategory = badges.filter(b => b.earned);
-                        if (earnedInCategory.length === 0) return null;
-                        
-                        return (
-                          <div key={category} className="mb-6">
-                            <h4 className="text-md font-semibold text-green-600 mb-3">{category}</h4>
-                            <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 pl-4">
-                              {earnedInCategory.map(badge => (
-                                <div
-                                  key={badge.id}
-                                  className="text-center p-3 rounded-lg bg-yellow-50 border-2 border-yellow-400 relative cursor-pointer hover:shadow-lg transition group"
-                                  onClick={() => setSelectedBadge(badge)}
-                                >
-                                  <div className="text-3xl mb-1">{badge.icon}</div>
-                                  <div className="font-semibold text-xs leading-tight break-words overflow-hidden" style={{minHeight: '2.5rem'}}>{badge.name}</div>
-                                  {badge.count > 0 && badge.type !== 'count' && (
-                                    <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
-                                      {badge.count}
-                                    </div>
-                                  )}
-                                  <div className="absolute top-1 right-1 bg-green-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">
-                                    ?
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-700 mb-4 pb-2 border-b-2 border-gray-200">🔒 Locked Badges</h3>
-                    
-                    {Object.entries(badgeCategories).map(([category, badges]) => {
-                      const lockedInCategory = badges.filter(b => !b.earned);
-                      if (lockedInCategory.length === 0) return null;
-                      
-                      return (
-                        <div key={category} className="mb-6">
-                          <h4 className="text-md font-semibold text-gray-600 mb-3">{category}</h4>
-                          <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 pl-4">
-                            {lockedInCategory.map(badge => (
-                              <div
-                                key={badge.id}
-                                className="text-center p-3 rounded-lg bg-gray-50 border-2 border-gray-200 opacity-50 relative cursor-pointer hover:opacity-70 transition group"
-                                onClick={() => setSelectedBadge(badge)}
-                              >
-                                <div className="text-3xl mb-1">{badge.icon}</div>
-                                <div className="font-semibold text-xs leading-tight break-words overflow-hidden" style={{minHeight: '2.5rem'}}>{badge.name}</div>
-                                <div className="absolute top-1 right-1 bg-gray-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">
-                                  ?
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setShowForm(!showForm)}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg shadow-lg mb-6 flex items-center justify-center gap-2 transition"
-                >
-                  <Plus />
-                  Add New Hike
-                </button>
-
-                {showForm && (
-                  <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                    <h2 className="text-2xl font-bold text-green-800 mb-4">Record Your Adventure</h2>
-                    <div className="space-y-4">
-                      <input
-                        type="text"
-                        placeholder="Hike Name (e.g., Sunset Trail)"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none"
-                      />
-                      <input
-                        type="date"
-                        value={formData.date}
-                        onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                        className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none"
-                      />
-                      <input
-                        type="number"
-                        step="0.1"
-                        placeholder="Distance (miles)"
-                        value={formData.distance}
-                        onChange={(e) => setFormData({ ...formData, distance: e.target.value })}
-                        className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none"
-                      />
-                      <input
-                        type="number"
-                        placeholder="Elevation Gain (feet, optional)"
-                        value={formData.elevation}
-                        onChange={(e) => setFormData({ ...formData, elevation: e.target.value })}
-                        className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Location (optional)"
-                        value={formData.location}
-                        onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                        className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none"
-                      />
-                      <textarea
-                        placeholder="Notes about your adventure (optional)"
-                        value={formData.notes}
-                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                        className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none h-24"
-                      />
-                      
-                      <div className="border-2 border-green-200 rounded-lg p-4">
-                        <h3 className="font-semibold text-green-800 mb-2">🏆 What did you do/see on this hike?</h3>
-                        <p className="text-sm text-gray-600 mb-3">Select everything you experienced!</p>
-                        
-                        <div className="mb-4">
-                          <h4 className="text-xs font-semibold text-gray-600 mb-2">Wildlife & Creatures</h4>
-                          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-                            {selectableActivities.filter(b => ['wildlife', 'bird', 'butterfly', 'frog', 'squirrel', 'snake', 'turtle', 'rabbit', 'fish', 'bee', 'spider'].includes(b.id)).map(badge => {
-                              const selected = formData.activities.includes(badge.id);
-                              return (
-                                <button
-                                  key={badge.id}
-                                  type="button"
-                                  onClick={() => toggleActivity(badge.id)}
-                                  className={`p-2 rounded-lg border-2 transition transform ${selected ? 'bg-yellow-50 border-yellow-400 scale-105 shadow-md' : 'bg-white border-gray-200 hover:border-green-300 hover:shadow'}`}
-                                  title={badge.desc}
-                                >
-                                  <div className="text-2xl mb-1">{badge.icon}</div>
-                                  <div className="text-xs font-medium leading-tight break-words" style={{minHeight: '2rem'}}>{badge.name}</div>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                        
-                        <div className="mb-4">
-                          <h4 className="text-xs font-semibold text-gray-600 mb-2">Nature & Scenery</h4>
-                          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-                            {selectableActivities.filter(b => ['waterfall', 'mushroom', 'wildflower', 'treeclimb', 'pinecone', 'rock', 'feather', 'stream', 'cave', 'bridge', 'sunset', 'sunrise', 'rainbow', 'fog', 'snow', 'rain', 'acorn', 'leaf', 'stick', 'tracks', 'berries', 'nest', 'fossil', 'crystal', 'clouds', 'wind', 'moon'].includes(b.id)).map(badge => {
-                              const selected = formData.activities.includes(badge.id);
-                              return (
-                                <button
-                                  key={badge.id}
-                                  type="button"
-                                  onClick={() => toggleActivity(badge.id)}
-                                  className={`p-2 rounded-lg border-2 transition transform ${selected ? 'bg-yellow-50 border-yellow-400 scale-105 shadow-md' : 'bg-white border-gray-200 hover:border-green-300 hover:shadow'}`}
-                                  title={badge.desc}
-                                >
-                                  <div className="text-2xl mb-1">{badge.icon}</div>
-                                  <div className="text-xs font-medium leading-tight break-words" style={{minHeight: '2rem'}}>{badge.name}</div>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                        
-                        <div className="mb-4">
-                          <h4 className="text-xs font-semibold text-gray-600 mb-2">Locations</h4>
-                          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-                            {selectableActivities.filter(b => b.type === 'location').map(badge => {
-                              const selected = formData.activities.includes(badge.id);
-                              return (
-                                <button
-                                  key={badge.id}
-                                  type="button"
-                                  onClick={() => toggleActivity(badge.id)}
-                                  className={`p-2 rounded-lg border-2 transition transform ${selected ? 'bg-yellow-50 border-yellow-400 scale-105 shadow-md' : 'bg-white border-gray-200 hover:border-green-300 hover:shadow'}`}
-                                  title={badge.desc}
-                                >
-                                  <div className="text-2xl mb-1">{badge.icon}</div>
-                                  <div className="text-xs font-medium leading-tight break-words" style={{minHeight: '2rem'}}>{badge.name}</div>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <h4 className="text-xs font-semibold text-gray-600 mb-2">Activities & Challenges</h4>
-                          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-                            {selectableActivities.filter(b => b.type === 'special').map(badge => {
-                              const selected = formData.activities.includes(badge.id);
-                              return (
-                                <button
-                                  key={badge.id}
-                                  type="button"
-                                  onClick={() => toggleActivity(badge.id)}
-                                  className={`p-2 rounded-lg border-2 transition transform ${selected ? 'bg-yellow-50 border-yellow-400 scale-105 shadow-md' : 'bg-white border-gray-200 hover:border-green-300 hover:shadow'}`}
-                                  title={badge.desc}
-                                >
-                                  <div className="text-2xl mb-1">{badge.icon}</div>
-                                  <div className="text-xs font-medium leading-tight break-words" style={{minHeight: '2rem'}}>{badge.name}</div>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <button
-                          onClick={saveHike}
-                          className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition"
-                        >
-                          Save Hike
-                        </button>
-                        <button
-                          onClick={() => setShowForm(false)}
-                          className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 rounded-lg transition"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="space-y-4">
-                  <h2 className="text-2xl font-bold text-green-800 mb-4">Your Hiking Journey</h2>
-                  {hikes.length === 0 ? (
-                    <div className="bg-white rounded-lg shadow-md p-8 text-center text-gray-500">
-                      <Mountain className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                      <p className="text-xl">No hikes recorded yet!</p>
-                      <p className="mt-2">Click "Add New Hike" to start your adventure log.</p>
-                    </div>
-                  ) : (
-                    hikes.map(hike => (
-                      <div key={hike.id} className="bg-white rounded-lg shadow-md p-6">
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <h3 className="text-xl font-bold text-green-800">{hike.name}</h3>
-                            <div className="flex items-center gap-4 text-gray-600 text-sm mt-1">
-                              <span className="flex items-center gap-1">
-                                <Calendar />
-                                {new Date(hike.date).toLocaleDateString()}
-                              </span>
-                              {hike.location && (
-                                <span className="flex items-center gap-1">
-                                  <MapPin />
-                                  {hike.location}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => deleteHike(hike.id)}
-                            className="text-red-500 hover:text-red-700 text-sm"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                        <div className="flex gap-4 mb-3">
-                          <div className="bg-blue-50 px-4 py-2 rounded-lg">
-                            <div className="text-blue-800 font-bold">{hike.distance} mi</div>
-                            <div className="text-blue-600 text-sm">Distance</div>
-                          </div>
-                          {hike.elevation > 0 && (
-                            <div className="bg-purple-50 px-4 py-2 rounded-lg">
-                              <div className="text-purple-800 font-bold">{hike.elevation} ft</div>
-                              <div className="text-purple-600 text-sm">Elevation</div>
-                            </div>
-                          )}
-                        </div>
-                        {hike.notes && (
-                          <p className="text-gray-700 bg-gray-50 p-3 rounded-lg mb-3">{hike.notes}</p>
-                        )}
-                        {hike.activities && hike.activities.length > 0 && (
-                          <div className="mt-3">
-                            <div className="text-sm font-semibold text-gray-700 mb-2">Badges Earned on This Hike:</div>
-                            <div className="flex flex-wrap gap-2">
-                              {hike.activities.map(activityId => {
-                                const badge = BADGES.find(b => b.id === activityId);
-                                return badge ? (
-                                  <div
-                                    key={activityId}
-                                    className="bg-yellow-50 border-2 border-yellow-400 rounded-lg px-3 py-1 flex items-center gap-2"
-                                    title={badge.desc}
-                                  >
-                                    <span className="text-xl">{badge.icon}</span>
-                                    <span className="text-sm font-medium">{badge.name}</span>
-                                  </div>
-                                ) : null;
-                              })}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        }
-
-        ReactDOM.render(<FamilyHikeTracker />, document.getElementById('root'));
-    </script>
-</body>
-</html>
+              const newMember
