@@ -186,6 +186,23 @@
         const MapComponent = ({ hikes, currentMember }) => {
           const mapRef = React.useRef(null);
           const mapInstanceRef = React.useRef(null);
+          const [draggingHike, setDraggingHike] = React.useState(null);
+          
+          const updateHikeLocation = async (hikeId, newLat, newLng) => {
+            try {
+              const user = firebase.auth().currentUser;
+              if (!user) return;
+              
+              const familyId = localStorage.getItem('familyId');
+              await firebase.firestore().collection('families').doc(familyId).collection('hikes').doc(hikeId).update({
+                lat: newLat,
+                lng: newLng
+              });
+            } catch (error) {
+              console.error('Error updating location:', error);
+              alert('Failed to update marker location');
+            }
+          };
           
           React.useEffect(() => {
             if (!mapRef.current || mapInstanceRef.current) return;
@@ -249,7 +266,21 @@
                 iconAnchor: [15, 15]
               });
               
-              const marker = L.marker([hike.lat, hike.lng], { icon: customIcon }).addTo(map);
+              const marker = L.marker([hike.lat, hike.lng], { 
+                icon: customIcon,
+                draggable: true  // Make marker draggable
+              }).addTo(map);
+              
+              // Handle marker drag events
+              marker.on('dragstart', () => {
+                setDraggingHike(hike.name);
+              });
+              
+              marker.on('dragend', async (e) => {
+                const newPos = e.target.getLatLng();
+                await updateHikeLocation(hike.id, newPos.lat, newPos.lng);
+                setDraggingHike(null);
+              });
               
               const popupContent = `
                 <div style="min-width: 200px;">
@@ -262,6 +293,9 @@
                   ${hike.elevation ? `<div style="margin-bottom: 4px;"><strong>Elevation:</strong> ${hike.elevation} ft</div>` : ''}
                   ${hike.location ? `<div style="margin-bottom: 4px;"><strong>Location:</strong> ${hike.location}</div>` : ''}
                   ${hike.notes ? `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-style: italic; color: #6b7280;">${hike.notes}</div>` : ''}
+                  <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280;">
+                    💡 Drag marker to adjust location
+                  </div>
                 </div>
               `;
               
@@ -279,6 +313,11 @@
           
           return (
             <div>
+              {draggingHike && (
+                <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-lg text-sm mb-4">
+                  📍 Adjusting location for "{draggingHike}"... Release to save new position
+                </div>
+              )}
               {hikesWithCoords.length === 0 ? (
                 <div className="text-center py-12">
                   <MapPin className="w-16 h-16 mx-auto mb-4 text-gray-300" />
@@ -318,6 +357,7 @@
           const [selectedBadge, setSelectedBadge] = useState(null);
           const [activeView, setActiveView] = useState('badges'); // 'badges' or 'map'
           const [geocodingStatus, setGeocodingStatus] = useState('');
+          const [editingHike, setEditingHike] = useState(null); // Track which hike is being edited
           const [formData, setFormData] = useState({
             name: '', date: new Date().toISOString().split('T')[0], distance: '', elevation: '', difficulty: 'easy', location: '', notes: '', activities: []
           });
@@ -421,26 +461,35 @@
           const saveHike = async () => {
             if (!formData.name || !formData.distance || !currentMember) return;
             try {
-              setGeocodingStatus('Saving hike...');
+              setGeocodingStatus(editingHike ? 'Updating hike...' : 'Saving hike...');
               
-              // Geocode location if provided
-              let lat = null, lng = null;
+              // Geocode location if provided and changed
+              let lat = editingHike ? editingHike.lat : null;
+              let lng = editingHike ? editingHike.lng : null;
+              
               if (formData.location && formData.location.trim()) {
-                setGeocodingStatus('Finding location on map...');
-                try {
-                  const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.location)}&limit=1`);
-                  const data = await response.json();
-                  if (data && data.length > 0) {
-                    lat = parseFloat(data[0].lat);
-                    lng = parseFloat(data[0].lon);
+                // Only re-geocode if location changed or no coordinates exist
+                if (!editingHike || formData.location !== editingHike.location || !editingHike.lat) {
+                  setGeocodingStatus('Finding location on map...');
+                  try {
+                    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.location)}&limit=1`);
+                    const data = await response.json();
+                    if (data && data.length > 0) {
+                      lat = parseFloat(data[0].lat);
+                      lng = parseFloat(data[0].lon);
+                    }
+                  } catch (geoError) {
+                    console.log('Geocoding failed:', geoError);
+                    // Continue saving without new coordinates
                   }
-                } catch (geoError) {
-                  console.log('Geocoding failed:', geoError);
-                  // Continue saving without coordinates
                 }
+              } else {
+                // Location cleared, remove coordinates
+                lat = null;
+                lng = null;
               }
 
-              await db.collection('families').doc(familyId).collection('hikes').add({
+              const hikeData = {
                 ...formData, 
                 distance: parseFloat(formData.distance), 
                 elevation: parseFloat(formData.elevation) || 0,
@@ -449,12 +498,23 @@
                 hikerId: currentMember.id, 
                 hikerName: currentMember.name, 
                 hikerAvatar: currentMember.avatar,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-              });
+              };
+
+              if (editingHike) {
+                // Update existing hike
+                await db.collection('families').doc(familyId).collection('hikes').doc(editingHike.id).update(hikeData);
+              } else {
+                // Create new hike
+                await db.collection('families').doc(familyId).collection('hikes').add({
+                  ...hikeData,
+                  createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+              }
               
               setFormData({ name: '', date: new Date().toISOString().split('T')[0], distance: '', elevation: '', difficulty: 'easy', location: '', notes: '', activities: [] });
               setGeocodingStatus('');
               setShowForm(false);
+              setEditingHike(null);
             } catch (error) {
               alert('Error: ' + error.message);
               setGeocodingStatus('');
@@ -467,6 +527,22 @@
             } catch (error) {
               alert('Error: ' + error.message);
             }
+          };
+
+          const editHike = (hike) => {
+            setEditingHike(hike);
+            setFormData({
+              name: hike.name,
+              date: hike.date,
+              distance: hike.distance.toString(),
+              elevation: hike.elevation ? hike.elevation.toString() : '',
+              difficulty: hike.difficulty || 'easy',
+              location: hike.location || '',
+              notes: hike.notes || '',
+              activities: hike.activities || []
+            });
+            setShowForm(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           };
 
           const toggleActivity = (activityId) => {
@@ -496,9 +572,18 @@
           
           const badgeStats = BADGES.map(badge => {
             let earned = false, count = 0;
-            if (badge.type === 'count') { earned = memberHikes.length >= badge.requirement; count = memberHikes.length; }
-            else if (badge.type === 'distance') { earned = totalDistance >= badge.requirement; count = Math.floor(totalDistance); }
-            else if (badge.type === 'elevation') { earned = totalElevation >= badge.requirement; count = Math.floor(totalElevation); }
+            if (badge.type === 'count') { 
+              earned = memberHikes.length >= badge.requirement; 
+              count = badge.milestone ? Math.min(memberHikes.length, badge.requirement) : memberHikes.length;
+            }
+            else if (badge.type === 'distance') { 
+              earned = totalDistance >= badge.requirement; 
+              count = badge.milestone ? Math.min(Math.floor(totalDistance), badge.requirement) : Math.floor(totalDistance);
+            }
+            else if (badge.type === 'elevation') { 
+              earned = totalElevation >= badge.requirement; 
+              count = badge.milestone ? Math.min(Math.floor(totalElevation), badge.requirement) : Math.floor(totalElevation);
+            }
             else { count = activityCounts[badge.id] || 0; earned = count > 0; }
             return { ...badge, earned, count };
           });
@@ -706,11 +791,11 @@
                   )}
                 </div>
 
-                <button onClick={() => setShowForm(!showForm)} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg shadow-lg mb-6 flex items-center justify-center gap-2"><Plus />Add New Hike</button>
+                <button onClick={() => { setShowForm(!showForm); setEditingHike(null); setFormData({ name: '', date: new Date().toISOString().split('T')[0], distance: '', elevation: '', difficulty: 'easy', location: '', notes: '', activities: [] }); }} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg shadow-lg mb-6 flex items-center justify-center gap-2"><Plus />Add New Hike</button>
 
                 {showForm && (
                   <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                    <h2 className="text-2xl font-bold text-green-800 mb-4">Record Your Adventure</h2>
+                    <h2 className="text-2xl font-bold text-green-800 mb-4">{editingHike ? 'Edit Hike' : 'Record Your Adventure'}</h2>
                     <div className="space-y-4">
                       <input type="text" placeholder="Hike Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none" />
                       <input type="date" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none" />
@@ -753,8 +838,8 @@
                         </div>
                       )}
                       <div className="flex gap-2">
-                        <button onClick={saveHike} disabled={!!geocodingStatus} className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">Save</button>
-                        <button onClick={() => setShowForm(false)} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 rounded-lg">Cancel</button>
+                        <button onClick={saveHike} disabled={!!geocodingStatus} className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">{editingHike ? 'Update Hike' : 'Save Hike'}</button>
+                        <button onClick={() => { setShowForm(false); setEditingHike(null); setFormData({ name: '', date: new Date().toISOString().split('T')[0], distance: '', elevation: '', difficulty: 'easy', location: '', notes: '', activities: [] }); }} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 rounded-lg">Cancel</button>
                       </div>
                     </div>
                   </div>
@@ -786,7 +871,10 @@
                               {hike.location && <span className="flex items-center gap-1"><MapPin />{hike.location}</span>}
                             </div>
                           </div>
-                          <button onClick={() => deleteHike(hike.id)} className="text-red-500 hover:text-red-700 text-sm">Delete</button>
+                          <div className="flex gap-2">
+                            <button onClick={() => editHike(hike)} className="text-blue-500 hover:text-blue-700 text-sm font-semibold">Edit</button>
+                            <button onClick={() => deleteHike(hike.id)} className="text-red-500 hover:text-red-700 text-sm font-semibold">Delete</button>
+                          </div>
                         </div>
                         <div className="flex gap-4 mb-3">
                           <div className="bg-blue-50 px-4 py-2 rounded-lg">
