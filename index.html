@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hike Together</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23166534' stroke-width='2'%3E%3Cpath d='m8 3 4 8 5-5 5 15H2L8 3z'/%3E%3C/svg%3E">
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -463,6 +464,84 @@
             setShowMemberMenu(false);
           };
 
+          const deleteMember = async (memberId) => {
+            if (members.length === 1) {
+              alert('Cannot delete the last member. Use "Log Out" to remove all data instead.');
+              return;
+            }
+            
+            const confirmDelete = confirm('⚠️ DELETE MEMBER?\n\nThis will permanently delete this member and ALL their hikes. This action cannot be undone.\n\nAre you sure you want to continue?');
+            if (!confirmDelete) return;
+            
+            try {
+              // Delete all hikes for this member
+              const hikesSnapshot = await db.collection('families').doc(familyId).collection('hikes').where('hikerId', '==', memberId).get();
+              const deletePromises = hikesSnapshot.docs.map(doc => doc.ref.delete());
+              await Promise.all(deletePromises);
+              
+              // Delete the member
+              await db.collection('families').doc(familyId).collection('members').doc(memberId).delete();
+              
+              // Update local state
+              const remainingMembers = members.filter(m => m.id !== memberId);
+              setMembers(remainingMembers);
+              
+              // Switch to another member if current was deleted
+              if (currentMember.id === memberId) {
+                setCurrentMember(remainingMembers[0]);
+                localStorage.setItem('currentMemberId', remainingMembers[0].id);
+              }
+              
+              setShowMemberMenu(false);
+              alert('✅ Member and all their hikes have been deleted.');
+            } catch (error) {
+              alert('Error deleting member: ' + error.message);
+            }
+          };
+
+          const logoutFamily = () => {
+            const confirmLogout = confirm('⚠️ LOG OUT OF FAMILY?\n\nThis will remove access to this family on this device. You will need your Family Code to log back in.\n\nFamily Code: ' + familyId + '\n\n💾 Make sure you have saved this code!\n\nDo you want to log out?');
+            if (!confirmLogout) return;
+            
+            localStorage.removeItem('familyId');
+            localStorage.removeItem('currentMemberId');
+            window.location.reload();
+          };
+
+          const downloadHikes = () => {
+            const memberHikes = hikes.filter(h => h.hikerId === currentMember.id);
+            
+            if (memberHikes.length === 0) {
+              alert('No hikes to download for this member.');
+              return;
+            }
+            
+            // Create CSV content
+            let csv = 'Hike Name,Date,Difficulty,Distance (mi),Elevation (ft),Location,Notes,Activities\n';
+            
+            memberHikes.forEach(hike => {
+              const activities = hike.activities ? hike.activities.map(id => {
+                const badge = BADGES.find(b => b.id === id);
+                return badge ? badge.name : id;
+              }).join('; ') : '';
+              
+              csv += `"${hike.name}","${hike.date}","${hike.difficulty || ''}","${hike.distance}","${hike.elevation || 0}","${hike.location || ''}","${(hike.notes || '').replace(/"/g, '"")}","${activities}"\n`;
+            });
+            
+            // Create download link
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentMember.name}_hikes_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            alert('✅ Hikes downloaded as CSV file!');
+          };
+
           const saveHike = async () => {
             if (!formData.name || !formData.distance || !currentMember) return;
             try {
@@ -678,33 +757,32 @@
                   <p className="text-green-600 mb-3">{familyName}</p>
                   
                   {/* Navigation Menu */}
-                  <div className="flex gap-3 justify-center mb-4 flex-wrap">
+                  <div className="flex gap-2 justify-center mb-4">
                     <button 
                       onClick={() => setCurrentPage('home')} 
-                      className={`px-4 py-2 rounded-lg font-semibold transition ${currentPage === 'home' ? 'bg-green-600 text-white' : 'bg-white text-green-600 hover:bg-green-100'}`}
+                      className={`px-3 sm:px-4 py-2 rounded-lg font-semibold transition text-sm sm:text-base ${currentPage === 'home' ? 'bg-green-600 text-white' : 'bg-white text-green-600 hover:bg-green-100'}`}
                     >
-                      🏠 Home
+                      🏠 <span className="hidden xs:inline">Home</span>
                     </button>
                     <button 
                       onClick={() => setCurrentPage('gear')} 
-                      className={`px-4 py-2 rounded-lg font-semibold transition ${currentPage === 'gear' ? 'bg-green-600 text-white' : 'bg-white text-green-600 hover:bg-green-100'}`}
+                      className={`px-3 sm:px-4 py-2 rounded-lg font-semibold transition text-sm sm:text-base ${currentPage === 'gear' ? 'bg-green-600 text-white' : 'bg-white text-green-600 hover:bg-green-100'}`}
                     >
-                      🎒 Gear
+                      🎒 <span className="hidden xs:inline">Gear</span>
                     </button>
                     <button 
                       onClick={() => setCurrentPage('about')} 
-                      className={`px-4 py-2 rounded-lg font-semibold transition ${currentPage === 'about' ? 'bg-green-600 text-white' : 'bg-white text-green-600 hover:bg-green-100'}`}
+                      className={`px-3 sm:px-4 py-2 rounded-lg font-semibold transition text-sm sm:text-base ${currentPage === 'about' ? 'bg-green-600 text-white' : 'bg-white text-green-600 hover:bg-green-100'}`}
                     >
-                      ℹ️ About
+                      ℹ️ <span className="hidden xs:inline">About</span>
                     </button>
                     {currentMember && (
                       <button 
                         onClick={() => setShowMemberMenu(!showMemberMenu)} 
-                        className="px-4 py-2 rounded-lg font-semibold transition bg-white text-green-600 hover:bg-green-100 flex items-center gap-2"
+                        className={`px-3 sm:px-4 py-2 rounded-lg font-semibold transition text-sm sm:text-base bg-white text-green-600 hover:bg-green-100 flex items-center gap-1 sm:gap-2`}
                       >
-                        <span className="text-xl">{currentMember.avatar}</span>
+                        <span className="text-lg sm:text-xl">{currentMember.avatar}</span>
                         <span className="hidden sm:inline">Profile</span>
-                        <span className="sm:hidden">{currentMember.name}</span>
                       </button>
                     )}
                   </div>
@@ -721,6 +799,13 @@
                       </div>
                       <button onClick={() => { setSetupStep('member'); setShowSetup(true); setShowMemberMenu(false); }} className="w-full mb-4 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 rounded-lg">+ Add Member</button>
                       
+                      {/* Download Hikes Section */}
+                      <div className="border-t-2 border-gray-200 pt-4 mb-4">
+                        <button onClick={() => { downloadHikes(); setShowMemberMenu(false); }} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2">
+                          📥 Download My Hikes (CSV)
+                        </button>
+                      </div>
+                      
                       {/* Family Code Section */}
                       <div className="border-t-2 border-gray-200 pt-4">
                         <h4 className="font-semibold text-gray-800 mb-2">Family Code</h4>
@@ -732,10 +817,21 @@
                             {familyId}
                           </div>
                         </div>
-                        <button onClick={copyFamilyCode} className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2">
+                        <button onClick={copyFamilyCode} className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 mb-2">
                           📋 Copy Family Code
                         </button>
-                        <p className="text-xs text-gray-500 mt-2 text-center">Share this code with family members to join</p>
+                        <p className="text-xs text-gray-500 mb-3 text-center">Share this code with family members to join</p>
+                      </div>
+                      
+                      {/* Danger Zone */}
+                      <div className="border-t-2 border-red-200 pt-4 mt-4">
+                        <h4 className="font-semibold text-red-700 mb-3 text-sm">⚠️ Danger Zone</h4>
+                        <button onClick={() => { deleteMember(currentMember.id); }} className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg mb-2 text-sm">
+                          🗑️ Delete This Member
+                        </button>
+                        <button onClick={logoutFamily} className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg text-sm">
+                          🚪 Log Out of Family
+                        </button>
                       </div>
                     </div>
                   )}
@@ -777,17 +873,16 @@
                   </div>
                 </div>
 
+                <h2 className="text-2xl font-bold text-green-800 mb-4 flex items-center justify-center gap-2"><Award />Achievement Badges ({earnedBadges.length}/{BADGES.length})</h2>
+
                 <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-green-800 flex items-center gap-2"><Award />Achievement Badges ({earnedBadges.length}/{BADGES.length})</h2>
-                    <div className="flex gap-2">
-                      <button onClick={() => setActiveView('badges')} className={`px-4 py-2 rounded-lg font-semibold ${activeView === 'badges' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
-                        🏆 Badges
-                      </button>
-                      <button onClick={() => setActiveView('map')} className={`px-4 py-2 rounded-lg font-semibold ${activeView === 'map' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
-                        🗺️ Map
-                      </button>
-                    </div>
+                  <div className="flex justify-center gap-2 mb-6">
+                    <button onClick={() => setActiveView('badges')} className={`px-4 py-2 rounded-lg font-semibold ${activeView === 'badges' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
+                      🏆 Badges
+                    </button>
+                    <button onClick={() => setActiveView('map')} className={`px-4 py-2 rounded-lg font-semibold ${activeView === 'map' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
+                      🗺️ Map
+                    </button>
                   </div>
                   
                   {activeView === 'badges' && (
@@ -900,7 +995,7 @@
                 )}
 
                 <div className="space-y-4">
-                  <h2 className="text-2xl font-bold text-green-800">Your Hikes</h2>
+                  <h2 className="text-2xl font-bold text-green-800 text-center mb-6">Your Hikes</h2>
                   {memberHikes.length === 0 ? (
                     <div className="bg-white rounded-lg shadow-md p-8 text-center text-gray-500">
                       <Mountain className="w-16 h-16 mx-auto mb-4 text-gray-300" />
