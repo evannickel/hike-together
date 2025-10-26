@@ -417,7 +417,7 @@
               setFamilyName(newFamilyName);
               
               // Show important warning about saving the code
-              alert('🎉 Family created successfully!\n\n⚠️ IMPORTANT: Your Family Code\n\n' + familyRef.id + '\n\n💾 SAVE THIS CODE NOW!\n\nWrite it down or save it somewhere safe. You\'ll need this code to:\n• Access your family on other devices\n• Recover access if browser data is cleared\n• Share with other family members\n\nYou can also copy it later from the Profile menu.');
+              alert('🎉 Family created successfully!\n\n⚠️ IMPORTANT: Your Family Code\n\n' + familyRef.id + '\n\n💾 SAVE THIS CODE NOW!\n\nWrite it down or save it somewhere safe. You will need this code to:\n• Access your family on other devices\n• Recover access if browser data is cleared\n• Share with other family members\n\nYou can also copy it later from the Profile menu.');
               
               setSetupStep('member');
             } catch (error) {
@@ -636,7 +636,7 @@
 
           const copyFamilyCode = () => {
             navigator.clipboard.writeText(familyId);
-            alert('✅ Family code copied to clipboard!\n\n💾 SAVE THIS CODE SOMEWHERE SAFE!\n\nYou\'ll need it to:\n• Access your family on other devices\n• Recover access if browser data is cleared\n• Share with family members to join\n\nFamily Code: ' + familyId);
+            alert('✅ Family code copied to clipboard!\n\n💾 SAVE THIS CODE SOMEWHERE SAFE!\n\nYou will need it to:\n• Access your family on other devices\n• Recover access if browser data is cleared\n• Share with family members to join\n\nFamily Code: ' + familyId);
           };
 
           const memberHikes = hikes.filter(h => !currentMember || h.hikerId === currentMember.id);
