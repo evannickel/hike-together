@@ -762,19 +762,19 @@
                       onClick={() => setCurrentPage('home')} 
                       className={`px-3 sm:px-4 py-2 rounded-lg font-semibold transition text-sm sm:text-base ${currentPage === 'home' ? 'bg-green-600 text-white' : 'bg-white text-green-600 hover:bg-green-100'}`}
                     >
-                      🏠 <span className="hidden xs:inline">Home</span>
+                      <span>🏠</span>
                     </button>
                     <button 
                       onClick={() => setCurrentPage('gear')} 
                       className={`px-3 sm:px-4 py-2 rounded-lg font-semibold transition text-sm sm:text-base ${currentPage === 'gear' ? 'bg-green-600 text-white' : 'bg-white text-green-600 hover:bg-green-100'}`}
                     >
-                      🎒 <span className="hidden xs:inline">Gear</span>
+                      <span>🎒</span>
                     </button>
                     <button 
                       onClick={() => setCurrentPage('about')} 
                       className={`px-3 sm:px-4 py-2 rounded-lg font-semibold transition text-sm sm:text-base ${currentPage === 'about' ? 'bg-green-600 text-white' : 'bg-white text-green-600 hover:bg-green-100'}`}
                     >
-                      ℹ️ <span className="hidden xs:inline">About</span>
+                      <span>ℹ️</span>
                     </button>
                     {currentMember && (
                       <button 
