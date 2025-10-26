@@ -525,7 +525,8 @@
                 return badge ? badge.name : id;
               }).join('; ') : '';
               
-              csv += `"${hike.name}","${hike.date}","${hike.difficulty || ''}","${hike.distance}","${hike.elevation || 0}","${hike.location || ''}","${(hike.notes || '').replace(/"/g, '"")}","${activities}"\n`;
+              const notes = (hike.notes || '').replace(/"/g, '""');
+              csv += '"' + hike.name + '","' + hike.date + '","' + (hike.difficulty || '') + '","' + hike.distance + '","' + (hike.elevation || 0) + '","' + (hike.location || '') + '","' + notes + '","' + activities + '"\n';
             });
             
             // Create download link
