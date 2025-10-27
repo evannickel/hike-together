@@ -494,14 +494,30 @@
               return;
             }
             
-            const confirmDelete = confirm('⚠️ DELETE MEMBER?\n\nThis will permanently delete this member and ALL their hikes. This action cannot be undone.\n\nAre you sure you want to continue?');
+            const confirmDelete = confirm('⚠️ DELETE MEMBER?\n\nThis will permanently delete this member and ALL their hikes (including shared hikes where they were the creator). This action cannot be undone.\n\nAre you sure you want to continue?');
             if (!confirmDelete) return;
             
             try {
-              // Delete all hikes for this member
+              // Delete all hikes where this member was the original creator
               const hikesSnapshot = await db.collection('families').doc(familyId).collection('hikes').where('hikerId', '==', memberId).get();
               const deletePromises = hikesSnapshot.docs.map(doc => doc.ref.delete());
               await Promise.all(deletePromises);
+              
+              // For shared hikes created by others, just remove this member from allHikers and taggedMembers
+              const sharedHikesSnapshot = await db.collection('families').doc(familyId).collection('hikes').get();
+              const updatePromises = sharedHikesSnapshot.docs
+                .filter(doc => {
+                  const data = doc.data();
+                  return data.allHikers && data.allHikers.includes(memberId) && data.hikerId !== memberId;
+                })
+                .map(doc => {
+                  const data = doc.data();
+                  return doc.ref.update({
+                    allHikers: (data.allHikers || []).filter(id => id !== memberId),
+                    taggedMembers: (data.taggedMembers || []).filter(id => id !== memberId)
+                  });
+                });
+              await Promise.all(updatePromises);
               
               // Delete the member
               await db.collection('families').doc(familyId).collection('members').doc(memberId).delete();
@@ -533,7 +549,7 @@
           };
 
           const downloadHikes = () => {
-            const memberHikes = hikes.filter(h => h.hikerId === currentMember.id);
+            const memberHikes = hikes.filter(h => h.hikerId === currentMember.id || (h.allHikers && h.allHikers.includes(currentMember.id)));
             
             if (memberHikes.length === 0) {
               alert('No hikes to download for this member.');
@@ -598,48 +614,36 @@
                 lng = null;
               }
 
+              // Create list of all hikers (current member + tagged members)
+              const allHikerIds = [currentMember.id, ...formData.taggedMembers];
+              
+              const hikeData = {
+                name: formData.name,
+                date: formData.date,
+                distance: parseFloat(formData.distance),
+                elevation: parseFloat(formData.elevation) || 0,
+                difficulty: formData.difficulty,
+                location: formData.location,
+                notes: formData.notes,
+                activities: formData.activities,
+                lat: lat,
+                lng: lng,
+                hikerId: currentMember.id, // Original creator
+                hikerName: currentMember.name,
+                hikerAvatar: currentMember.avatar,
+                allHikers: allHikerIds, // Array of all member IDs who were on this hike
+                taggedMembers: formData.taggedMembers
+              };
+
               if (editingHike) {
                 // Update existing hike
-                const hikeData = {
-                  ...formData, 
-                  distance: parseFloat(formData.distance), 
-                  elevation: parseFloat(formData.elevation) || 0,
-                  lat: lat,
-                  lng: lng,
-                  hikerId: currentMember.id, 
-                  hikerName: currentMember.name, 
-                  hikerAvatar: currentMember.avatar,
-                  taggedMembers: formData.taggedMembers
-                };
                 await db.collection('families').doc(familyId).collection('hikes').doc(editingHike.id).update(hikeData);
               } else {
-                // Create new hike - create one hike for current member and one for each tagged member
-                const allMembers = [currentMember.id, ...formData.taggedMembers];
-                
-                for (const memberId of allMembers) {
-                  const member = members.find(m => m.id === memberId);
-                  if (!member) continue;
-                  
-                  const hikeData = {
-                    name: formData.name,
-                    date: formData.date,
-                    distance: parseFloat(formData.distance),
-                    elevation: parseFloat(formData.elevation) || 0,
-                    difficulty: formData.difficulty,
-                    location: formData.location,
-                    notes: formData.notes,
-                    activities: formData.activities,
-                    lat: lat,
-                    lng: lng,
-                    hikerId: member.id,
-                    hikerName: member.name,
-                    hikerAvatar: member.avatar,
-                    taggedMembers: formData.taggedMembers.filter(id => id !== member.id).concat([currentMember.id].filter(id => id !== member.id)), // List other members who were on this hike
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                  };
-                  
-                  await db.collection('families').doc(familyId).collection('hikes').add(hikeData);
-                }
+                // Create new hike
+                await db.collection('families').doc(familyId).collection('hikes').add({
+                  ...hikeData,
+                  createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
               }
               
               setFormData({ name: '', date: new Date().toISOString().split('T')[0], distance: '', elevation: '', difficulty: 'easy', location: '', notes: '', activities: [], taggedMembers: [] });
@@ -662,6 +666,8 @@
 
           const editHike = (hike) => {
             setEditingHike(hike);
+            // Extract taggedMembers from allHikers, excluding the current creator
+            const taggedMembers = (hike.allHikers || hike.taggedMembers || []).filter(id => id !== hike.hikerId);
             setFormData({
               name: hike.name,
               date: hike.date,
@@ -671,7 +677,7 @@
               location: hike.location || '',
               notes: hike.notes || '',
               activities: hike.activities || [],
-              taggedMembers: hike.taggedMembers || []
+              taggedMembers: taggedMembers
             });
             setShowForm(true);
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -687,7 +693,7 @@
             alert('✅ Family code copied to clipboard!\n\n💾 SAVE THIS CODE SOMEWHERE SAFE!\n\nYou will need it to:\n• Access your family on other devices\n• Recover access if browser data is cleared\n• Share with family members to join\n\nFamily Code: ' + familyId);
           };
 
-          const memberHikes = hikes.filter(h => !currentMember || h.hikerId === currentMember.id);
+          const memberHikes = hikes.filter(h => !currentMember || (h.hikerId === currentMember.id || (h.allHikers && h.allHikers.includes(currentMember.id))));
           const totalDistance = memberHikes.reduce((sum, h) => sum + h.distance, 0);
           const totalElevation = memberHikes.reduce((sum, h) => sum + h.elevation, 0);
           const longestHike = memberHikes.length > 0 ? Math.max(...memberHikes.map(h => h.distance || 0)) : 0;
@@ -1103,10 +1109,10 @@
                                   </span>
                                 )}
                               </div>
-                              {hike.taggedMembers && hike.taggedMembers.length > 0 && (
+                              {hike.allHikers && hike.allHikers.length > 1 && (
                                 <div className="flex items-center gap-1 mt-1">
                                   <span className="text-xs text-blue-600 font-semibold">With:</span>
-                                  {hike.taggedMembers.map(memberId => {
+                                  {hike.allHikers.filter(id => id !== currentMember.id).map(memberId => {
                                     const member = members.find(m => m.id === memberId);
                                     return member ? (
                                       <span key={memberId} className="text-sm" title={member.name}>{member.avatar}</span>
@@ -1257,7 +1263,7 @@
 
                       <h3 className="text-xl font-bold text-green-700 mt-6 mb-3">✨ Features</h3>
                       <ul className="list-disc list-inside space-y-2 ml-4">
-                        <li>Track the hikes your family goes on</li>
+                        <li>Track every family member's hikes individually</li>
                         <li>Record distance, elevation, and difficulty</li>
                         <li>Map your hiking locations</li>
                         <li>Earn achievement badges for milestones and discoveries</li>
