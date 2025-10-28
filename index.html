@@ -1109,7 +1109,7 @@
                                   </span>
                                 )}
                               </div>
-                              {hike.allHikers && hike.allHikers.length > 1 && (
+                              {hike.allHikers && hike.allHikers.length > 1 && currentMember && (
                                 <div className="flex items-center gap-1 mt-1">
                                   <span className="text-xs text-blue-600 font-semibold">With:</span>
                                   {hike.allHikers.filter(id => id !== currentMember.id).map(memberId => {
