@@ -684,7 +684,8 @@
           };
 
           const toggleActivity = (activityId) => {
-            const newActivities = formData.activities.includes(activityId) ? formData.activities.filter(id => id !== activityId) : [...formData.activities, activityId];
+            const currentActivities = formData.activities || [];
+            const newActivities = currentActivities.includes(activityId) ? currentActivities.filter(id => id !== activityId) : [...currentActivities, activityId];
             setFormData({ ...formData, activities: newActivities });
           };
 
@@ -1018,15 +1019,16 @@
                           <h3 className="font-semibold text-blue-800 mb-2">👨‍👩‍👧‍👦 Who else was on this hike?</h3>
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                             {members.filter(m => m.id !== currentMember.id).map(member => {
-                              const isTagged = formData.taggedMembers.includes(member.id);
+                              const isTagged = formData.taggedMembers && formData.taggedMembers.includes(member.id);
                               return (
                                 <button 
                                   key={member.id}
                                   type="button"
                                   onClick={() => {
+                                    const currentTagged = formData.taggedMembers || [];
                                     const newTagged = isTagged 
-                                      ? formData.taggedMembers.filter(id => id !== member.id)
-                                      : [...formData.taggedMembers, member.id];
+                                      ? currentTagged.filter(id => id !== member.id)
+                                      : [...currentTagged, member.id];
                                     setFormData({...formData, taggedMembers: newTagged});
                                   }}
                                   className={`p-3 rounded-lg border-2 flex items-center gap-2 transition ${isTagged ? 'bg-blue-500 border-blue-600 text-white' : 'bg-white border-blue-300 text-gray-800 hover:border-blue-400'}`}
@@ -1053,7 +1055,7 @@
                             <h4 className="text-xs font-semibold text-gray-600 mb-2">{section.title}</h4>
                             <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
                               {selectableActivities.filter(b => section.type ? b.type === section.type : (section.ids && section.ids.includes(b.id))).map(badge => {
-                                const selected = formData.activities.includes(badge.id);
+                                const selected = formData.activities && formData.activities.includes(badge.id);
                                 return (
                                   <button key={badge.id} type="button" onClick={() => toggleActivity(badge.id)} className={`p-2 rounded-lg border-2 ${selected ? 'bg-yellow-50 border-yellow-400 scale-105' : 'bg-white border-gray-200'}`} title={badge.desc}>
                                     <div className="text-2xl mb-1">{badge.icon}</div>
