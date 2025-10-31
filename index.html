@@ -385,7 +385,7 @@
           const [showAllHikes, setShowAllHikes] = useState(false); // Show all hikes vs recent 5
           const [expandedHike, setExpandedHike] = useState(null); // Track which hike is expanded
           const [formData, setFormData] = useState({
-            name: '', date: new Date().toISOString().split('T')[0], distance: '', elevation: '', difficulty: 'easy', location: '', notes: '', activities: [], taggedMembers: []
+            name: '', date: new Date().toISOString().split('T')[0], distance: '', elevation: '', difficulty: 'easy', location: '', notes: '', activities: []
           });
 
           useEffect(() => {
@@ -494,30 +494,14 @@
               return;
             }
             
-            const confirmDelete = confirm('⚠️ DELETE MEMBER?\n\nThis will permanently delete this member and ALL their hikes (including shared hikes where they were the creator). This action cannot be undone.\n\nAre you sure you want to continue?');
+            const confirmDelete = confirm('⚠️ DELETE MEMBER?\n\nThis will permanently delete this member and ALL their hikes. This action cannot be undone.\n\nAre you sure you want to continue?');
             if (!confirmDelete) return;
             
             try {
-              // Delete all hikes where this member was the original creator
+              // Delete all hikes for this member
               const hikesSnapshot = await db.collection('families').doc(familyId).collection('hikes').where('hikerId', '==', memberId).get();
               const deletePromises = hikesSnapshot.docs.map(doc => doc.ref.delete());
               await Promise.all(deletePromises);
-              
-              // For shared hikes created by others, just remove this member from allHikers and taggedMembers
-              const sharedHikesSnapshot = await db.collection('families').doc(familyId).collection('hikes').get();
-              const updatePromises = sharedHikesSnapshot.docs
-                .filter(doc => {
-                  const data = doc.data();
-                  return data.allHikers && data.allHikers.includes(memberId) && data.hikerId !== memberId;
-                })
-                .map(doc => {
-                  const data = doc.data();
-                  return doc.ref.update({
-                    allHikers: (data.allHikers || []).filter(id => id !== memberId),
-                    taggedMembers: (data.taggedMembers || []).filter(id => id !== memberId)
-                  });
-                });
-              await Promise.all(updatePromises);
               
               // Delete the member
               await db.collection('families').doc(familyId).collection('members').doc(memberId).delete();
@@ -549,7 +533,7 @@
           };
 
           const downloadHikes = () => {
-            const memberHikes = hikes.filter(h => h.hikerId === currentMember.id || (h.allHikers && h.allHikers.includes(currentMember.id)));
+            const memberHikes = hikes.filter(h => h.hikerId === currentMember.id);
             
             if (memberHikes.length === 0) {
               alert('No hikes to download for this member.');
@@ -614,25 +598,15 @@
                 lng = null;
               }
 
-              // Create list of all hikers (current member + tagged members)
-              const allHikerIds = [currentMember.id, ...formData.taggedMembers];
-              
               const hikeData = {
-                name: formData.name,
-                date: formData.date,
-                distance: parseFloat(formData.distance),
+                ...formData, 
+                distance: parseFloat(formData.distance), 
                 elevation: parseFloat(formData.elevation) || 0,
-                difficulty: formData.difficulty,
-                location: formData.location,
-                notes: formData.notes,
-                activities: formData.activities,
                 lat: lat,
                 lng: lng,
-                hikerId: currentMember.id, // Original creator
-                hikerName: currentMember.name,
+                hikerId: currentMember.id, 
+                hikerName: currentMember.name, 
                 hikerAvatar: currentMember.avatar,
-                allHikers: allHikerIds, // Array of all member IDs who were on this hike
-                taggedMembers: formData.taggedMembers
               };
 
               if (editingHike) {
@@ -646,7 +620,7 @@
                 });
               }
               
-              setFormData({ name: '', date: new Date().toISOString().split('T')[0], distance: '', elevation: '', difficulty: 'easy', location: '', notes: '', activities: [], taggedMembers: [] });
+              setFormData({ name: '', date: new Date().toISOString().split('T')[0], distance: '', elevation: '', difficulty: 'easy', location: '', notes: '', activities: [] });
               setGeocodingStatus('');
               setShowForm(false);
               setEditingHike(null);
@@ -666,8 +640,6 @@
 
           const editHike = (hike) => {
             setEditingHike(hike);
-            // Extract taggedMembers from allHikers, excluding the current creator
-            const taggedMembers = (hike.allHikers || hike.taggedMembers || []).filter(id => id !== hike.hikerId);
             setFormData({
               name: hike.name,
               date: hike.date,
@@ -676,16 +648,14 @@
               difficulty: hike.difficulty || 'easy',
               location: hike.location || '',
               notes: hike.notes || '',
-              activities: hike.activities || [],
-              taggedMembers: taggedMembers
+              activities: hike.activities || []
             });
             setShowForm(true);
             window.scrollTo({ top: 0, behavior: 'smooth' });
           };
 
           const toggleActivity = (activityId) => {
-            const currentActivities = formData.activities || [];
-            const newActivities = currentActivities.includes(activityId) ? currentActivities.filter(id => id !== activityId) : [...currentActivities, activityId];
+            const newActivities = formData.activities.includes(activityId) ? formData.activities.filter(id => id !== activityId) : [...formData.activities, activityId];
             setFormData({ ...formData, activities: newActivities });
           };
 
@@ -694,7 +664,7 @@
             alert('✅ Family code copied to clipboard!\n\n💾 SAVE THIS CODE SOMEWHERE SAFE!\n\nYou will need it to:\n• Access your family on other devices\n• Recover access if browser data is cleared\n• Share with family members to join\n\nFamily Code: ' + familyId);
           };
 
-          const memberHikes = hikes.filter(h => !currentMember || (h.hikerId === currentMember.id || (h.allHikers && h.allHikers.includes(currentMember.id))));
+          const memberHikes = hikes.filter(h => !currentMember || h.hikerId === currentMember.id);
           const totalDistance = memberHikes.reduce((sum, h) => sum + h.distance, 0);
           const totalElevation = memberHikes.reduce((sum, h) => sum + h.elevation, 0);
           const longestHike = memberHikes.length > 0 ? Math.max(...memberHikes.map(h => h.distance || 0)) : 0;
@@ -1012,37 +982,6 @@
                       <input type="number" placeholder="Elevation (feet)" value={formData.elevation} onChange={(e) => setFormData({...formData, elevation: e.target.value})} className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none" />
                       <input type="text" placeholder="Location" value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none" />
                       <textarea placeholder="Notes" value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none h-24" />
-                      
-                      {/* Family Member Tagging */}
-                      {members.length > 1 && (
-                        <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
-                          <h3 className="font-semibold text-blue-800 mb-2">👨‍👩‍👧‍👦 Who else was on this hike?</h3>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                            {members.filter(m => m.id !== currentMember.id).map(member => {
-                              const isTagged = formData.taggedMembers && formData.taggedMembers.includes(member.id);
-                              return (
-                                <button 
-                                  key={member.id}
-                                  type="button"
-                                  onClick={() => {
-                                    const currentTagged = formData.taggedMembers || [];
-                                    const newTagged = isTagged 
-                                      ? currentTagged.filter(id => id !== member.id)
-                                      : [...currentTagged, member.id];
-                                    setFormData({...formData, taggedMembers: newTagged});
-                                  }}
-                                  className={`p-3 rounded-lg border-2 flex items-center gap-2 transition ${isTagged ? 'bg-blue-500 border-blue-600 text-white' : 'bg-white border-blue-300 text-gray-800 hover:border-blue-400'}`}
-                                >
-                                  <span className="text-2xl">{member.avatar}</span>
-                                  <span className="font-medium text-sm">{member.name}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                          <p className="text-xs text-blue-700 mt-2">💡 This hike will be added to both your profile and theirs!</p>
-                        </div>
-                      )}
-                      
                       <div className="border-2 border-green-200 rounded-lg p-4">
                         <h3 className="font-semibold text-green-800 mb-2">🏆 What did you do/see?</h3>
                         {[
@@ -1054,8 +993,8 @@
                           <div key={section.title} className="mb-4">
                             <h4 className="text-xs font-semibold text-gray-600 mb-2">{section.title}</h4>
                             <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-                              {selectableActivities.filter(b => section.type ? b.type === section.type : (section.ids && section.ids.includes(b.id))).map(badge => {
-                                const selected = formData.activities && formData.activities.includes(badge.id);
+                              {selectableActivities.filter(b => section.type ? b.type === section.type : section.ids.includes(b.id)).map(badge => {
+                                const selected = formData.activities.includes(badge.id);
                                 return (
                                   <button key={badge.id} type="button" onClick={() => toggleActivity(badge.id)} className={`p-2 rounded-lg border-2 ${selected ? 'bg-yellow-50 border-yellow-400 scale-105' : 'bg-white border-gray-200'}`} title={badge.desc}>
                                     <div className="text-2xl mb-1">{badge.icon}</div>
@@ -1074,7 +1013,7 @@
                       )}
                       <div className="flex gap-2">
                         <button onClick={saveHike} disabled={!!geocodingStatus} className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">{editingHike ? 'Update Hike' : 'Save Hike'}</button>
-                        <button onClick={() => { setShowForm(false); setEditingHike(null); setFormData({ name: '', date: new Date().toISOString().split('T')[0], distance: '', elevation: '', difficulty: 'easy', location: '', notes: '', activities: [], taggedMembers: [] }); }} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 rounded-lg">Cancel</button>
+                        <button onClick={() => { setShowForm(false); setEditingHike(null); setFormData({ name: '', date: new Date().toISOString().split('T')[0], distance: '', elevation: '', difficulty: 'easy', location: '', notes: '', activities: [] }); }} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 rounded-lg">Cancel</button>
                       </div>
                     </div>
                   </div>
@@ -1111,17 +1050,6 @@
                                   </span>
                                 )}
                               </div>
-                              {hike.allHikers && hike.allHikers.length > 1 && currentMember && (
-                                <div className="flex items-center gap-1 mt-1">
-                                  <span className="text-xs text-blue-600 font-semibold">With:</span>
-                                  {hike.allHikers.filter(id => id !== currentMember.id).map(memberId => {
-                                    const member = members.find(m => m.id === memberId);
-                                    return member ? (
-                                      <span key={memberId} className="text-sm" title={member.name}>{member.avatar}</span>
-                                    ) : null;
-                                  })}
-                                </div>
-                              )}
                             </div>
                           </div>
                           <div className="text-green-600 text-xl">
@@ -1167,13 +1095,12 @@
                                   </div>
                                 ) : null;
                               })}
-                                </div>
-                              </div>
-                            )}
+                            </div>
                           </div>
                         )}
                       </div>
-                    ))}
+                    </div>
+                    ))
                     
                     {memberHikes.length > 5 && (
                       <div className="text-center mt-6">
@@ -1300,8 +1227,7 @@
           );
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        ReactDOM.render(<App />, document.getElementById('root'));
     </script>
 </body>
 </html>
