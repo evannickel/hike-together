@@ -406,7 +406,7 @@
           const [activeView, setActiveView] = useState('badges'); // 'badges' or 'map'
           const [geocodingStatus, setGeocodingStatus] = useState('');
           const [editingHike, setEditingHike] = useState(null); // Track which hike is being edited
-          const [currentPage, setCurrentPage] = useState('home'); // 'home', 'gear', 'about'
+          const [currentPage, setCurrentPage] = useState('home'); // 'home', 'badges', 'profile', 'about'
           const [showAllHikes, setShowAllHikes] = useState(false); // Show all hikes vs recent 5
           const [expandedHike, setExpandedHike] = useState(null); // Track which hike is expanded
           const [showEmbedModal, setShowEmbedModal] = useState(false); // Show embed widget modal
@@ -1034,92 +1034,12 @@
                 </div>
               )}
               
-              <div className="max-w-4xl mx-auto">
+              <div className="max-w-4xl mx-auto pb-20">
                 <div className="text-center mb-6">
                   <h1 className="text-4xl font-bold text-green-800 mb-2 flex items-center justify-center gap-2"><Mountain />Hike Together</h1>
                   <p className="text-green-600 mb-3">{familyName}</p>
                   
-                  {/* Navigation Menu */}
-                  <div className="flex gap-2 justify-center mb-4">
-                    <button 
-                      onClick={() => setCurrentPage('home')} 
-                      className={`px-3 sm:px-4 py-2 rounded-lg font-semibold transition text-sm sm:text-base ${currentPage === 'home' ? 'bg-green-600 text-white' : 'bg-white text-green-600 hover:bg-green-100'}`}
-                    >
-                      <span>🏠</span>
-                    </button>
-                    <button 
-                      onClick={() => setCurrentPage('gear')} 
-                      className={`px-3 sm:px-4 py-2 rounded-lg font-semibold transition text-sm sm:text-base ${currentPage === 'gear' ? 'bg-green-600 text-white' : 'bg-white text-green-600 hover:bg-green-100'}`}
-                    >
-                      <span>🎒</span>
-                    </button>
-                    <button 
-                      onClick={() => setCurrentPage('about')} 
-                      className={`px-3 sm:px-4 py-2 rounded-lg font-semibold transition text-sm sm:text-base ${currentPage === 'about' ? 'bg-green-600 text-white' : 'bg-white text-green-600 hover:bg-green-100'}`}
-                    >
-                      <span>ℹ️</span>
-                    </button>
-                    {currentMember && (
-                      <button 
-                        onClick={() => setShowMemberMenu(!showMemberMenu)} 
-                        className={`px-3 sm:px-4 py-2 rounded-lg font-semibold transition text-sm sm:text-base bg-white text-green-600 hover:bg-green-100 flex items-center gap-1 sm:gap-2`}
-                      >
-                        <span className="text-lg sm:text-xl">{currentMember.avatar}</span>
-                        <span className="hidden sm:inline">Profile</span>
-                      </button>
-                    )}
-                  </div>
                   
-                  {showMemberMenu && (
-                    <div className="mt-4 bg-white rounded-lg shadow-xl p-6 inline-block max-w-md mx-auto">
-                      <h3 className="font-semibold text-gray-800 mb-4 text-lg">Switch Profile</h3>
-                      <div className="grid grid-cols-2 gap-2 mb-4">
-                        {members.map(member => (
-                          <button key={member.id} onClick={() => switchMember(member)} className={`p-3 rounded-lg border-2 flex items-center gap-2 ${currentMember.id === member.id ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-green-300'}`}>
-                            <span className="text-2xl">{member.avatar}</span><span className="font-medium">{member.name}</span>
-                          </button>
-                        ))}
-                      </div>
-                      <button onClick={() => { setSetupStep('member'); setShowSetup(true); setShowMemberMenu(false); }} className="w-full mb-4 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-2 rounded-lg">+ Add Member</button>
-                      
-                      {/* Download Hikes Section */}
-                      <div className="border-t-2 border-gray-200 pt-4 mb-4">
-                        <button onClick={() => { downloadHikes(); setShowMemberMenu(false); }} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 mb-2">
-                          📥 Download My Hikes (CSV)
-                        </button>
-                        <button onClick={() => { setShowEmbedModal(true); setShowMemberMenu(false); }} className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2">
-                          🌐 Embed Stats Widget
-                        </button>
-                      </div>
-                      
-                      {/* Family Code Section */}
-                      <div className="border-t-2 border-gray-200 pt-4">
-                        <h4 className="font-semibold text-gray-800 mb-2">Family Code</h4>
-                        <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-3 mb-3">
-                          <p className="text-xs text-yellow-800 mb-2">
-                            ⚠️ <strong>Important:</strong> Save your family code! You'll need it to access your family's hikes on other devices or if you clear your browser data.
-                          </p>
-                          <div className="bg-white rounded px-3 py-2 font-mono text-sm break-all border border-yellow-200">
-                            {familyId}
-                          </div>
-                        </div>
-                        <button onClick={copyFamilyCode} className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 mb-2">
-                          📋 Copy Family Code
-                        </button>
-                        <p className="text-xs text-gray-500 mb-3 text-center">Share this code with family members to join</p>
-                      </div>
-                      
-                      {/* Danger Zone */}
-                      <div className="border-t-2 border-red-200 pt-4 mt-4">
-                        <h4 className="font-semibold text-red-700 mb-3 text-sm">⚠️ Danger Zone</h4>
-                        <button onClick={() => { deleteMember(currentMember.id); }} className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg mb-2 text-sm">
-                          🗑️ Delete This Member
-                        </button>
-                        <button onClick={logoutFamily} className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg text-sm">
-                          🚪 Log Out of Family
-                        </button>
-                      </div>
-                    </div>
                   )}
                 </div>
 
@@ -1159,102 +1079,8 @@
                   </div>
                 </div>
 
-                <h2 className="text-2xl font-bold text-green-800 mb-4 flex items-center justify-center gap-2"><Award />Achievement Badges ({earnedBadges.length}/{BADGES.length})</h2>
-
-                {/* Helpful Badge Guide Banner */}
-                <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg shadow-md p-6 mb-6 border-2 border-green-200">
-                  <div className="flex items-start gap-4">
-                    <div className="text-4xl">🎯</div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-bold text-green-800 mb-2">How Badges Work</h3>
-                      <div className="text-sm text-gray-700 space-y-2">
-                        <p>• <strong>Milestone Badges</strong> track your cumulative progress (hikes, distance, elevation)</p>
-                        <p>• <strong>Discovery Badges</strong> are earned by checking off activities when you log a hike</p>
-                        <p>• <strong>Seasonal Badges</strong> are earned automatically based on when you hike</p>
-                        <p>• <strong>Weather Badges</strong> require you to check them off during a hike in those conditions</p>
-                        <p className="mt-3 text-green-700">💡 <em>Click any badge to see how to earn it and track your progress!</em></p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-                  <div className="flex justify-center gap-2 mb-6">
-                    <button onClick={() => setActiveView('badges')} className={`px-4 py-2 rounded-lg font-semibold ${activeView === 'badges' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
-                      🏆 Badges
-                    </button>
-                    <button onClick={() => setActiveView('map')} className={`px-4 py-2 rounded-lg font-semibold ${activeView === 'map' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
-                      🗺️ Map
-                    </button>
-                  </div>
-                  
-                  {activeView === 'badges' && (
-                    <>
-                  {earnedBadges.length > 0 && (
-                    <div className="mb-8">
-                      <h3 className="text-xl font-semibold text-green-700 mb-4 pb-2 border-b-2 border-green-200">🎉 Earned Badges</h3>
-                      {Object.entries(badgeCategories).map(([category, badges]) => {
-                        const earnedInCategory = badges.filter(b => b.earned);
-                        if (earnedInCategory.length === 0) return null;
-                        return (
-                          <div key={category} className="mb-6">
-                            <h4 className="text-md font-semibold text-green-600 mb-3">{category}</h4>
-                            <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 pl-4">
-                              {earnedInCategory.map(badge => (
-                                <div key={badge.id} className="text-center p-3 rounded-lg bg-yellow-50 border-2 border-yellow-400 relative cursor-pointer hover:shadow-lg group" onClick={() => setSelectedBadge(badge)}>
-                                  <div className="text-3xl mb-1">{badge.icon}</div>
-                                  <div className="font-semibold text-xs leading-tight break-words overflow-hidden" style={{minHeight:'2.5rem'}}>{badge.name}</div>
-                                  {badge.count > 0 && !badge.milestone && <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">{badge.count}</div>}
-                                  <div className="absolute top-1 right-1 bg-green-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100">?</div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-700 mb-4 pb-2 border-b-2 border-gray-200">🔒 Locked Badges</h3>
-                    {Object.entries(badgeCategories).map(([category, badges]) => {
-                      const lockedInCategory = badges.filter(b => !b.earned);
-                      if (lockedInCategory.length === 0) return null;
-                      return (
-                        <div key={category} className="mb-6">
-                          <h4 className="text-md font-semibold text-gray-600 mb-3">{category}</h4>
-                          <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 pl-4">
-                            {lockedInCategory.map(badge => {
-                              const progress = badge.milestone && badge.requirement ? Math.min((badge.count / badge.requirement) * 100, 100) : 0;
-                              return (
-                                <div key={badge.id} className="text-center p-3 rounded-lg bg-gray-50 border-2 border-gray-200 relative cursor-pointer hover:shadow-md hover:border-gray-300 group transition" onClick={() => setSelectedBadge(badge)}>
-                                  <div className="text-3xl mb-1 opacity-50 group-hover:opacity-70">{badge.icon}</div>
-                                  <div className="font-semibold text-xs leading-tight break-words overflow-hidden opacity-70" style={{minHeight:'2.5rem'}}>{badge.name}</div>
-                                  {badge.milestone && badge.requirement && progress > 0 && (
-                                    <div className="mt-1">
-                                      <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                                        <div className="bg-green-500 h-1.5 rounded-full transition-all" style={{width: `${progress}%`}}></div>
-                                      </div>
-                                      <div className="text-xs text-gray-500 mt-0.5">{Math.floor(progress)}%</div>
-                                    </div>
-                                  )}
-                                  <div className="absolute top-1 right-1 bg-gray-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">?</div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  </>
-                  )}
-                  
-                  {activeView === 'map' && (
-                    <MapComponent hikes={memberHikes} currentMember={currentMember} />
-                  )}
-                </div>
-
-                <button onClick={() => { setShowForm(!showForm); setEditingHike(null); setFormData({ name: '', date: new Date().toISOString().split('T')[0], distance: '', elevation: '', difficulty: 'easy', location: '', notes: '', activities: [], taggedMembers: [] }); }} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg shadow-lg mb-6 flex items-center justify-center gap-2"><Plus />Add New Hike</button>
+                <h2 className="text-2xl font-bold text-green-800 mb-4">📅 Recent Hikes</h2>
+                
 
                 {showForm && (
                   <div className="bg-white rounded-lg shadow-md p-6 mb-8">
@@ -1450,57 +1276,206 @@
                 </>
                 )}
 
-                {/* GEAR PAGE */}
-                {currentPage === 'gear' && (
+                {/* BADGES PAGE */}
+                {currentPage === 'badges' && (
+                  <>
+                    <h2 className="text-2xl font-bold text-green-800 mb-4 flex items-center justify-center gap-2"><Award />Achievement Badges ({earnedBadges.length}/{BADGES.length})</h2>
+
+                {/* Helpful Badge Guide Banner */}
+                <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg shadow-md p-6 mb-6 border-2 border-green-200">
+                  <div className="flex items-start gap-4">
+                    <div className="text-4xl">🎯</div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-green-800 mb-2">How Badges Work</h3>
+                      <div className="text-sm text-gray-700 space-y-2">
+                        <p>• <strong>Milestone Badges</strong> track your cumulative progress (hikes, distance, elevation)</p>
+                        <p>• <strong>Discovery Badges</strong> are earned by checking off activities when you log a hike</p>
+                        <p>• <strong>Seasonal Badges</strong> are earned automatically based on when you hike</p>
+                        <p>• <strong>Weather Badges</strong> require you to check them off during a hike in those conditions</p>
+                        <p className="mt-3 text-green-700">💡 <em>Click any badge to see how to earn it and track your progress!</em></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                  <div className="flex justify-center gap-2 mb-6">
+                    <button onClick={() => setActiveView('badges')} className={`px-4 py-2 rounded-lg font-semibold ${activeView === 'badges' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
+                      🏆 Badges
+                    </button>
+                    <button onClick={() => setActiveView('map')} className={`px-4 py-2 rounded-lg font-semibold ${activeView === 'map' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
+                      🗺️ Map
+                    </button>
+                  </div>
+                  
+                  {activeView === 'badges' && (
+                    <>
+                  {earnedBadges.length > 0 && (
+                    <div className="mb-8">
+                      <h3 className="text-xl font-semibold text-green-700 mb-4 pb-2 border-b-2 border-green-200">🎉 Earned Badges</h3>
+                      {Object.entries(badgeCategories).map(([category, badges]) => {
+                        const earnedInCategory = badges.filter(b => b.earned);
+                        if (earnedInCategory.length === 0) return null;
+                        return (
+                          <div key={category} className="mb-6">
+                            <h4 className="text-md font-semibold text-green-600 mb-3">{category}</h4>
+                            <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 pl-4">
+                              {earnedInCategory.map(badge => (
+                                <div key={badge.id} className="text-center p-3 rounded-lg bg-yellow-50 border-2 border-yellow-400 relative cursor-pointer hover:shadow-lg group" onClick={() => setSelectedBadge(badge)}>
+                                  <div className="text-3xl mb-1">{badge.icon}</div>
+                                  <div className="font-semibold text-xs leading-tight break-words overflow-hidden" style={{minHeight:'2.5rem'}}>{badge.name}</div>
+                                  {badge.count > 0 && !badge.milestone && <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">{badge.count}</div>}
+                                  <div className="absolute top-1 right-1 bg-green-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100">?</div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-700 mb-4 pb-2 border-b-2 border-gray-200">🔒 Locked Badges</h3>
+                    {Object.entries(badgeCategories).map(([category, badges]) => {
+                      const lockedInCategory = badges.filter(b => !b.earned);
+                      if (lockedInCategory.length === 0) return null;
+                      return (
+                        <div key={category} className="mb-6">
+                          <h4 className="text-md font-semibold text-gray-600 mb-3">{category}</h4>
+                          <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 pl-4">
+                            {lockedInCategory.map(badge => {
+                              const progress = badge.milestone && badge.requirement ? Math.min((badge.count / badge.requirement) * 100, 100) : 0;
+                              return (
+                                <div key={badge.id} className="text-center p-3 rounded-lg bg-gray-50 border-2 border-gray-200 relative cursor-pointer hover:shadow-md hover:border-gray-300 group transition" onClick={() => setSelectedBadge(badge)}>
+                                  <div className="text-3xl mb-1 opacity-50 group-hover:opacity-70">{badge.icon}</div>
+                                  <div className="font-semibold text-xs leading-tight break-words overflow-hidden opacity-70" style={{minHeight:'2.5rem'}}>{badge.name}</div>
+                                  {badge.milestone && badge.requirement && progress > 0 && (
+                                    <div className="mt-1">
+                                      <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                        <div className="bg-green-500 h-1.5 rounded-full transition-all" style={{width: `${progress}%`}}></div>
+                                      </div>
+                                      <div className="text-xs text-gray-500 mt-0.5">{Math.floor(progress)}%</div>
+                                    </div>
+                                  )}
+                                  <div className="absolute top-1 right-1 bg-gray-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">?</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  </>
+                  )}
+                  
+                  {activeView === 'map' && (
+                    <MapComponent hikes={memberHikes} currentMember={currentMember} />
+                  )}
+                </div>
+                  </>
+                )}
+
+                {/* PROFILE PAGE */}
+                {currentPage === 'profile' && currentMember && (
                   <div className="bg-white rounded-lg shadow-md p-8 max-w-3xl mx-auto">
-                    <h2 className="text-3xl font-bold text-green-800 mb-6">🎒 Recommended Hiking Gear for Families</h2>
+                    <h2 className="text-3xl font-bold text-green-800 mb-6">👤 Profile & Settings</h2>
                     
-                    {/* EDIT THIS SECTION - Add or modify gear recommendations below */}
-                    <div className="space-y-6">
-                      
-                      {/* Gear Item 1 */}
-                      <div className="border-l-4 border-green-500 pl-4 py-2">
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">Kids' Hiking Backpack</h3>
-                        <p className="text-gray-600 mb-2">A properly sized backpack helps kids carry their own water, snacks, and treasures found on the trail. Look for adjustable straps and fun colors.</p>
-                        <p className="text-sm text-blue-600">💡 Recommended: Deuter Kikki or Osprey Jet 12</p>
-                      </div>
-
-                      {/* Gear Item 2 */}
-                      <div className="border-l-4 border-blue-500 pl-4 py-2">
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">Trail Snacks & Water</h3>
-                        <p className="text-gray-600 mb-2">Keep energy high with healthy snacks like trail mix, fruit, and granola bars. Reusable water bottles or hydration packs keep everyone hydrated.</p>
-                        <p className="text-sm text-blue-600">💡 Tip: Pack more snacks than you think you'll need!</p>
-                      </div>
-
-                      {/* Gear Item 3 */}
-                      <div className="border-l-4 border-purple-500 pl-4 py-2">
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">Proper Footwear</h3>
-                        <p className="text-gray-600 mb-2">Good hiking shoes or boots with ankle support and grip are essential. Break them in before hitting the trails!</p>
-                        <p className="text-sm text-blue-600">💡 Recommended: Merrell or Keen kids' hiking boots</p>
-                      </div>
-
-                      {/* Gear Item 4 */}
-                      <div className="border-l-4 border-orange-500 pl-4 py-2">
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">First Aid Kit</h3>
-                        <p className="text-gray-600 mb-2">A compact first aid kit with bandages, antiseptic wipes, and blister treatment is a must-have for family hikes.</p>
-                        <p className="text-sm text-blue-600">💡 Don't forget: Sunscreen and insect repellent</p>
-                      </div>
-
-                      {/* Gear Item 5 */}
-                      <div className="border-l-4 border-red-500 pl-4 py-2">
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">Nature Exploration Tools</h3>
-                        <p className="text-gray-600 mb-2">Binoculars, magnifying glasses, and field guides make hiking educational and exciting for curious kids.</p>
-                        <p className="text-sm text-blue-600">💡 Bonus: Add a nature journal for drawing discoveries!</p>
-                      </div>
-
-                      {/* ADD MORE GEAR ITEMS HERE - Copy the structure above */}
-                      
+                    <div className="mb-6 text-center">
+                      <div className="text-6xl mb-4">{currentMember.avatar}</div>
+                      <h3 className="text-2xl font-bold text-green-800 mb-2">{currentMember.name}</h3>
+                      <p className="text-gray-600">{familyName}</p>
                     </div>
                     
-                    <div className="mt-8 p-4 bg-green-50 rounded-lg">
-                      <p className="text-sm text-gray-600 italic">
-                        💚 Happy hiking! Remember, the best gear is the gear that gets you outside together as a family.
-                      </p>
+                    <div className="space-y-6">
+                      {/* Stats Summary */}
+                      <div className="border-t-2 border-green-200 pt-6">
+                        <h4 className="font-semibold text-green-800 mb-3">📊 Your Stats</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-green-50 rounded-lg p-4 text-center">
+                            <div className="text-3xl font-bold text-green-800">{memberHikes.length}</div>
+                            <div className="text-sm text-gray-600">Total Hikes</div>
+                          </div>
+                          <div className="bg-blue-50 rounded-lg p-4 text-center">
+                            <div className="text-3xl font-bold text-blue-800">{totalDistance.toFixed(1)}</div>
+                            <div className="text-sm text-gray-600">Miles</div>
+                          </div>
+                          <div className="bg-purple-50 rounded-lg p-4 text-center">
+                            <div className="text-3xl font-bold text-purple-800">{totalElevation.toLocaleString()}</div>
+                            <div className="text-sm text-gray-600">Feet Climbed</div>
+                          </div>
+                          <div className="bg-yellow-50 rounded-lg p-4 text-center">
+                            <div className="text-3xl font-bold text-yellow-800">{earnedBadges.length}</div>
+                            <div className="text-sm text-gray-600">Badges</div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Family Members */}
+                      {members.length > 1 && (
+                        <div className="border-t-2 border-green-200 pt-6">
+                          <h4 className="font-semibold text-green-800 mb-3">👨‍👩‍👧‍👦 Family Members</h4>
+                          <div className="space-y-2">
+                            {members.map(member => (
+                              <button 
+                                key={member.id}
+                                onClick={() => switchMember(member)}
+                                className={`w-full p-4 rounded-lg border-2 flex items-center gap-3 transition ${member.id === currentMember.id ? 'bg-green-50 border-green-500' : 'bg-white border-gray-200 hover:border-green-300'}`}
+                              >
+                                <span className="text-3xl">{member.avatar}</span>
+                                <span className="font-semibold text-lg">{member.name}</span>
+                                {member.id === currentMember.id && (
+                                  <span className="ml-auto bg-green-500 text-white px-2 py-1 rounded text-xs">Current</span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Share Widget */}
+                      <div className="border-t-2 border-green-200 pt-6">
+                        <h4 className="font-semibold text-green-800 mb-3">🌐 Share Your Progress</h4>
+                        <button onClick={() => setShowEmbedModal(true)} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2">
+                          <span>📤</span> Generate Embed Widget
+                        </button>
+                        <p className="text-xs text-gray-500 mt-2 text-center">Share your hiking stats on your website or blog</p>
+                      </div>
+                      
+                      {/* Export Data */}
+                      <div className="border-t-2 border-green-200 pt-6">
+                        <h4 className="font-semibold text-green-800 mb-3">💾 Export Data</h4>
+                        <button onClick={downloadHikes} className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2">
+                          <span>⬇️</span> Download Hikes as CSV
+                        </button>
+                        <p className="text-xs text-gray-500 mt-2 text-center">Export all your hikes to a spreadsheet</p>
+                      </div>
+                      
+                      {/* Family Code */}
+                      <div className="border-t-2 border-purple-200 pt-6">
+                        <h4 className="font-semibold text-purple-800 mb-3">🔑 Family Code</h4>
+                        <p className="text-sm text-gray-600 mb-2">
+                          <strong>Save this code!</strong> You'll need it to access your family on other devices.
+                        </p>
+                        <div className="bg-white rounded px-3 py-2 font-mono text-sm break-all border border-purple-200 mb-2">
+                          {familyId}
+                        </div>
+                        <button onClick={copyFamilyCode} className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2">
+                          📋 Copy Family Code
+                        </button>
+                        <p className="text-xs text-gray-500 mt-2 text-center">Share this code with family members to join</p>
+                      </div>
+                      
+                      {/* Danger Zone */}
+                      <div className="border-t-2 border-red-200 pt-6">
+                        <h4 className="font-semibold text-red-700 mb-3 text-sm">⚠️ Danger Zone</h4>
+                        <button onClick={() => { deleteMember(currentMember.id); }} className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg mb-2 text-sm">
+                          🗑️ Delete This Member
+                        </button>
+                        <button onClick={logoutFamily} className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg text-sm">
+                          🚪 Log Out of Family
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -1542,6 +1517,42 @@
                         Whether you're taking your first nature walk with a toddler or summiting peaks with teenagers, Hike Together grows with your family. Every hike—no matter how short—counts toward your family's journey.
                       </p>
 
+                      
+                      <h3 className="text-xl font-bold text-green-700 mt-6 mb-3">🎒 Recommended Hiking Gear</h3>
+                      <div className="space-y-4">
+                        
+                        <div className="border-l-4 border-green-500 pl-4 py-2">
+                          <h4 className="text-lg font-semibold text-gray-800 mb-2">Kids' Hiking Backpack</h4>
+                          <p className="text-gray-600 text-sm mb-1">A properly sized backpack helps kids carry their own water, snacks, and treasures found on the trail.</p>
+                          <p className="text-xs text-blue-600">💡 Recommended: Deuter Kikki or Osprey Jet 12</p>
+                        </div>
+
+                        <div className="border-l-4 border-blue-500 pl-4 py-2">
+                          <h4 className="text-lg font-semibold text-gray-800 mb-2">Trail Snacks & Water</h4>
+                          <p className="text-gray-600 text-sm mb-1">Keep energy high with healthy snacks like trail mix, fruit, and granola bars.</p>
+                          <p className="text-xs text-blue-600">💡 Tip: Pack more snacks than you think you'll need!</p>
+                        </div>
+
+                        <div className="border-l-4 border-purple-500 pl-4 py-2">
+                          <h4 className="text-lg font-semibold text-gray-800 mb-2">Proper Footwear</h4>
+                          <p className="text-gray-600 text-sm mb-1">Good hiking shoes or boots with ankle support and grip are essential.</p>
+                          <p className="text-xs text-blue-600">💡 Recommended: Merrell or Keen kids' hiking boots</p>
+                        </div>
+
+                        <div className="border-l-4 border-orange-500 pl-4 py-2">
+                          <h4 className="text-lg font-semibold text-gray-800 mb-2">First Aid Kit</h4>
+                          <p className="text-gray-600 text-sm mb-1">A compact first aid kit with bandages, antiseptic wipes, and blister treatment.</p>
+                          <p className="text-xs text-blue-600">💡 Don't forget: Sunscreen and insect repellent</p>
+                        </div>
+
+                        <div className="border-l-4 border-red-500 pl-4 py-2">
+                          <h4 className="text-lg font-semibold text-gray-800 mb-2">Nature Exploration Tools</h4>
+                          <p className="text-gray-600 text-sm mb-1">Binoculars, magnifying glasses, and field guides make hiking educational and exciting.</p>
+                          <p className="text-xs text-blue-600">💡 Bonus: Add a nature journal for drawing discoveries!</p>
+                        </div>
+
+                      </div>
+
                       {/* ADD MORE SECTIONS HERE */}
 
                     </div>
@@ -1554,6 +1565,60 @@
                   </div>
                 )}
 
+              </div>
+              
+              {/* BOTTOM NAVIGATION BAR */}
+              <div className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-gray-200 shadow-lg z-40">
+                <div className="max-w-4xl mx-auto flex justify-around items-center py-2">
+                  <button 
+                    onClick={() => { setCurrentPage('home'); setShowForm(false); }} 
+                    className={`flex flex-col items-center justify-center py-2 px-4 transition ${currentPage === 'home' ? 'text-green-600' : 'text-gray-500'}`}
+                  >
+                    <div className="text-2xl mb-1">🏠</div>
+                    <div className="text-xs font-semibold">Home</div>
+                  </button>
+                  
+                  <button 
+                    onClick={() => { setCurrentPage('badges'); setShowForm(false); }} 
+                    className={`flex flex-col items-center justify-center py-2 px-4 transition ${currentPage === 'badges' ? 'text-green-600' : 'text-gray-500'}`}
+                  >
+                    <div className="text-2xl mb-1">🏆</div>
+                    <div className="text-xs font-semibold">Badges</div>
+                  </button>
+                  
+                  <button 
+                    onClick={() => { 
+                      setShowForm(!showForm); 
+                      setEditingHike(null); 
+                      setFormData({ name: '', date: new Date().toISOString().split('T')[0], distance: '', elevation: '', difficulty: 'easy', location: '', notes: '', activities: [], taggedMembers: [] });
+                      if (!showForm) {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }
+                    }} 
+                    className={`flex flex-col items-center justify-center py-2 px-4 transition ${showForm ? 'text-green-600' : 'text-gray-500'} relative`}
+                  >
+                    <div className={`text-3xl mb-0 ${showForm ? '' : 'bg-green-500 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg'}`}>
+                      {showForm ? '✕' : '➕'}
+                    </div>
+                    <div className="text-xs font-semibold">{showForm ? 'Close' : 'Add'}</div>
+                  </button>
+                  
+                  <button 
+                    onClick={() => { setCurrentPage('profile'); setShowForm(false); }} 
+                    className={`flex flex-col items-center justify-center py-2 px-4 transition ${currentPage === 'profile' ? 'text-green-600' : 'text-gray-500'}`}
+                  >
+                    <div className="text-2xl mb-1">{currentMember ? currentMember.avatar : '👤'}</div>
+                    <div className="text-xs font-semibold">Profile</div>
+                  </button>
+                  
+                  <button 
+                    onClick={() => { setCurrentPage('about'); setShowForm(false); }} 
+                    className={`flex flex-col items-center justify-center py-2 px-4 transition ${currentPage === 'about' ? 'text-green-600' : 'text-gray-500'}`}
+                  >
+                    <div className="text-2xl mb-1">ℹ️</div>
+                    <div className="text-xs font-semibold">About</div>
+                  </button>
+                </div>
               </div>
             </div>
           );
