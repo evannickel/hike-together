@@ -792,15 +792,19 @@
           
           const earnedBadges = badgeStats.filter(b => b.earned);
           const badgeCategories = {
-            'Hike Count Milestones': badgeStats.filter(b => b.type === 'count'),
-            'Distance Milestones': badgeStats.filter(b => b.type === 'distance'),
-            'Elevation Milestones': badgeStats.filter(b => b.type === 'elevation'),
-            'Seasonal Achievements': badgeStats.filter(b => b.type === 'seasonal'),
-            'Weather Warriors': badgeStats.filter(b => b.type === 'weather'),
-            'Wildlife & Creatures': badgeStats.filter(b => ['wildlife','bird','butterfly','frog','squirrel','snake','turtle','rabbit','fish','bee','spider'].includes(b.id)),
-            'Nature & Scenery': badgeStats.filter(b => ['waterfall','mushroom','wildflower','treeclimb','pinecone','rock','feather','stream','cave','bridge','sunset','sunrise','rainbow','fog','snow','rain','acorn','leaf','stick','tracks','berries','nest','fossil','crystal','clouds','wind','moon'].includes(b.id)),
-            'Locations': badgeStats.filter(b => b.type === 'location'),
-            'Activities & Challenges': badgeStats.filter(b => b.type === 'special')
+            '🏔️ Milestone Badges': [
+              ...badgeStats.filter(b => b.type === 'count'),
+              ...badgeStats.filter(b => b.type === 'distance'),
+              ...badgeStats.filter(b => b.type === 'elevation')
+            ],
+            '📍 Location Badges': badgeStats.filter(b => b.type === 'location'),
+            '🌸 Seasonal Badges': badgeStats.filter(b => b.type === 'seasonal'),
+            '⛈️ Weather Badges': badgeStats.filter(b => b.type === 'weather'),
+            '🦌 Discovery Badges': [
+              ...badgeStats.filter(b => ['wildlife','bird','butterfly','frog','squirrel','snake','turtle','rabbit','fish','bee','spider'].includes(b.id)),
+              ...badgeStats.filter(b => ['waterfall','mushroom','wildflower','treeclimb','pinecone','rock','feather','stream','cave','bridge','sunset','sunrise','rainbow','acorn','leaf','stick','tracks','berries','nest','fossil','crystal','clouds','moon'].includes(b.id)),
+              ...badgeStats.filter(b => b.type === 'special')
+            ]
           };
           const selectableActivities = BADGES.filter(b => b.type === 'discovery' || b.type === 'location' || b.type === 'special' || b.type === 'seasonal' || b.type === 'weather');
 
@@ -1127,11 +1131,12 @@
                       <div className="border-2 border-green-200 rounded-lg p-4">
                         <h3 className="font-semibold text-green-800 mb-2">🏆 What did you do/see?</h3>
                         {[
-                          {title:'Wildlife & Creatures',ids:['wildlife','bird','butterfly','frog','squirrel','snake','turtle','rabbit','fish','bee','spider']},
-                          {title:'Nature & Scenery',ids:['waterfall','mushroom','wildflower','treeclimb','pinecone','rock','feather','stream','cave','bridge','sunset','sunrise','rainbow','fog','snow','rain','acorn','leaf','stick','tracks','berries','nest','fossil','crystal','clouds','wind','moon']},
-                          {title:'Weather Warriors',ids:['rainhiker','fogwalker','windrider','hotstepper']},
                           {title:'Locations',type:'location'},
-                          {title:'Activities',type:'special'}
+                          {title:'Seasonal',type:'seasonal'},
+                          {title:'Weather',type:'weather'},
+                          {title:'Wildlife & Creatures',ids:['wildlife','bird','butterfly','frog','squirrel','snake','turtle','rabbit','fish','bee','spider']},
+                          {title:'Nature & Scenery',ids:['waterfall','mushroom','wildflower','treeclimb','pinecone','rock','feather','stream','cave','bridge','sunset','sunrise','rainbow','acorn','leaf','stick','tracks','berries','nest','fossil','crystal','clouds','moon']},
+                          {title:'Activities & Challenges',type:'special'}
                         ].map(section => (
                           <div key={section.title} className="mb-4">
                             <h4 className="text-xs font-semibold text-gray-600 mb-2">{section.title}</h4>
@@ -1188,9 +1193,10 @@
                     <div className="px-4 pb-4">
                       <div className="text-sm text-gray-700 space-y-2 pl-11">
                         <p>• <strong>Milestone Badges</strong> track your cumulative progress (hikes, distance, elevation)</p>
-                        <p>• <strong>Discovery Badges</strong> are earned by checking off activities when you log a hike</p>
+                        <p>• <strong>Location Badges</strong> are earned by checking off where you hiked when you log a hike</p>
                         <p>• <strong>Seasonal Badges</strong> are earned automatically based on when you hike</p>
-                        <p>• <strong>Weather Badges</strong> require you to check them off during a hike in those conditions</p>
+                        <p>• <strong>Weather Badges</strong> are earned by checking them off during a hike in those conditions</p>
+                        <p>• <strong>Discovery Badges</strong> are earned by checking off activities and sightings when you log a hike</p>
                         <p className="mt-3 text-green-700">💡 <em>Click any badge to see how to earn it and track your progress!</em></p>
                       </div>
                     </div>
@@ -1211,7 +1217,7 @@
                               {earnedInCategory.map(badge => (
                                 <div key={badge.id} className="text-center p-3 rounded-lg bg-yellow-50 border-2 border-yellow-400 relative cursor-pointer hover:shadow-lg group" onClick={() => setSelectedBadge(badge)}>
                                   <div className="text-3xl mb-1">{badge.icon}</div>
-                                  <div className="font-semibold text-xs leading-tight break-words overflow-hidden" style={{minHeight:'2.5rem'}}>{badge.name}</div>
+                                  <div className="font-semibold text-[10px] sm:text-xs leading-tight overflow-hidden whitespace-nowrap text-ellipsis" style={{minHeight:'2.5rem'}} title={badge.name}>{badge.name}</div>
                                   {badge.count > 0 && !badge.milestone && <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">{badge.count}</div>}
                                   <div className="absolute top-1 right-1 bg-green-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100">?</div>
                                 </div>
@@ -1236,7 +1242,7 @@
                               return (
                                 <div key={badge.id} className="text-center p-3 rounded-lg bg-gray-50 border-2 border-gray-200 relative cursor-pointer hover:shadow-md hover:border-gray-300 group transition" onClick={() => setSelectedBadge(badge)}>
                                   <div className="text-3xl mb-1 opacity-50 group-hover:opacity-70">{badge.icon}</div>
-                                  <div className="font-semibold text-xs leading-tight break-words overflow-hidden opacity-70" style={{minHeight:'2.5rem'}}>{badge.name}</div>
+                                  <div className="font-semibold text-[10px] sm:text-xs leading-tight overflow-hidden whitespace-nowrap text-ellipsis opacity-70" style={{minHeight:'2.5rem'}} title={badge.name}>{badge.name}</div>
                                   {badge.milestone && badge.requirement && progress > 0 && (
                                     <div className="mt-1">
                                       <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
