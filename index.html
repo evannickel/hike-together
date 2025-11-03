@@ -1217,7 +1217,7 @@
                               {earnedInCategory.map(badge => (
                                 <div key={badge.id} className="text-center p-3 rounded-lg bg-yellow-50 border-2 border-yellow-400 relative cursor-pointer hover:shadow-lg group" onClick={() => setSelectedBadge(badge)}>
                                   <div className="text-3xl mb-1">{badge.icon}</div>
-                                  <div className="font-semibold text-[10px] sm:text-xs leading-tight overflow-hidden whitespace-nowrap text-ellipsis" style={{minHeight:'2.5rem'}} title={badge.name}>{badge.name}</div>
+                                  <div className="font-semibold text-[10px] sm:text-xs leading-tight overflow-hidden" style={{minHeight:'2.5rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical'}}>{badge.name}</div>
                                   {badge.count > 0 && !badge.milestone && <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">{badge.count}</div>}
                                   <div className="absolute top-1 right-1 bg-green-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100">?</div>
                                 </div>
@@ -1242,7 +1242,7 @@
                               return (
                                 <div key={badge.id} className="text-center p-3 rounded-lg bg-gray-50 border-2 border-gray-200 relative cursor-pointer hover:shadow-md hover:border-gray-300 group transition" onClick={() => setSelectedBadge(badge)}>
                                   <div className="text-3xl mb-1 opacity-50 group-hover:opacity-70">{badge.icon}</div>
-                                  <div className="font-semibold text-[10px] sm:text-xs leading-tight overflow-hidden whitespace-nowrap text-ellipsis opacity-70" style={{minHeight:'2.5rem'}} title={badge.name}>{badge.name}</div>
+                                  <div className="font-semibold text-[10px] sm:text-xs leading-tight overflow-hidden opacity-70" style={{minHeight:'2.5rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical'}}>{badge.name}</div>
                                   {badge.milestone && badge.requirement && progress > 0 && (
                                     <div className="mt-1">
                                       <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
