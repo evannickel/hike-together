@@ -683,6 +683,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const embedFamily = urlParams.get('embed');
             const embedMember = urlParams.get('member');
+            const joinFamilyId = urlParams.get('join');
             
             if (embedFamily && embedMember) {
               // This is embed mode
@@ -701,11 +702,55 @@
                 Sentry.setUser({ id: user.uid, email: user.email });
                 analytics.logEvent('user_active');
                 
-                const storedFamilyId = localStorage.getItem('familyId');
-                const storedMemberId = localStorage.getItem('currentMemberId');
-                if (storedFamilyId) {
-                  await loadFamily(storedFamilyId, storedMemberId);
-                } else {
+                // Check if user clicked an invite link
+                if (joinFamilyId) {
+                  try {
+                    const familyDoc = await db.collection('families').doc(joinFamilyId).get();
+                    if (familyDoc.exists) {
+                      // Save to user profile
+                      await db.collection('users').doc(user.uid).set({
+                        familyId: joinFamilyId,
+                        email: user.email,
+                        joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+                      }, { merge: true });
+                      
+                      localStorage.setItem('familyId', joinFamilyId);
+                      analytics.logEvent('family_joined_via_link');
+                      
+                      // Clear the URL parameter
+                      window.history.replaceState({}, document.title, window.location.pathname);
+                      
+                      await loadFamily(joinFamilyId, null);
+                      return;
+                    }
+                  } catch (error) {
+                    console.error('Error joining via link:', error);
+                    Sentry.captureException(error);
+                  }
+                }
+                
+                // Check Firestore first for user's family
+                try {
+                  const userDoc = await db.collection('users').doc(user.uid).get();
+                  if (userDoc.exists && userDoc.data().familyId) {
+                    const familyId = userDoc.data().familyId;
+                    localStorage.setItem('familyId', familyId);
+                    const storedMemberId = localStorage.getItem('currentMemberId');
+                    await loadFamily(familyId, storedMemberId);
+                  } else {
+                    // Fallback to localStorage
+                    const storedFamilyId = localStorage.getItem('familyId');
+                    const storedMemberId = localStorage.getItem('currentMemberId');
+                    if (storedFamilyId) {
+                      await loadFamily(storedFamilyId, storedMemberId);
+                    } else {
+                      setShowSetup(true);
+                      setLoading(false);
+                    }
+                  }
+                } catch (error) {
+                  console.error('Error loading user data:', error);
+                  Sentry.captureException(error);
                   setShowSetup(true);
                   setLoading(false);
                 }
@@ -777,8 +822,7 @@
               
               analytics.logEvent('family_created');
               
-              // Show important warning about saving the code
-              alert('🎉 Family created successfully!\n\n⚠️ IMPORTANT: Your Family Code\n\n' + familyRef.id + '\n\n💾 SAVE THIS CODE NOW!\n\nWrite it down or save it somewhere safe. You will need this code to:\n• Access your family on other devices\n• Recover access if browser data is cleared\n• Share with other family members\n\nYou can also copy it later from the Profile menu.');
+              alert('🎉 Family created successfully!\n\nYou can now add family members and start logging hikes together!');
               
               setSetupStep('member');
             } catch (error) {
@@ -792,13 +836,23 @@
             try {
               const familyDoc = await db.collection('families').doc(joinCode).get();
               if (familyDoc.exists) {
+                // Save to user profile in Firestore
+                await db.collection('users').doc(user.uid).set({
+                  familyId: joinCode,
+                  email: user.email,
+                  joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+                
                 localStorage.setItem('familyId', joinCode);
                 await loadFamily(joinCode, null);
                 setShowSetup(false);
+                
+                analytics.logEvent('family_joined');
               } else {
-                alert('Family not found');
+                alert('Family not found. Please check the code and try again.');
               }
             } catch (error) {
+              Sentry.captureException(error);
               alert('Error: ' + error.message);
             }
           };
@@ -1033,7 +1087,50 @@
 
           const copyFamilyCode = () => {
             navigator.clipboard.writeText(familyId);
-            alert('✅ Family code copied to clipboard!\n\n💾 SAVE THIS CODE SOMEWHERE SAFE!\n\nYou will need it to:\n• Access your family on other devices\n• Recover access if browser data is cleared\n• Share with family members to join\n\nFamily Code: ' + familyId);
+            alert('✅ Family code copied to clipboard!');
+          };
+
+          const generateInviteLink = () => {
+            const baseUrl = window.location.origin + window.location.pathname;
+            const inviteUrl = `${baseUrl}?join=${familyId}`;
+            return inviteUrl;
+          };
+
+          const shareViaEmail = () => {
+            const inviteUrl = generateInviteLink();
+            const subject = `Join our family on Hike Together!`;
+            const body = `Hi! I'd like to invite you to join our family "${familyName}" on Hike Together - our family hiking tracker.\n\nClick this link to join:\n${inviteUrl}\n\nOr enter this family code after signing up: ${familyId}\n\nSee you on the trails! 🥾`;
+            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            analytics.logEvent('invite_email_opened');
+          };
+
+          const shareViaSMS = () => {
+            const inviteUrl = generateInviteLink();
+            const message = `Join our family "${familyName}" on Hike Together! ${inviteUrl}`;
+            window.location.href = `sms:?body=${encodeURIComponent(message)}`;
+            analytics.logEvent('invite_sms_opened');
+          };
+
+          const copyInviteLink = () => {
+            const inviteUrl = generateInviteLink();
+            navigator.clipboard.writeText(inviteUrl);
+            alert('✅ Invite link copied to clipboard!\n\nShare this link with family members. They can click it to automatically join your family after signing up.');
+            analytics.logEvent('invite_link_copied');
+          };
+
+          const shareFamily = () => {
+            const inviteUrl = generateInviteLink();
+            if (navigator.share) {
+              navigator.share({
+                title: 'Join Hike Together',
+                text: `Join our family "${familyName}" on Hike Together!`,
+                url: inviteUrl
+              }).then(() => {
+                analytics.logEvent('invite_shared');
+              }).catch(err => console.log('Share cancelled'));
+            } else {
+              copyInviteLink();
+            }
           };
 
           const memberHikes = hikes.filter(h => !currentMember || (h.hikerId === currentMember.id || (h.allHikers && h.allHikers.includes(currentMember.id))));
@@ -1802,19 +1899,45 @@
                         <p className="text-xs text-gray-500 mt-2 text-center">Export all your hikes to a spreadsheet</p>
                       </div>
                       
-                      {/* Family Code */}
-                      <div className="border-t-2 border-purple-200 pt-6">
-                        <h4 className="font-semibold text-purple-800 mb-3">🔑 Family Code</h4>
-                        <p className="text-sm text-gray-600 mb-2">
-                          <strong>Save this code!</strong> You'll need it to access your family on other devices.
+                      {/* Invite Family Members */}
+                      <div className="border-t-2 border-blue-200 pt-6">
+                        <h4 className="font-semibold text-blue-800 mb-3">👨‍👩‍👧‍👦 Invite Family Members</h4>
+                        <p className="text-sm text-gray-600 mb-4">
+                          Share your family with others so they can join and log hikes together!
                         </p>
-                        <div className="bg-white rounded px-3 py-2 font-mono text-sm break-all border border-purple-200 mb-2">
-                          {familyId}
+                        
+                        <div className="space-y-2">
+                          <button onClick={shareFamily} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2">
+                            📤 Share Invite Link
+                          </button>
+                          
+                          <button onClick={shareViaEmail} className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2">
+                            ✉️ Invite via Email
+                          </button>
+                          
+                          <button onClick={shareViaSMS} className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2">
+                            💬 Invite via Text Message
+                          </button>
+                          
+                          <button onClick={copyInviteLink} className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2">
+                            🔗 Copy Invite Link
+                          </button>
                         </div>
-                        <button onClick={copyFamilyCode} className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2">
-                          📋 Copy Family Code
-                        </button>
-                        <p className="text-xs text-gray-500 mt-2 text-center">Share this code with family members to join</p>
+                        
+                        <details className="mt-4">
+                          <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">
+                            Advanced: Show family code
+                          </summary>
+                          <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                            <p className="text-xs text-gray-600 mb-2">Family Code (for manual entry):</p>
+                            <div className="bg-white rounded px-2 py-1 font-mono text-xs break-all border border-gray-200 mb-2">
+                              {familyId}
+                            </div>
+                            <button onClick={copyFamilyCode} className="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold py-1 px-2 rounded text-xs">
+                              Copy Code
+                            </button>
+                          </div>
+                        </details>
                       </div>
                       
                       {/* Danger Zone */}
