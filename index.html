@@ -766,64 +766,80 @@
             return unsubscribe;
           }, []);
 
-          const loadFamily = async (famId, memberId) => {
-            try {
-              setFamilyId(famId);
-              const familyDoc = await db.collection('families').doc(famId).get();
-              if (familyDoc.exists) setFamilyName(familyDoc.data().name);
-              
-              const membersSnap = await db.collection('families').doc(famId).collection('members').get();
-              const membersList = membersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-              setMembers(membersList);
-              
-              // Get current authenticated user
-              const currentUser = auth.currentUser;
-              if (!currentUser) {
-                setLoading(false);
-                return;
-              }
-              
-              // For now, just add current user to the list
-              try {
-                const userDoc = await db.collection('users').doc(currentUser.uid).get();
-                if (userDoc.exists) {
-                  setFamilyUsers([{ id: currentUser.uid, ...userDoc.data() }]);
-                }
-              } catch (error) {
-                console.log('Could not load user data:', error);
-                setFamilyUsers([]);
-              }
-              
-              // Check if user has a member profile linked to their account
-              const userMemberSnap = await db.collection('families').doc(famId).collection('members')
-                .where('userId', '==', currentUser.uid).get();
-              
-              if (!userMemberSnap.empty) {
-                // User has a member profile - use it
-                const userMember = { id: userMemberSnap.docs[0].id, ...userMemberSnap.docs[0].data() };
-                setCurrentMember(userMember);
-                localStorage.setItem('currentMemberId', userMember.id);
-              } else if (memberId && membersList.find(m => m.id === memberId)) {
-                // Legacy: use provided memberId
-                setCurrentMember(membersList.find(m => m.id === memberId));
-              } else if (membersList.length > 0) {
-                // No member profile for this user - show setup to create one
-                setShowSetup(true);
-                setSetupStep('member');
-                setLoading(false);
-                return;
-              }
-              
-              db.collection('families').doc(famId).collection('hikes').orderBy('date', 'desc').onSnapshot(snapshot => {
-                setHikes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-              });
-              setLoading(false);
-            } catch (error) {
-              console.error(error);
-              Sentry.captureException(error);
-              setLoading(false);
-            }
-          };
+          // ============================================
+// FIXED loadFamily() FUNCTION
+// Replace your existing loadFamily function with this
+// ============================================
+
+const loadFamily = async (famId, memberId) => {
+  try {
+    console.log('🔍 Loading family:', famId, 'for user:', auth.currentUser?.uid);
+    setFamilyId(famId);
+    
+    // Load family data
+    const familyDoc = await db.collection('families').doc(famId).get();
+    if (familyDoc.exists) {
+      setFamilyName(familyDoc.data().name);
+      console.log('✅ Family loaded:', familyDoc.data().name);
+    }
+    
+    // Load all members
+    const membersSnap = await db.collection('families').doc(famId).collection('members').get();
+    const membersList = membersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setMembers(membersList);
+    console.log('👥 Found members:', membersList.length);
+    
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      console.log('❌ No current user');
+      setLoading(false);
+      return;
+    }
+
+    // CRITICAL FIX: Find member linked to this user account
+    const userLinkedMember = membersList.find(m => m.userId === currentUser.uid);
+    
+    if (userLinkedMember) {
+      // SUCCESS: User has a profile linked to their account
+      console.log('✅ Found user-linked member:', userLinkedMember.name);
+      setCurrentMember(userLinkedMember);
+      localStorage.setItem('currentMemberId', userLinkedMember.id);
+      setShowSetup(false); // IMPORTANT: Close setup screen
+    } else if (membersList.length === 0) {
+      // No members exist at all - show setup to create first member
+      console.log('⚠️ No members exist, showing setup');
+      setShowSetup(true);
+      setSetupStep('member');
+      setLoading(false);
+      return;
+    } else {
+      // Members exist but none are linked to this user
+      // This is a NEW user joining an existing family
+      console.log('⚠️ New user joining - need to create their profile');
+      setShowSetup(true);
+      setSetupStep('member');
+      setLoading(false);
+      return;
+    }
+    
+    // Load hikes with real-time updates
+    console.log('📚 Setting up hikes listener');
+    db.collection('families').doc(famId).collection('hikes')
+      .orderBy('date', 'desc')
+      .onSnapshot(snapshot => {
+        const loadedHikes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        console.log('📊 Loaded hikes:', loadedHikes.length);
+        setHikes(loadedHikes);
+      });
+    
+    setLoading(false);
+    console.log('✅ loadFamily completed successfully');
+  } catch (error) {
+    console.error('❌ Error loading family:', error);
+    Sentry.captureException(error);
+    setLoading(false);
+  }
+};
 
           const searchLocation = async (query) => {
             if (!query || query.length < 3) {
