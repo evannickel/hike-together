@@ -219,49 +219,55 @@ const LandingPage = ({ onGetStarted }) => {
                                     Log In
                                 </button>
                             </div>
+                            <p className="text-xs md:text-sm text-gray-500 mt-3 md:mt-4">
 
+                            </p>
                         </div>
 
-{/* Right: App Preview with Screenshots */}
-<div className="animate-fade-in-up delay-200 flex justify-center">
-    <div className="relative flex items-center justify-center">
-        {/* Phone 1 - Home Screenshot (Left, slightly rotated) */}
-        <div className="relative transform -rotate-6 hover:rotate-0 transition-transform duration-300" style={{zIndex: 1}}>
-            <div className="relative bg-gray-900 rounded-[2rem] md:rounded-[2.5rem] p-2 md:p-3 shadow-2xl" style={{width: '240px', height: '480px'}}>
-                <div className="bg-white rounded-[1.5rem] md:rounded-[2rem] overflow-hidden h-full relative">
-                    <img 
-                        src="home-screenshot.png" 
-                        alt="Home page showing hiking stats"
-                        className="w-full h-full object-cover object-top"
-                    />
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 text-white text-center">
-                        <p className="text-xs font-semibold">Home</p>
-                    </div>
-                </div>
-            </div>
-            {/* Glow effect */}
-            <div className="absolute inset-0 bg-green-400 rounded-[2rem] md:rounded-[2.5rem] blur-2xl opacity-20 -z-10"></div>
-        </div>
+                        {/* Right: App Preview with Screenshots */}
+                        <div className="animate-fade-in-up delay-200 flex justify-center">
+                            <div className="relative flex items-center justify-center">
+                                {/* Phone 1 - Home Screenshot (Left, slightly rotated) */}
+                                <div className="relative transform -rotate-6 hover:rotate-0 transition-transform duration-300" style={{zIndex: 1}}>
+                                    <div className="relative bg-gray-900 rounded-[2rem] md:rounded-[2.5rem] p-2 md:p-3 shadow-2xl" style={{width: '240px', height: '480px'}}>
+                                        <div className="bg-white rounded-[1.5rem] md:rounded-[2rem] overflow-hidden h-full relative">
+                                            <img 
+                                                src="home-screenshot.png" 
+                                                alt="Home page showing hiking stats"
+                                                className="w-full h-full object-cover object-top"
+                                            />
+                                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 text-white text-center">
+                                                <p className="text-xs font-semibold">Home</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {/* Glow effect */}
+                                    <div className="absolute inset-0 bg-green-400 rounded-[2rem] md:rounded-[2.5rem] blur-2xl opacity-20 -z-10"></div>
+                                </div>
 
-        {/* Phone 2 - Badges Screenshot (Right, slightly rotated, overlapping) */}
-        <div className="relative transform rotate-6 hover:rotate-0 transition-transform duration-300 -ml-16 md:-ml-20" style={{zIndex: 2}}>
-            <div className="relative bg-gray-900 rounded-[2rem] md:rounded-[2.5rem] p-2 md:p-3 shadow-2xl" style={{width: '240px', height: '480px'}}>
-                <div className="bg-white rounded-[1.5rem] md:rounded-[2rem] overflow-hidden h-full relative">
-                    <img 
-                        src="badges-screenshot.png" 
-                        alt="Badges page showing achievements"
-                        className="w-full h-full object-cover object-top"
-                    />
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 text-white text-center">
-                        <p className="text-xs font-semibold">Badges</p>
+                                {/* Phone 2 - Badges Screenshot (Right, slightly rotated, overlapping) */}
+                                <div className="relative transform rotate-6 hover:rotate-0 transition-transform duration-300 -ml-16 md:-ml-20" style={{zIndex: 2}}>
+                                    <div className="relative bg-gray-900 rounded-[2rem] md:rounded-[2.5rem] p-2 md:p-3 shadow-2xl" style={{width: '240px', height: '480px'}}>
+                                        <div className="bg-white rounded-[1.5rem] md:rounded-[2rem] overflow-hidden h-full relative">
+                                            <img 
+                                                src="badges-screenshot.png" 
+                                                alt="Badges page showing achievements"
+                                                className="w-full h-full object-cover object-top"
+                                            />
+                                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 text-white text-center">
+                                                <p className="text-xs font-semibold">Badges</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {/* Glow effect */}
+                                    <div className="absolute inset-0 bg-yellow-400 rounded-[2rem] md:rounded-[2.5rem] blur-2xl opacity-20 -z-10"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            {/* Glow effect */}
-            <div className="absolute inset-0 bg-yellow-400 rounded-[2rem] md:rounded-[2.5rem] blur-2xl opacity-20 -z-10"></div>
-        </div>
-    </div>
-</div>
+            </section>
+
             {/* Features Strip */}
             <section className="bg-white border-t border-gray-200 py-8 md:py-12">
                 <div className="max-w-7xl mx-auto px-4">
