@@ -147,186 +147,186 @@
 // ============================================
 
 const LandingPage = ({ onGetStarted }) => {
+    const [showLogin, setShowLogin] = useState(false);
+    
+    if (showLogin) {
+        return <LoginScreen onLogin={(user) => {}} onBack={() => setShowLogin(false)} />;
+    }
+    
     return (
-        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
-            <nav className="bg-white shadow-sm sticky top-0 z-50">
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 flex flex-col">
+            {/* Navigation */}
+            <nav className="bg-white shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
                         <div className="flex items-center gap-2">
                             <Mountain className="w-8 h-8 text-green-700" />
                             <span className="text-2xl font-bold text-green-800">Hike Together</span>
                         </div>
-                        <button 
-                            onClick={onGetStarted}
-                            className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-lg transition"
-                        >
-                            Get Started
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <button 
+                                onClick={() => setShowLogin(true)}
+                                className="text-green-700 hover:text-green-800 font-semibold px-4 py-2 rounded-lg transition"
+                            >
+                                Log In
+                            </button>
+                            <button 
+                                onClick={onGetStarted}
+                                className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-lg transition shadow-md"
+                            >
+                                Get Started
+                            </button>
+                        </div>
                     </div>
                 </div>
             </nav>
 
-            <section className="pt-20 pb-32 px-4">
-                <div className="max-w-7xl mx-auto">
-                    <div className="text-center">
+            {/* Hero Section - Single Screen */}
+            <section className="flex-1 flex items-center py-12 px-4">
+                <div className="max-w-7xl mx-auto w-full">
+                    <div className="grid md:grid-cols-2 gap-12 items-center">
+                        {/* Left: Content */}
                         <div className="animate-fade-in-up">
-                            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6">
+                            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
                                 Track Your Family's
                                 <br />
                                 <span className="gradient-text">Hiking Adventures</span>
                             </h1>
-                        </div>
-                        <div className="animate-fade-in-up delay-100">
-                            <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
+                            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
                                 Make every hike memorable. Log trails, earn badges, and build lasting memories together on the trails.
                             </p>
-                        </div>
-                        <div className="animate-fade-in-up delay-200 flex flex-col sm:flex-row gap-4 justify-center">
-                            <button 
-                                onClick={onGetStarted}
-                                className="bg-green-600 hover:bg-green-700 text-white text-lg font-bold px-8 py-4 rounded-lg shadow-lg hover:shadow-xl transition transform hover:scale-105"
-                            >
-                                Start Hiking Free 🥾
-                            </button>
-                            <button 
-                                onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                                className="bg-white hover:bg-gray-50 text-green-700 text-lg font-bold px-8 py-4 rounded-lg shadow-lg border-2 border-green-600 transition"
-                            >
-                                Learn More
-                            </button>
-                        </div>
-                        <div className="mt-16 text-8xl animate-float">🏔️</div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="features" className="py-20 bg-white">
-                <div className="max-w-7xl mx-auto px-4">
-                    <div className="text-center mb-16">
-                        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-                            Everything You Need for Family Hiking
-                        </h2>
-                        <p className="text-xl text-gray-600">
-                            Built to make outdoor adventures more fun and memorable
-                        </p>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-8">
-                        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition">
-                            <div className="bg-green-600 w-16 h-16 rounded-full flex items-center justify-center mb-6">
-                                <Mountain className="w-8 h-8 text-white" />
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <button 
+                                    onClick={onGetStarted}
+                                    className="bg-green-600 hover:bg-green-700 text-white text-lg font-bold px-8 py-4 rounded-lg shadow-lg hover:shadow-xl transition transform hover:scale-105"
+                                >
+                                    Start Hiking Free 🥾
+                                </button>
+                                <button 
+                                    onClick={() => setShowLogin(true)}
+                                    className="bg-white hover:bg-gray-50 text-green-700 text-lg font-semibold px-8 py-4 rounded-lg shadow-md border-2 border-green-600 transition"
+                                >
+                                    Log In
+                                </button>
                             </div>
-                            <h3 className="text-2xl font-bold text-green-900 mb-4">Track Every Hike</h3>
-                            <p className="text-gray-700 mb-4">
-                                Log distance, elevation, difficulty, and location for every adventure.
+                            <p className="text-sm text-gray-500 mt-4">
+                                Free
                             </p>
                         </div>
 
-                        <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition">
-                            <div className="bg-yellow-500 w-16 h-16 rounded-full flex items-center justify-center mb-6">
-                                <Award className="w-8 h-8 text-white" />
+                        {/* Right: App Preview */}
+                        <div className="animate-fade-in-up delay-200 flex justify-center">
+                            <div className="relative">
+                                {/* Phone Frame */}
+                                <div className="relative bg-gray-900 rounded-[3rem] p-3 shadow-2xl" style={{width: '340px', height: '680px'}}>
+                                    <div className="bg-white rounded-[2.5rem] overflow-hidden h-full">
+                                        {/* App Screenshot Placeholder */}
+                                        <div className="h-full bg-gradient-to-br from-green-50 to-blue-50 p-6 overflow-hidden">
+                                            {/* Header */}
+                                            <div className="text-center mb-6">
+                                                <h3 className="text-2xl font-bold text-green-800">Hike Together</h3>
+                                                <p className="text-sm text-green-600">The Nickel Family</p>
+                                            </div>
+                                            
+                                            {/* Stats Cards */}
+                                            <div className="grid grid-cols-2 gap-3 mb-6">
+                                                <div className="bg-white rounded-lg shadow p-3 text-center">
+                                                    <div className="text-2xl font-bold text-green-800">24</div>
+                                                    <div className="text-xs text-gray-600">Hikes</div>
+                                                </div>
+                                                <div className="bg-white rounded-lg shadow p-3 text-center">
+                                                    <div className="text-2xl font-bold text-green-800">87.3</div>
+                                                    <div className="text-xs text-gray-600">Miles</div>
+                                                </div>
+                                                <div className="bg-white rounded-lg shadow p-3 text-center">
+                                                    <div className="text-2xl font-bold text-green-800">12.5k</div>
+                                                    <div className="text-xs text-gray-600">Feet</div>
+                                                </div>
+                                                <div className="bg-white rounded-lg shadow p-3 text-center">
+                                                    <div className="text-2xl font-bold text-green-800">42</div>
+                                                    <div className="text-xs text-gray-600">Badges</div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Recent Hike Card */}
+                                            <div className="bg-white rounded-lg shadow p-4 mb-3">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <h4 className="font-bold text-green-800 text-sm">Eagle Lake Trail</h4>
+                                                    <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">🟢 Easy</span>
+                                                </div>
+                                                <p className="text-xs text-gray-500 mb-2">Nov 15, 2024</p>
+                                                <div className="flex gap-3 text-xs">
+                                                    <div className="bg-blue-50 rounded px-2 py-1">
+                                                        <span className="font-semibold text-blue-800">3.2 mi</span>
+                                                    </div>
+                                                    <div className="bg-purple-50 rounded px-2 py-1">
+                                                        <span className="font-semibold text-purple-800">450 ft</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Badges Preview */}
+                                            <div className="bg-white rounded-lg shadow p-4">
+                                                <h4 className="font-bold text-green-800 text-sm mb-3">Recent Badges</h4>
+                                                <div className="flex gap-2 justify-center">
+                                                    <div className="bg-yellow-50 rounded-lg p-2 text-2xl">🥾</div>
+                                                    <div className="bg-yellow-50 rounded-lg p-2 text-2xl">🏔️</div>
+                                                    <div className="bg-yellow-50 rounded-lg p-2 text-2xl">🦌</div>
+                                                    <div className="bg-yellow-50 rounded-lg p-2 text-2xl">🌲</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {/* Glow effect */}
+                                <div className="absolute inset-0 bg-green-400 rounded-[3rem] blur-3xl opacity-20 -z-10"></div>
                             </div>
-                            <h3 className="text-2xl font-bold text-yellow-900 mb-4">Earn Cool Badges</h3>
-                            <p className="text-gray-700 mb-4">
-                                Unlock 100+ achievement badges. Celebrate every milestone!
-                            </p>
-                        </div>
-
-                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition">
-                            <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mb-6">
-                                <Users className="w-8 h-8 text-white" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-blue-900 mb-4">Hike as a Family</h3>
-                            <p className="text-gray-700 mb-4">
-                                Create profiles for everyone. Tag family members in hikes!
-                            </p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section className="py-20 bg-gradient-to-r from-green-600 to-green-700 text-white">
+            {/* Features Strip */}
+            <section className="bg-white border-t border-gray-200 py-12">
                 <div className="max-w-7xl mx-auto px-4">
-                    <div className="text-center mb-12">
-                        <h2 className="text-4xl font-bold mb-4">See Your Progress Grow</h2>
-                        <p className="text-xl text-green-100">Track meaningful stats that motivate your family</p>
-                    </div>
-                    <div className="grid md:grid-cols-4 gap-8">
-                        <div className="text-center">
-                            <div className="text-5xl mb-2">🥾</div>
-                            <div className="text-4xl font-bold mb-2">Total Hikes</div>
+                    <div className="grid md:grid-cols-3 gap-8 text-center">
+                        <div>
+                            <div className="text-4xl mb-3">📍</div>
+                            <h3 className="font-bold text-gray-900 mb-2">Track Every Adventure</h3>
+                            <p className="text-sm text-gray-600">Log distance, elevation, and location for all your hikes</p>
                         </div>
-                        <div className="text-center">
-                            <div className="text-5xl mb-2">📏</div>
-                            <div className="text-4xl font-bold mb-2">Miles Hiked</div>
+                        <div>
+                            <div className="text-4xl mb-3">🏆</div>
+                            <h3 className="font-bold text-gray-900 mb-2">Earn 100+ Badges</h3>
+                            <p className="text-sm text-gray-600">Unlock achievements and celebrate milestones together</p>
                         </div>
-                        <div className="text-center">
-                            <div className="text-5xl mb-2">⛰️</div>
-                            <div className="text-4xl font-bold mb-2">Feet Climbed</div>
-                        </div>
-                        <div className="text-center">
-                            <div className="text-5xl mb-2">🏆</div>
-                            <div className="text-4xl font-bold mb-2">Badges Earned</div>
+                        <div>
+                            <div className="text-4xl mb-3">👨‍👩‍👧‍👦</div>
+                            <h3 className="font-bold text-gray-900 mb-2">Built for Families</h3>
+                            <p className="text-sm text-gray-600">Create profiles and share adventures with everyone</p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section className="py-20 bg-white">
-                <div className="max-w-7xl mx-auto px-4">
-                    <div className="text-center mb-16">
-                        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Simple to Start</h2>
-                        <p className="text-xl text-gray-600">Get hiking in three easy steps</p>
-                    </div>
-                    <div className="grid md:grid-cols-3 gap-12">
-                        <div className="text-center">
-                            <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold text-green-700">1</div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-4">Create Your Family</h3>
-                            <p className="text-gray-600">Sign up free and create your family group.</p>
-                        </div>
-                        <div className="text-center">
-                            <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold text-green-700">2</div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-4">Log Your Hikes</h3>
-                            <p className="text-gray-600">Record the details after each adventure.</p>
-                        </div>
-                        <div className="text-center">
-                            <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold text-green-700">3</div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-4">Watch Stats Grow</h3>
-                            <p className="text-gray-600">Earn badges and build family memories.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section className="py-20 bg-gradient-to-br from-green-50 to-blue-50">
-                <div className="max-w-4xl mx-auto px-4 text-center">
-                    <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                        Ready to Start Your Adventure?
-                    </h2>
-                    <p className="text-xl text-gray-600 mb-8">
-                        Join families making hiking more fun. Completely free!
-                    </p>
-                    <button 
-                        onClick={onGetStarted}
-                        className="bg-green-600 hover:bg-green-700 text-white text-xl font-bold px-12 py-5 rounded-lg shadow-xl transition transform hover:scale-105"
-                    >
-                        Get Started Free 🚀
-                    </button>
-                    <p className="text-sm text-gray-500 mt-4">
-                        No credit card • Free forever • Start in 2 minutes
-                    </p>
-                </div>
-            </section>
-
-            <footer className="bg-gray-900 text-white py-12">
+            {/* Footer */}
+            <footer className="bg-gray-900 text-white py-8">
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="flex flex-col md:flex-row justify-between items-center">
                         <div className="flex items-center gap-2 mb-4 md:mb-0">
                             <Mountain className="w-6 h-6" />
                             <span className="text-xl font-bold">Hike Together</span>
                         </div>
-                        <div className="text-gray-400 text-sm">
-                            © 2025 Hike Together. Built with ❤️ for families who love hiking.
+                        <div className="text-gray-400 text-sm text-center md:text-right">
+                            © 2025 Hike Together. Built for families that ❤️ to hike by{' '}
+                            <a 
+                                href="https://evannickel.com" 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-green-400 hover:text-green-300 font-semibold transition"
+                            >
+                                Evan Nickel
+                            </a>
                         </div>
                     </div>
                 </div>
