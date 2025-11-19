@@ -87,6 +87,7 @@
         const MapPin = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>;
         const Plus = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>;
         const LogOut = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>;
+		const Users = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
 
         // ============================================
         // AUTHENTICATION FUNCTIONS
@@ -141,8 +142,200 @@
         // ============================================
         // LOGIN SCREEN COMPONENT
         // ============================================
-        
-        function LoginScreen({ onLogin }) {
+        // ============================================
+// LANDING PAGE COMPONENT
+// ============================================
+
+const LandingPage = ({ onGetStarted }) => {
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
+            <nav className="bg-white shadow-sm sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between items-center h-16">
+                        <div className="flex items-center gap-2">
+                            <Mountain className="w-8 h-8 text-green-700" />
+                            <span className="text-2xl font-bold text-green-800">Hike Together</span>
+                        </div>
+                        <button 
+                            onClick={onGetStarted}
+                            className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded-lg transition"
+                        >
+                            Get Started
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <section className="pt-20 pb-32 px-4">
+                <div className="max-w-7xl mx-auto">
+                    <div className="text-center">
+                        <div className="animate-fade-in-up">
+                            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6">
+                                Track Your Family's
+                                <br />
+                                <span className="gradient-text">Hiking Adventures</span>
+                            </h1>
+                        </div>
+                        <div className="animate-fade-in-up delay-100">
+                            <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
+                                Make every hike memorable. Log trails, earn badges, and build lasting memories together on the trails.
+                            </p>
+                        </div>
+                        <div className="animate-fade-in-up delay-200 flex flex-col sm:flex-row gap-4 justify-center">
+                            <button 
+                                onClick={onGetStarted}
+                                className="bg-green-600 hover:bg-green-700 text-white text-lg font-bold px-8 py-4 rounded-lg shadow-lg hover:shadow-xl transition transform hover:scale-105"
+                            >
+                                Start Hiking Free 🥾
+                            </button>
+                            <button 
+                                onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+                                className="bg-white hover:bg-gray-50 text-green-700 text-lg font-bold px-8 py-4 rounded-lg shadow-lg border-2 border-green-600 transition"
+                            >
+                                Learn More
+                            </button>
+                        </div>
+                        <div className="mt-16 text-8xl animate-float">🏔️</div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="features" className="py-20 bg-white">
+                <div className="max-w-7xl mx-auto px-4">
+                    <div className="text-center mb-16">
+                        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+                            Everything You Need for Family Hiking
+                        </h2>
+                        <p className="text-xl text-gray-600">
+                            Built to make outdoor adventures more fun and memorable
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-8">
+                        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition">
+                            <div className="bg-green-600 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                                <Mountain className="w-8 h-8 text-white" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-green-900 mb-4">Track Every Hike</h3>
+                            <p className="text-gray-700 mb-4">
+                                Log distance, elevation, difficulty, and location for every adventure.
+                            </p>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition">
+                            <div className="bg-yellow-500 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                                <Award className="w-8 h-8 text-white" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-yellow-900 mb-4">Earn Cool Badges</h3>
+                            <p className="text-gray-700 mb-4">
+                                Unlock 100+ achievement badges. Celebrate every milestone!
+                            </p>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 shadow-lg hover:shadow-xl transition">
+                            <div className="bg-blue-600 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                                <Users className="w-8 h-8 text-white" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-blue-900 mb-4">Hike as a Family</h3>
+                            <p className="text-gray-700 mb-4">
+                                Create profiles for everyone. Tag family members in hikes!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section className="py-20 bg-gradient-to-r from-green-600 to-green-700 text-white">
+                <div className="max-w-7xl mx-auto px-4">
+                    <div className="text-center mb-12">
+                        <h2 className="text-4xl font-bold mb-4">See Your Progress Grow</h2>
+                        <p className="text-xl text-green-100">Track meaningful stats that motivate your family</p>
+                    </div>
+                    <div className="grid md:grid-cols-4 gap-8">
+                        <div className="text-center">
+                            <div className="text-5xl mb-2">🥾</div>
+                            <div className="text-4xl font-bold mb-2">Total Hikes</div>
+                        </div>
+                        <div className="text-center">
+                            <div className="text-5xl mb-2">📏</div>
+                            <div className="text-4xl font-bold mb-2">Miles Hiked</div>
+                        </div>
+                        <div className="text-center">
+                            <div className="text-5xl mb-2">⛰️</div>
+                            <div className="text-4xl font-bold mb-2">Feet Climbed</div>
+                        </div>
+                        <div className="text-center">
+                            <div className="text-5xl mb-2">🏆</div>
+                            <div className="text-4xl font-bold mb-2">Badges Earned</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section className="py-20 bg-white">
+                <div className="max-w-7xl mx-auto px-4">
+                    <div className="text-center mb-16">
+                        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Simple to Start</h2>
+                        <p className="text-xl text-gray-600">Get hiking in three easy steps</p>
+                    </div>
+                    <div className="grid md:grid-cols-3 gap-12">
+                        <div className="text-center">
+                            <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold text-green-700">1</div>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-4">Create Your Family</h3>
+                            <p className="text-gray-600">Sign up free and create your family group.</p>
+                        </div>
+                        <div className="text-center">
+                            <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold text-green-700">2</div>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-4">Log Your Hikes</h3>
+                            <p className="text-gray-600">Record the details after each adventure.</p>
+                        </div>
+                        <div className="text-center">
+                            <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold text-green-700">3</div>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-4">Watch Stats Grow</h3>
+                            <p className="text-gray-600">Earn badges and build family memories.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section className="py-20 bg-gradient-to-br from-green-50 to-blue-50">
+                <div className="max-w-4xl mx-auto px-4 text-center">
+                    <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                        Ready to Start Your Adventure?
+                    </h2>
+                    <p className="text-xl text-gray-600 mb-8">
+                        Join families making hiking more fun. Completely free!
+                    </p>
+                    <button 
+                        onClick={onGetStarted}
+                        className="bg-green-600 hover:bg-green-700 text-white text-xl font-bold px-12 py-5 rounded-lg shadow-xl transition transform hover:scale-105"
+                    >
+                        Get Started Free 🚀
+                    </button>
+                    <p className="text-sm text-gray-500 mt-4">
+                        No credit card • Free forever • Start in 2 minutes
+                    </p>
+                </div>
+            </section>
+
+            <footer className="bg-gray-900 text-white py-12">
+                <div className="max-w-7xl mx-auto px-4">
+                    <div className="flex flex-col md:flex-row justify-between items-center">
+                        <div className="flex items-center gap-2 mb-4 md:mb-0">
+                            <Mountain className="w-6 h-6" />
+                            <span className="text-xl font-bold">Hike Together</span>
+                        </div>
+                        <div className="text-gray-400 text-sm">
+                            © 2025 Hike Together. Built with ❤️ for families who love hiking.
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    );
+};
+		
+        function LoginScreen({ onLogin, onBack }) {
             const [mode, setMode] = useState('signin');
             const [email, setEmail] = useState('');
             const [password, setPassword] = useState('');
@@ -203,6 +396,14 @@
             return (
                 <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+					{onBack && (
+    <button 
+        onClick={onBack}
+        className="text-green-600 hover:text-green-700 font-medium mb-4 flex items-center gap-1"
+    >
+        ← Back to home
+    </button>
+)}
                         <div className="text-center mb-8">
                             <div className="text-6xl mb-4">🥾</div>
                             <h1 className="text-3xl font-bold text-gray-800">Hike Together</h1>
@@ -649,6 +850,7 @@
         function App() {
           const [user, setUser] = useState(null);
           const [authLoading, setAuthLoading] = useState(true);
+		  const [showAuthScreen, setShowAuthScreen] = useState(false);
           const [familyId, setFamilyId] = useState(null);
           const [familyName, setFamilyName] = useState('');
           const [members, setMembers] = useState([]);
@@ -1318,9 +1520,13 @@ const loadFamily = async (famId, memberId) => {
             );
           }
 
-          if (!user) {
-            return <LoginScreen onLogin={handleLogin} />;
-          }
+         if (!user && !showAuthScreen) {
+    return <LandingPage onGetStarted={() => setShowAuthScreen(true)} />;
+}
+
+if (!user && showAuthScreen) {
+    return <LoginScreen onLogin={handleLogin} onBack={() => setShowAuthScreen(false)} />;
+}
 
           if (loading) return <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center"><div className="text-2xl text-green-600">Loading...</div></div>;
 
