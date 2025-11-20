@@ -219,13 +219,16 @@ const LandingPage = ({ onGetStarted }) => {
                                     Log In
                                 </button>
                             </div>
-
+                            <p className="text-xs sm:text-sm text-gray-500 mt-4 md:mt-5">
+                                No credit card required • Free forever • Start in 2 minutes
+                            </p>
                         </div>
 
                         {/* Right: App Preview with Screenshots */}
                         <div className="animate-fade-in-up delay-200 flex justify-center mt-4 md:mt-0">
                             <div className="relative flex items-center justify-center scale-90 sm:scale-100">
                                 {/* Phone 1 - Home Screenshot */}
+                                <div className="relative transform -rotate-6" style={{zIndex: 1}}>
                                     <div className="relative bg-gray-900 rounded-[1.75rem] md:rounded-[2.5rem] p-2 md:p-3 shadow-2xl" style={{width: '200px', height: '400px'}}>
                                         <div className="bg-white rounded-[1.25rem] md:rounded-[2rem] overflow-hidden h-full relative">
                                             <img 
@@ -239,6 +242,7 @@ const LandingPage = ({ onGetStarted }) => {
                                 </div>
 
                                 {/* Phone 2 - Badges Screenshot */}
+                                <div className="relative transform rotate-6 -ml-12 md:-ml-20" style={{zIndex: 2}}>
                                     <div className="relative bg-gray-900 rounded-[1.75rem] md:rounded-[2.5rem] p-2 md:p-3 shadow-2xl" style={{width: '200px', height: '400px'}}>
                                         <div className="bg-white rounded-[1.25rem] md:rounded-[2rem] overflow-hidden h-full relative">
                                             <img 
@@ -288,7 +292,7 @@ const LandingPage = ({ onGetStarted }) => {
                             <span className="text-base md:text-xl font-bold">Hike Together</span>
                         </div>
                         <div className="text-gray-400 text-xs sm:text-sm text-center">
-                            © 2025 Hike Together. Built for familes that ❤️ to hike by{' '}
+                            © 2025 Hike Together. Built for families that ❤️ to hike by{' '}
                             <a 
                                 href="https://evannickel.com" 
                                 target="_blank" 
