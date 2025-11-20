@@ -223,36 +223,46 @@ const LandingPage = ({ onGetStarted }) => {
                         </div>
 
                         {/* Right: App Preview with Screenshots */}
-<div className="animate-fade-in-up delay-200 flex justify-center mt-4 md:mt-0">
-    <div className="relative flex items-center justify-center scale-90 sm:scale-100">
-        {/* Phone 1 - Home Screenshot */}
-        <div className="relative transform -rotate-6" style={{zIndex: 1}}>
-            <div className="relative bg-gray-900 rounded-[1.75rem] md:rounded-[2.5rem] p-2 md:p-3 shadow-2xl" style={{width: '200px', height: '400px'}}>
-                <div className="bg-white rounded-[1.25rem] md:rounded-[2rem] overflow-hidden h-full relative">
-                    <img 
-                        src="home-screenshot.png" 
-                        alt="Home page showing hiking stats"
-                        className="w-full h-full object-cover object-top"
-                    />
-                </div>
-            </div>
-            <div className="absolute inset-0 bg-green-400 rounded-[1.75rem] md:rounded-[2.5rem] blur-2xl opacity-20 -z-10"></div>
-        </div>
+                        <div className="animate-fade-in-up delay-200 flex justify-center mt-4 md:mt-0">
+                            <div className="relative flex items-center justify-center scale-90 sm:scale-100">
+                                {/* Phone 1 - Home Screenshot */}
+                                <div className="relative transform -rotate-6 hover:rotate-0 transition-transform duration-300" style={{zIndex: 1}}>
+                                    <div className="relative bg-gray-900 rounded-[1.75rem] md:rounded-[2.5rem] p-2 md:p-3 shadow-2xl" style={{width: '200px', height: '400px'}}>
+                                        <div className="bg-white rounded-[1.25rem] md:rounded-[2rem] overflow-hidden h-full relative">
+                                            <img 
+                                                src="home-screenshot.png" 
+                                                alt="Home page showing hiking stats"
+                                                className="w-full h-full object-cover object-top"
+                                            />
+                                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-white text-center">
+                                                <p className="text-xs font-semibold">Home</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="absolute inset-0 bg-green-400 rounded-[1.75rem] md:rounded-[2.5rem] blur-2xl opacity-20 -z-10"></div>
+                                </div>
 
-        {/* Phone 2 - Badges Screenshot */}
-        <div className="relative transform rotate-6 -ml-12 md:-ml-20" style={{zIndex: 2}}>
-            <div className="relative bg-gray-900 rounded-[1.75rem] md:rounded-[2.5rem] p-2 md:p-3 shadow-2xl" style={{width: '200px', height: '400px'}}>
-                <div className="bg-white rounded-[1.25rem] md:rounded-[2rem] overflow-hidden h-full relative">
-                    <img 
-                        src="badges-screenshot.png" 
-                        alt="Badges page showing achievements"
-                        className="w-full h-full object-cover object-top"
-                    />
+                                {/* Phone 2 - Badges Screenshot */}
+                                <div className="relative transform rotate-6 hover:rotate-0 transition-transform duration-300 -ml-12 md:-ml-20" style={{zIndex: 2}}>
+                                    <div className="relative bg-gray-900 rounded-[1.75rem] md:rounded-[2.5rem] p-2 md:p-3 shadow-2xl" style={{width: '200px', height: '400px'}}>
+                                        <div className="bg-white rounded-[1.25rem] md:rounded-[2rem] overflow-hidden h-full relative">
+                                            <img 
+                                                src="badges-screenshot.png" 
+                                                alt="Badges page showing achievements"
+                                                className="w-full h-full object-cover object-top"
+                                            />
+                                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-white text-center">
+                                                <p className="text-xs font-semibold">Badges</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="absolute inset-0 bg-yellow-400 rounded-[1.75rem] md:rounded-[2.5rem] blur-2xl opacity-20 -z-10"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div className="absolute inset-0 bg-yellow-400 rounded-[1.75rem] md:rounded-[2.5rem] blur-2xl opacity-20 -z-10"></div>
-        </div>
-    </div>
+            </section>
 
             {/* Features Strip */}
             <section className="bg-white border-t border-gray-200 py-8 md:py-12">
