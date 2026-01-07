@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
-import { getAllBadgesWithStatus } from '../services/badges';
+import { getAllBadgesWithStatus, claimBadge } from '../services/badges';
 import { getHikes } from '../services/hikes';
 import BadgeCard from '../components/BadgeCard';
-import { COLORS } from '../utils/constants';
+import { COLORS, BADGE_CATEGORIES } from '../utils/constants';
 
-export default function BadgesPage({ family, onShowHikes, onShowSettings }) {
+export default function BadgesPage({ family, onShowHikes, onShowStats, onShowSettings }) {
   const [badges, setBadges] = useState([]);
-  const [totalHikes, setTotalHikes] = useState(0);
+  const [hikes, setHikes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'earned', 'not_earned'
 
   useEffect(() => {
     loadBadges();
@@ -16,14 +18,14 @@ export default function BadgesPage({ family, onShowHikes, onShowSettings }) {
   const loadBadges = async () => {
     setLoading(true);
 
-    // Get total hikes
+    // Get hikes
     const hikesResult = await getHikes(family.id);
     if (hikesResult.success) {
-      setTotalHikes(hikesResult.hikes.length);
+      setHikes(hikesResult.hikes);
     }
 
-    // Get badges
-    const result = await getAllBadgesWithStatus(family.id);
+    // Get badges with progress
+    const result = await getAllBadgesWithStatus(family.id, hikesResult.success ? hikesResult.hikes : []);
     if (result.success) {
       setBadges(result.badges);
     }
@@ -31,11 +33,42 @@ export default function BadgesPage({ family, onShowHikes, onShowSettings }) {
     setLoading(false);
   };
 
+  const handleClaimBadge = async (badgeId) => {
+    const result = await claimBadge(family.id, badgeId);
+    if (result.success) {
+      // Reload badges to show the claimed badge
+      await loadBadges();
+      alert('Badge claimed! 🎉');
+    } else {
+      alert(result.error || 'Failed to claim badge');
+    }
+  };
+
   if (loading) {
     return <div style={styles.loading}>Loading badges...</div>;
   }
 
+  // Filter badges
+  let filteredBadges = badges;
+
+  // Filter by category
+  if (selectedCategory !== 'all') {
+    filteredBadges = filteredBadges.filter(b => b.type === selectedCategory);
+  }
+
+  // Filter by status
+  if (filterStatus === 'earned') {
+    filteredBadges = filteredBadges.filter(b => b.earned);
+  } else if (filterStatus === 'not_earned') {
+    filteredBadges = filteredBadges.filter(b => !b.earned);
+  }
+
   const earnedCount = badges.filter(b => b.earned).length;
+  const categoryBadgeCounts = BADGE_CATEGORIES.map(cat => ({
+    ...cat,
+    total: badges.filter(b => b.type === cat.id).length,
+    earned: badges.filter(b => b.type === cat.id && b.earned).length,
+  }));
 
   return (
     <div style={styles.container}>
@@ -56,8 +89,12 @@ export default function BadgesPage({ family, onShowHikes, onShowSettings }) {
           🥾 Hikes
         </button>
         <button style={styles.tabActive}>🏆 Badges</button>
+        <button style={styles.tab} onClick={onShowStats}>
+          📊 Stats
+        </button>
       </div>
 
+      {/* Overall Progress */}
       <div style={styles.progress}>
         <div style={styles.progressHeader}>
           <span style={styles.progressLabel}>Overall Progress</span>
@@ -73,10 +110,68 @@ export default function BadgesPage({ family, onShowHikes, onShowSettings }) {
         </div>
       </div>
 
-      <div style={styles.grid}>
-        {badges.map(badge => (
-          <BadgeCard key={badge.id} badge={badge} totalHikes={totalHikes} />
+      {/* Status Filter Buttons */}
+      <div style={styles.filterSection}>
+        <div style={styles.filterButtons}>
+          <button
+            onClick={() => setFilterStatus('all')}
+            style={filterStatus === 'all' ? styles.filterButtonActive : styles.filterButton}
+          >
+            All Badges
+          </button>
+          <button
+            onClick={() => setFilterStatus('earned')}
+            style={filterStatus === 'earned' ? styles.filterButtonActive : styles.filterButton}
+          >
+            Earned ({earnedCount})
+          </button>
+          <button
+            onClick={() => setFilterStatus('not_earned')}
+            style={filterStatus === 'not_earned' ? styles.filterButtonActive : styles.filterButton}
+          >
+            Not Earned ({badges.length - earnedCount})
+          </button>
+        </div>
+      </div>
+
+      {/* Category Tabs */}
+      <div style={styles.categoryTabs}>
+        <button
+          onClick={() => setSelectedCategory('all')}
+          style={selectedCategory === 'all' ? styles.categoryTabActive : styles.categoryTab}
+        >
+          <span style={styles.categoryIcon}>🌟</span>
+          <span>All</span>
+        </button>
+        {categoryBadgeCounts.map(cat => (
+          <button
+            key={cat.id}
+            onClick={() => setSelectedCategory(cat.id)}
+            style={selectedCategory === cat.id ? styles.categoryTabActive : styles.categoryTab}
+          >
+            <span style={styles.categoryIcon}>{cat.icon}</span>
+            <span style={styles.categoryName}>{cat.name}</span>
+            <span style={styles.categoryCount}>({cat.earned}/{cat.total})</span>
+          </button>
         ))}
+      </div>
+
+      {/* Badge Grid */}
+      <div style={styles.grid}>
+        {filteredBadges.length === 0 ? (
+          <div style={styles.empty}>
+            <div style={styles.emptyIcon}>🏆</div>
+            <p style={styles.emptyText}>No badges found in this category</p>
+          </div>
+        ) : (
+          filteredBadges.map(badge => (
+            <BadgeDetailCard
+              key={badge.id}
+              badge={badge}
+              onClaim={handleClaimBadge}
+            />
+          ))
+        )}
       </div>
 
       {earnedCount === badges.length && (
@@ -91,9 +186,67 @@ export default function BadgesPage({ family, onShowHikes, onShowSettings }) {
   );
 }
 
+// Enhanced Badge Card with details
+function BadgeDetailCard({ badge, onClaim }) {
+  return (
+    <div style={{
+      ...styles.badgeCard,
+      opacity: badge.earned ? 1 : 0.6,
+      border: badge.earned ? `2px solid ${COLORS.primary}` : `1px solid ${COLORS.border}`,
+    }}>
+      {/* Badge Icon */}
+      <div style={styles.badgeIconLarge}>{badge.icon}</div>
+
+      {/* Badge Name */}
+      <div style={styles.badgeName}>{badge.name}</div>
+
+      {/* Badge Description */}
+      <div style={styles.badgeDesc}>{badge.desc}</div>
+
+      {/* Progress or Earned Status */}
+      {badge.earned ? (
+        <div style={styles.earnedBadge}>
+          <span style={styles.earnedIcon}>✓</span>
+          <span style={styles.earnedText}>Earned!</span>
+        </div>
+      ) : (
+        <>
+          {badge.progressText && (
+            <div style={styles.progressSection}>
+              <div style={styles.progressText}>{badge.progressText}</div>
+              {badge.progress > 0 && (
+                <div style={styles.miniProgressBar}>
+                  <div style={{
+                    ...styles.miniProgressFill,
+                    width: `${badge.progress}%`,
+                  }} />
+                </div>
+              )}
+            </div>
+          )}
+
+          {badge.canClaim && (
+            <button
+              onClick={() => onClaim(badge.id)}
+              style={styles.claimButton}
+            >
+              Claim Badge
+            </button>
+          )}
+        </>
+      )}
+
+      {/* Badge Type Tag */}
+      <div style={styles.badgeType}>
+        {BADGE_CATEGORIES.find(c => c.id === badge.type)?.name || badge.type}
+      </div>
+    </div>
+  );
+}
+
 const styles = {
   container: {
-    maxWidth: '800px',
+    maxWidth: '1200px',
     margin: '0 auto',
     padding: '20px',
     minHeight: '100vh',
@@ -154,7 +307,7 @@ const styles = {
     background: 'white',
     padding: '20px',
     borderRadius: '12px',
-    marginBottom: '30px',
+    marginBottom: '20px',
   },
   progressHeader: {
     display: 'flex',
@@ -182,10 +335,186 @@ const styles = {
     background: `linear-gradient(90deg, ${COLORS.primary} 0%, ${COLORS.secondary} 100%)`,
     transition: 'width 0.5s ease',
   },
+  filterSection: {
+    marginBottom: '20px',
+  },
+  filterButtons: {
+    display: 'flex',
+    gap: '10px',
+    flexWrap: 'wrap',
+  },
+  filterButton: {
+    padding: '10px 16px',
+    background: 'white',
+    border: `1px solid ${COLORS.border}`,
+    borderRadius: '8px',
+    fontSize: '14px',
+    color: COLORS.text,
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  },
+  filterButtonActive: {
+    padding: '10px 16px',
+    background: COLORS.primary,
+    border: `1px solid ${COLORS.primary}`,
+    borderRadius: '8px',
+    fontSize: '14px',
+    color: 'white',
+    fontWeight: '600',
+    cursor: 'pointer',
+  },
+  categoryTabs: {
+    display: 'flex',
+    gap: '10px',
+    overflowX: 'auto',
+    marginBottom: '25px',
+    paddingBottom: '10px',
+  },
+  categoryTab: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '10px 14px',
+    background: 'white',
+    border: `1px solid ${COLORS.border}`,
+    borderRadius: '8px',
+    fontSize: '13px',
+    color: COLORS.text,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    transition: 'all 0.2s',
+  },
+  categoryTabActive: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '10px 14px',
+    background: COLORS.primary,
+    border: `1px solid ${COLORS.primary}`,
+    borderRadius: '8px',
+    fontSize: '13px',
+    color: 'white',
+    fontWeight: '600',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  },
+  categoryIcon: {
+    fontSize: '16px',
+  },
+  categoryName: {
+    fontSize: '13px',
+  },
+  categoryCount: {
+    fontSize: '12px',
+    opacity: 0.8,
+  },
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-    gap: '15px',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+    gap: '20px',
+    marginBottom: '30px',
+  },
+  badgeCard: {
+    background: 'white',
+    borderRadius: '12px',
+    padding: '20px',
+    textAlign: 'center',
+    position: 'relative',
+    transition: 'transform 0.2s, box-shadow 0.2s',
+    cursor: 'pointer',
+  },
+  badgeIconLarge: {
+    fontSize: '64px',
+    marginBottom: '12px',
+  },
+  badgeName: {
+    fontSize: '18px',
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: '8px',
+  },
+  badgeDesc: {
+    fontSize: '13px',
+    color: COLORS.textLight,
+    marginBottom: '12px',
+    minHeight: '40px',
+  },
+  earnedBadge: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+    background: `${COLORS.primary}15`,
+    padding: '8px',
+    borderRadius: '6px',
+    marginTop: '10px',
+  },
+  earnedIcon: {
+    fontSize: '16px',
+    color: COLORS.primary,
+    fontWeight: 'bold',
+  },
+  earnedText: {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  progressSection: {
+    marginTop: '10px',
+  },
+  progressText: {
+    fontSize: '12px',
+    color: COLORS.textLight,
+    marginBottom: '6px',
+  },
+  miniProgressBar: {
+    height: '6px',
+    background: COLORS.border,
+    borderRadius: '3px',
+    overflow: 'hidden',
+  },
+  miniProgressFill: {
+    height: '100%',
+    background: COLORS.primary,
+    transition: 'width 0.5s ease',
+  },
+  claimButton: {
+    width: '100%',
+    padding: '10px',
+    marginTop: '10px',
+    background: COLORS.secondary,
+    color: 'white',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'opacity 0.2s',
+  },
+  badgeType: {
+    position: 'absolute',
+    top: '10px',
+    right: '10px',
+    fontSize: '10px',
+    padding: '4px 8px',
+    background: COLORS.background,
+    borderRadius: '4px',
+    color: COLORS.textLight,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  empty: {
+    gridColumn: '1 / -1',
+    textAlign: 'center',
+    padding: '60px 20px',
+  },
+  emptyIcon: {
+    fontSize: '64px',
+    marginBottom: '15px',
+  },
+  emptyText: {
+    fontSize: '16px',
+    color: COLORS.textLight,
   },
   loading: {
     display: 'flex',

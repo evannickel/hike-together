@@ -1,16 +1,40 @@
 import { COLORS, DIFFICULTY_LEVELS } from '../utils/constants';
 
-export default function HikeCard({ hike, onClick }) {
+export default function HikeCard({ hike, onEdit, onDelete }) {
   const difficultyColor = DIFFICULTY_LEVELS.find(d => d.value === hike.difficulty)?.color || COLORS.textLight;
 
   return (
-    <div style={styles.card} onClick={onClick}>
+    <div style={styles.card}>
       {hike.photoUrl && (
         <img src={hike.photoUrl} alt={hike.name} style={styles.photo} />
       )}
 
       <div style={styles.content}>
-        <h3 style={styles.name}>{hike.name}</h3>
+        <div style={styles.header}>
+          <h3 style={styles.name}>{hike.name}</h3>
+          <div style={styles.actions}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+              style={styles.editButton}
+              title="Edit hike"
+            >
+              ✏️
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              style={styles.deleteButton}
+              title="Delete hike"
+            >
+              🗑️
+            </button>
+          </div>
+        </div>
 
         <div style={styles.meta}>
           <span style={styles.date}>📅 {new Date(hike.date).toLocaleDateString()}</span>
@@ -46,12 +70,7 @@ const styles = {
     borderRadius: '12px',
     border: `1px solid ${COLORS.border}`,
     overflow: 'hidden',
-    cursor: 'pointer',
     transition: 'transform 0.2s, box-shadow 0.2s',
-    ':hover': {
-      transform: 'translateY(-2px)',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-    },
   },
   photo: {
     width: '100%',
@@ -61,11 +80,46 @@ const styles = {
   content: {
     padding: '16px',
   },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: '12px',
+  },
   name: {
     fontSize: '20px',
     fontWeight: '600',
     color: COLORS.text,
-    margin: '0 0 12px 0',
+    margin: 0,
+    flex: 1,
+  },
+  actions: {
+    display: 'flex',
+    gap: '8px',
+  },
+  editButton: {
+    background: 'none',
+    border: 'none',
+    fontSize: '18px',
+    cursor: 'pointer',
+    padding: '4px',
+    opacity: 0.6,
+    transition: 'opacity 0.2s',
+    ':hover': {
+      opacity: 1,
+    },
+  },
+  deleteButton: {
+    background: 'none',
+    border: 'none',
+    fontSize: '18px',
+    cursor: 'pointer',
+    padding: '4px',
+    opacity: 0.6,
+    transition: 'opacity 0.2s',
+    ':hover': {
+      opacity: 1,
+    },
   },
   meta: {
     display: 'flex',
