@@ -5,13 +5,14 @@ import AuthPage from './pages/AuthPage';
 import FamilySetup from './pages/FamilySetup';
 import HomePage from './pages/HomePage';
 import BadgesPage from './pages/BadgesPage';
+import StatsPage from './pages/StatsPage';
 import SettingsPage from './pages/SettingsPage';
 
 function App() {
   const { user, loading: authLoading } = useAuth();
   const [family, setFamily] = useState(null);
   const [loadingFamily, setLoadingFamily] = useState(true);
-  const [currentPage, setCurrentPage] = useState('hikes'); // 'hikes', 'badges', 'settings'
+  const [currentPage, setCurrentPage] = useState('hikes'); // 'hikes', 'badges', 'stats', 'settings'
 
   useEffect(() => {
     if (user) {
@@ -68,6 +69,7 @@ function App() {
           family={family}
           user={user}
           onShowBadges={() => setCurrentPage('badges')}
+          onShowStats={() => setCurrentPage('stats')}
           onShowSettings={() => setCurrentPage('settings')}
         />
       )}
@@ -76,6 +78,16 @@ function App() {
         <BadgesPage
           family={family}
           onShowHikes={() => setCurrentPage('hikes')}
+          onShowStats={() => setCurrentPage('stats')}
+          onShowSettings={() => setCurrentPage('settings')}
+        />
+      )}
+
+      {currentPage === 'stats' && (
+        <StatsPage
+          family={family}
+          onShowHikes={() => setCurrentPage('hikes')}
+          onShowBadges={() => setCurrentPage('badges')}
           onShowSettings={() => setCurrentPage('settings')}
         />
       )}
