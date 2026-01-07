@@ -7,6 +7,7 @@ import HikeCelebration from '../components/HikeCelebration';
 import PaywallModal from '../components/PaywallModal';
 import Footer from '../components/Footer';
 import { COLORS, BADGES, BADGE_CATEGORIES } from '../utils/constants';
+import { kmToMiles, metersToFeet, getDistancePlaceholder, getElevationPlaceholder } from '../utils/units';
 
 export default function HomePage({ family, user, onShowBadges, onShowStats, onShowSettings }) {
   const [hikes, setHikes] = useState([]);
@@ -48,10 +49,10 @@ export default function HomePage({ family, user, onShowBadges, onShowStats, onSh
 
     if (editingHike) {
       // Update existing hike
-      result = await updateHike(family.id, editingHike.id, hikeData, hikeData.photo);
+      result = await updateHike(family.id, editingHike.id, hikeData);
     } else {
       // Add new hike
-      result = await addHike(family.id, user.uid, hikeData, hikeData.photo);
+      result = await addHike(family.id, user.uid, hikeData);
     }
 
     if (result.success) {
@@ -186,6 +187,7 @@ export default function HomePage({ family, user, onShowBadges, onShowStats, onSh
             <HikeCard
               key={hike.id}
               hike={hike}
+              unitSystem={family.unitSystem || 'imperial'}
               onEdit={() => handleEditHike(hike)}
               onDelete={() => handleDeleteHike(hike.id)}
             />
@@ -196,6 +198,7 @@ export default function HomePage({ family, user, onShowBadges, onShowStats, onSh
       {showForm && (
         <HikeForm
           editingHike={editingHike}
+          unitSystem={family.unitSystem || 'imperial'}
           onSubmit={handleHikeSubmit}
           onCancel={() => {
             setShowForm(false);
@@ -228,7 +231,7 @@ export default function HomePage({ family, user, onShowBadges, onShowStats, onSh
   );
 }
 
-function HikeForm({ editingHike, onSubmit, onCancel }) {
+function HikeForm({ editingHike, unitSystem = 'imperial', onSubmit, onCancel }) {
   const [formData, setFormData] = useState(editingHike ? {
     name: editingHike.name || '',
     date: editingHike.date || new Date().toISOString().split('T')[0],
@@ -237,7 +240,6 @@ function HikeForm({ editingHike, onSubmit, onCancel }) {
     elevation: editingHike.elevation || '',
     difficulty: editingHike.difficulty || 'easy',
     notes: editingHike.notes || '',
-    photo: null,
   } : {
     name: '',
     date: new Date().toISOString().split('T')[0],
@@ -246,10 +248,8 @@ function HikeForm({ editingHike, onSubmit, onCancel }) {
     elevation: '',
     difficulty: 'easy',
     notes: '',
-    photo: null,
   });
 
-  const [photoPreview, setPhotoPreview] = useState(editingHike?.photoUrl || null);
   const [selectedBadges, setSelectedBadges] = useState([]);
 
   // Get claimable badges (manual claim types)
@@ -274,17 +274,21 @@ function HikeForm({ editingHike, onSubmit, onCancel }) {
     );
   };
 
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFormData({ ...formData, photo: file });
-      setPhotoPreview(URL.createObjectURL(file));
-    }
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({ ...formData, selectedBadges });
+
+    // Convert metric to imperial if needed (we store everything in imperial)
+    const submitData = { ...formData };
+    if (unitSystem === 'metric') {
+      if (submitData.distance) {
+        submitData.distance = kmToMiles(parseFloat(submitData.distance)).toFixed(2);
+      }
+      if (submitData.elevation) {
+        submitData.elevation = Math.round(metersToFeet(parseFloat(submitData.elevation)));
+      }
+    }
+
+    onSubmit({ ...submitData, selectedBadges });
   };
 
   return (
@@ -318,24 +322,22 @@ function HikeForm({ editingHike, onSubmit, onCancel }) {
             style={styles.input}
           />
 
-          <div style={styles.row}>
-            <input
-              type="number"
-              placeholder="Distance (mi)"
-              value={formData.distance}
-              onChange={(e) => setFormData({ ...formData, distance: e.target.value })}
-              style={{...styles.input, flex: 1}}
-              step="0.1"
-            />
+          <input
+            type="number"
+            placeholder={getDistancePlaceholder(unitSystem)}
+            value={formData.distance}
+            onChange={(e) => setFormData({ ...formData, distance: e.target.value })}
+            style={styles.input}
+            step="0.1"
+          />
 
-            <input
-              type="number"
-              placeholder="Elevation (ft)"
-              value={formData.elevation}
-              onChange={(e) => setFormData({ ...formData, elevation: e.target.value })}
-              style={{...styles.input, flex: 1}}
-            />
-          </div>
+          <input
+            type="number"
+            placeholder={getElevationPlaceholder(unitSystem)}
+            value={formData.elevation}
+            onChange={(e) => setFormData({ ...formData, elevation: e.target.value })}
+            style={styles.input}
+          />
 
           <select
             value={formData.difficulty}
@@ -397,21 +399,6 @@ function HikeForm({ editingHike, onSubmit, onCancel }) {
               )}
             </div>
           )}
-
-          <div style={styles.photoInput}>
-            <label style={styles.photoLabel}>
-              📸 {photoPreview ? 'Change Photo' : 'Add Photo'}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoChange}
-                style={{ display: 'none' }}
-              />
-            </label>
-            {photoPreview && (
-              <img src={photoPreview} alt="Preview" style={styles.photoPreview} />
-            )}
-          </div>
 
           <div style={styles.buttonRow}>
             <button type="button" onClick={onCancel} style={styles.cancelButton}>

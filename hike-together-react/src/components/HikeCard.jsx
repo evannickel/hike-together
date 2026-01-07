@@ -1,14 +1,11 @@
 import { COLORS, DIFFICULTY_LEVELS } from '../utils/constants';
+import { formatDistance, formatElevation } from '../utils/units';
 
-export default function HikeCard({ hike, onEdit, onDelete }) {
+export default function HikeCard({ hike, onEdit, onDelete, unitSystem = 'imperial' }) {
   const difficultyColor = DIFFICULTY_LEVELS.find(d => d.value === hike.difficulty)?.color || COLORS.textLight;
 
   return (
     <div style={styles.card}>
-      {hike.photoUrl && (
-        <img src={hike.photoUrl} alt={hike.name} style={styles.photo} />
-      )}
-
       <div style={styles.content}>
         <div style={styles.header}>
           <h3 style={styles.name}>{hike.name}</h3>
@@ -49,10 +46,10 @@ export default function HikeCard({ hike, onEdit, onDelete }) {
 
         <div style={styles.stats}>
           {hike.distance && (
-            <span style={styles.stat}>🥾 {hike.distance} mi</span>
+            <span style={styles.stat}>🥾 {formatDistance(hike.distance, unitSystem)}</span>
           )}
           {hike.elevation && (
-            <span style={styles.stat}>⛰️ {hike.elevation} ft</span>
+            <span style={styles.stat}>⛰️ {formatElevation(hike.elevation, unitSystem)}</span>
           )}
         </div>
 

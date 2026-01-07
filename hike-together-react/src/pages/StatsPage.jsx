@@ -3,6 +3,7 @@ import { getHikes } from '../services/hikes';
 import { getAllBadgesWithStatus } from '../services/badges';
 import { getFamilyProgress } from '../services/gamification';
 import Footer from '../components/Footer';
+import { formatDistance, formatElevation, getDistanceUnit, getElevationUnit } from '../utils/units';
 import { COLORS, LEVELS, getLevelFromXP, getXPForNextLevel, BADGE_CATEGORIES } from '../utils/constants';
 
 export default function StatsPage({ family, onShowHikes, onShowBadges, onShowSettings }) {
@@ -18,6 +19,8 @@ export default function StatsPage({ family, onShowHikes, onShowBadges, onShowSet
     longestHike: 0,
     highestElevation: 0,
   });
+
+  const unitSystem = family.unitSystem || 'imperial';
 
   useEffect(() => {
     loadStats();
@@ -131,14 +134,14 @@ export default function StatsPage({ family, onShowHikes, onShowBadges, onShowSet
 
         <div style={styles.statCard}>
           <div style={styles.statIcon}>🏃</div>
-          <div style={styles.statValue}>{stats.totalDistance}</div>
-          <div style={styles.statLabel}>Miles Hiked</div>
+          <div style={styles.statValue}>{formatDistance(stats.totalDistance, unitSystem)}</div>
+          <div style={styles.statLabel}>Distance Hiked</div>
         </div>
 
         <div style={styles.statCard}>
           <div style={styles.statIcon}>⛰️</div>
-          <div style={styles.statValue}>{stats.totalElevation.toLocaleString()}</div>
-          <div style={styles.statLabel}>Feet Climbed</div>
+          <div style={styles.statValue}>{formatElevation(stats.totalElevation, unitSystem)}</div>
+          <div style={styles.statLabel}>Elevation Climbed</div>
         </div>
 
         <div style={styles.statCard}>
@@ -154,11 +157,11 @@ export default function StatsPage({ family, onShowHikes, onShowBadges, onShowSet
         <div style={styles.recordsGrid}>
           <div style={styles.recordCard}>
             <div style={styles.recordLabel}>Longest Hike</div>
-            <div style={styles.recordValue}>{stats.longestHike} mi</div>
+            <div style={styles.recordValue}>{formatDistance(stats.longestHike, unitSystem)}</div>
           </div>
           <div style={styles.recordCard}>
             <div style={styles.recordLabel}>Highest Elevation</div>
-            <div style={styles.recordValue}>{stats.highestElevation} ft</div>
+            <div style={styles.recordValue}>{formatElevation(stats.highestElevation, unitSystem)}</div>
           </div>
         </div>
       </div>
