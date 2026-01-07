@@ -152,16 +152,6 @@ export const BADGES = [
   { id: 'streak30', name: 'Monthly Master', icon: '🌟', type: 'streak', requirement: 30, desc: 'Hike 30 days in a row', milestone: true },
   { id: 'streak100', name: 'Streak Legend', icon: '🏆', type: 'streak', requirement: 100, desc: 'Hike 100 days in a row', milestone: true },
 
-  // Social Badges
-  { id: 'grandparent', name: 'Grandparent Gang', icon: '👴', type: 'social', desc: 'Hike with grandparents' },
-  { id: 'cousin', name: 'Cousin Crew', icon: '👯', type: 'social', desc: 'Hike with cousins' },
-  { id: 'friend', name: 'Friend Finder', icon: '🤝', type: 'social', desc: 'Bring a friend hiking' },
-  { id: 'pet', name: 'Pet Pal', icon: '🐕', type: 'social', desc: 'Hike with a pet' },
-  { id: 'newbie', name: 'Trail Mentor', icon: '🎓', type: 'social', desc: 'Take someone on their first hike' },
-  { id: 'group5', name: 'Party of Five', icon: '✋', type: 'social', desc: 'Hike with 5+ people' },
-  { id: 'group10', name: 'Hiking Squad', icon: '👥', type: 'social', desc: 'Hike with 10+ people' },
-  { id: 'sibling', name: 'Sibling Safari', icon: '👫', type: 'social', desc: 'Hike with siblings' },
-
   // Holiday Badges
   { id: 'newyear', name: 'New Year Trekker', icon: '🎆', type: 'holiday', desc: 'Hike on New Year\'s Day' },
   { id: 'earthday', name: 'Earth Defender', icon: '🌍', type: 'holiday', desc: 'Hike on Earth Day (Apr 22)' },
@@ -183,7 +173,6 @@ export const BADGE_CATEGORIES = [
   { id: 'location', name: 'Locations', icon: '📍', color: '#14B8A6' },
   { id: 'special', name: 'Special Activities', icon: '⭐', color: '#EC4899' },
   { id: 'streak', name: 'Hiking Streaks', icon: '🔥', color: '#F97316' },
-  { id: 'social', name: 'Social Hiking', icon: '👨‍👩‍👧‍👦', color: '#8B5CF6' },
   { id: 'holiday', name: 'Holiday Hikes', icon: '🎉', color: '#EF4444' },
 ];
 
@@ -196,25 +185,6 @@ export const DIFFICULTY_LEVELS = [
 export const FREE_HIKE_LIMIT = 3;
 export const SUBSCRIPTION_PRICE = '$0.99/month';
 
-// XP & Leveling System
-export const XP_PER_HIKE = 100;
-export const XP_PER_MILE = 10;
-export const XP_PER_100_FEET_ELEVATION = 5;
-export const XP_PER_BADGE = 500;
-
-export const LEVELS = [
-  { level: 1, name: 'Beginner Hiker', xpRequired: 0, icon: '🥾' },
-  { level: 2, name: 'Trail Walker', xpRequired: 500, icon: '🚶' },
-  { level: 3, name: 'Path Finder', xpRequired: 1200, icon: '🗺️' },
-  { level: 4, name: 'Hill Climber', xpRequired: 2000, icon: '⛰️' },
-  { level: 5, name: 'Mountain Explorer', xpRequired: 3000, icon: '🏔️' },
-  { level: 6, name: 'Peak Seeker', xpRequired: 4500, icon: '🎯' },
-  { level: 7, name: 'Summit Master', xpRequired: 6500, icon: '⭐' },
-  { level: 8, name: 'Trail Legend', xpRequired: 9000, icon: '👑' },
-  { level: 9, name: 'Wilderness Expert', xpRequired: 12000, icon: '🌲' },
-  { level: 10, name: 'Nature Champion', xpRequired: 16000, icon: '🏆' },
-];
-
 export const COLORS = {
   primary: '#166534', // Green
   secondary: '#15803d',
@@ -225,24 +195,4 @@ export const COLORS = {
   success: '#10b981',
   error: '#ef4444',
   warning: '#f59e0b',
-};
-
-// Helper function to calculate level from XP
-export const getLevelFromXP = (xp) => {
-  for (let i = LEVELS.length - 1; i >= 0; i--) {
-    if (xp >= LEVELS[i].xpRequired) {
-      return LEVELS[i];
-    }
-  }
-  return LEVELS[0];
-};
-
-// Helper function to calculate XP for next level
-export const getXPForNextLevel = (currentXP) => {
-  const currentLevel = getLevelFromXP(currentXP);
-  const nextLevelIndex = LEVELS.findIndex(l => l.level === currentLevel.level) + 1;
-  if (nextLevelIndex >= LEVELS.length) {
-    return null; // Max level reached
-  }
-  return LEVELS[nextLevelIndex].xpRequired - currentXP;
 };

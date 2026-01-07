@@ -1,11 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signOut, deleteAccount } from '../services/auth';
-import { updateFamilyPreferences } from '../services/family';
+import { updateFamilyPreferences, ensureInviteCode } from '../services/family';
 import { COLORS, SUBSCRIPTION_PRICE } from '../utils/constants';
 
 export default function SettingsPage({ family, user, onShowHikes, onShowBadges, onShowStats }) {
   const [unitSystem, setUnitSystem] = useState(family.unitSystem || 'imperial');
   const [updating, setUpdating] = useState(false);
+  const [inviteCode, setInviteCode] = useState(family.inviteCode || null);
+
+  // Ensure invite code exists when component mounts
+  useEffect(() => {
+    const checkInviteCode = async () => {
+      if (!inviteCode && family.id) {
+        const result = await ensureInviteCode(family.id);
+        if (result.success) {
+          setInviteCode(result.inviteCode);
+        }
+      }
+    };
+    checkInviteCode();
+  }, [family.id, inviteCode]);
 
   const handleSignOut = async () => {
     const result = await signOut();
@@ -58,8 +72,8 @@ export default function SettingsPage({ family, user, onShowHikes, onShowBadges, 
   };
 
   const copyInviteCode = () => {
-    navigator.clipboard.writeText(family.inviteCode);
-    alert(`Invite code "${family.inviteCode}" copied to clipboard!`);
+    navigator.clipboard.writeText(inviteCode);
+    alert(`Invite code "${inviteCode}" copied to clipboard!`);
   };
 
   const isPremium = family.subscriptionStatus === 'premium';
@@ -94,8 +108,8 @@ export default function SettingsPage({ family, user, onShowHikes, onShowBadges, 
           <div style={styles.row}>
             <span style={styles.label}>Invite Code</span>
             <div style={styles.inviteCode}>
-              <span style={styles.code}>{family.inviteCode || 'Not available'}</span>
-              {family.inviteCode && (
+              <span style={styles.code}>{inviteCode || 'Generating...'}</span>
+              {inviteCode && (
                 <button onClick={copyInviteCode} style={styles.copyButton}>
                   📋 Copy
                 </button>

@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { COLORS, XP_PER_HIKE, XP_PER_MILE, XP_PER_100_FEET_ELEVATION } from '../utils/constants';
+import { COLORS } from '../utils/constants';
 
-export default function HikeCelebration({ hike, xpEarned, badgesEarned = [], leveledUp, newLevel, onClose }) {
+export default function HikeCelebration({ hike, badgesEarned = [], onClose }) {
   useEffect(() => {
     // Trigger massive confetti celebration
     const duration = 4000;
@@ -52,47 +52,6 @@ export default function HikeCelebration({ hike, xpEarned, badgesEarned = [], lev
           <h1 style={styles.title}>Awesome Hike!</h1>
           <h2 style={styles.hikeName}>{hike.name}</h2>
         </div>
-
-        <div style={styles.xpSection}>
-          <div style={styles.xpBadge}>
-            <div style={styles.xpIcon}>⭐</div>
-            <div>
-              <div style={styles.xpAmount}>+{xpEarned} XP</div>
-              <div style={styles.xpLabel}>Experience Earned</div>
-            </div>
-          </div>
-
-          <div style={styles.xpBreakdown}>
-            <div style={styles.breakdownItem}>
-              <span>Completing hike</span>
-              <span>+{XP_PER_HIKE} XP</span>
-            </div>
-            {hike.distance && (
-              <div style={styles.breakdownItem}>
-                <span>{hike.distance} miles</span>
-                <span>+{Math.floor(hike.distance * XP_PER_MILE)} XP</span>
-              </div>
-            )}
-            {hike.elevation && (
-              <div style={styles.breakdownItem}>
-                <span>{hike.elevation} ft elevation</span>
-                <span>+{Math.floor((hike.elevation / 100) * XP_PER_100_FEET_ELEVATION)} XP</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {leveledUp && newLevel && (
-          <div style={styles.levelUpSection}>
-            <div style={styles.levelUpBanner}>
-              <div style={styles.levelUpIcon}>🎊 LEVEL UP! 🎊</div>
-              <div style={styles.levelUpText}>
-                <div style={styles.newLevelNumber}>Level {newLevel.level}</div>
-                <div style={styles.newLevelName}>{newLevel.icon} {newLevel.name}</div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {badgesEarned.length > 0 && (
           <div style={styles.badgesSection}>
@@ -160,73 +119,6 @@ const styles = {
     fontWeight: '600',
     color: COLORS.primary,
     margin: 0,
-  },
-  xpSection: {
-    background: `linear-gradient(135deg, ${COLORS.primary}15 0%, ${COLORS.secondary}15 100%)`,
-    borderRadius: '16px',
-    padding: '25px',
-    marginBottom: '25px',
-  },
-  xpBadge: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '15px',
-    marginBottom: '20px',
-    justifyContent: 'center',
-  },
-  xpIcon: {
-    fontSize: '48px',
-  },
-  xpAmount: {
-    fontSize: '36px',
-    fontWeight: 'bold',
-    color: COLORS.primary,
-    lineHeight: 1,
-  },
-  xpLabel: {
-    fontSize: '14px',
-    color: COLORS.textLight,
-  },
-  xpBreakdown: {
-    background: 'white',
-    borderRadius: '12px',
-    padding: '15px',
-  },
-  breakdownItem: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    padding: '8px 0',
-    fontSize: '14px',
-    color: COLORS.text,
-    borderBottom: `1px solid ${COLORS.border}`,
-  },
-  levelUpSection: {
-    marginBottom: '25px',
-  },
-  levelUpBanner: {
-    background: `linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)`,
-    borderRadius: '16px',
-    padding: '25px',
-    textAlign: 'center',
-  },
-  levelUpIcon: {
-    fontSize: '24px',
-    fontWeight: 'bold',
-    color: 'white',
-    marginBottom: '10px',
-    letterSpacing: '2px',
-  },
-  levelUpText: {
-    color: 'white',
-  },
-  newLevelNumber: {
-    fontSize: '28px',
-    fontWeight: 'bold',
-    marginBottom: '5px',
-  },
-  newLevelName: {
-    fontSize: '20px',
-    fontWeight: '600',
   },
   badgesSection: {
     marginBottom: '25px',

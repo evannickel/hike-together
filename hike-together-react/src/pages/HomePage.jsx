@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getHikes, addHike, updateHike, deleteHike, canAddHike } from '../services/hikes';
 import { checkForNewBadges, claimBadge } from '../services/badges';
-import { calculateHikeXP, addXPToFamily } from '../services/gamification';
 import HikeCard from '../components/HikeCard';
 import HikeCelebration from '../components/HikeCelebration';
 import PaywallModal from '../components/PaywallModal';
@@ -61,12 +60,6 @@ export default function HomePage({ family, user, onShowBadges, onShowStats, onSh
 
       // Only show celebration for new hikes, not edits
       if (!editingHike) {
-        // Calculate XP earned from this hike
-        const xpEarned = calculateHikeXP(hikeData);
-
-        // Add XP to family and check for level ups
-        const xpResult = await addXPToFamily(family.id, xpEarned, 'hike');
-
         // Get updated hikes list
         const hikesResult = await getHikes(family.id);
         const updatedHikes = hikesResult.success ? hikesResult.hikes : hikes;
@@ -97,10 +90,7 @@ export default function HomePage({ family, user, onShowBadges, onShowStats, onSh
             ...hikeData,
             name: hikeData.name || 'Your Hike',
           },
-          xpEarned,
           badgesEarned: allNewBadges,
-          leveledUp: xpResult.leveledUp || false,
-          newLevel: xpResult.newLevel || null,
         });
       } else {
         alert('Hike updated successfully!');
@@ -210,10 +200,7 @@ export default function HomePage({ family, user, onShowBadges, onShowStats, onSh
       {celebration && (
         <HikeCelebration
           hike={celebration.hike}
-          xpEarned={celebration.xpEarned}
           badgesEarned={celebration.badgesEarned}
-          leveledUp={celebration.leveledUp}
-          newLevel={celebration.newLevel}
           onClose={() => setCelebration(null)}
         />
       )}
@@ -254,7 +241,7 @@ function HikeForm({ editingHike, unitSystem = 'imperial', onSubmit, onCancel }) 
 
   // Get claimable badges (manual claim types)
   const claimableBadges = BADGES.filter(badge =>
-    ['weather', 'discovery', 'location', 'special', 'social'].includes(badge.type)
+    ['weather', 'discovery', 'location', 'special', 'holiday'].includes(badge.type)
   );
 
   // Group badges by category
@@ -357,48 +344,46 @@ function HikeForm({ editingHike, unitSystem = 'imperial', onSubmit, onCancel }) 
           />
 
           {/* Badge Selection Section */}
-          {!editingHike && (
-            <div style={styles.badgeSection}>
-              <h3 style={styles.badgeSectionTitle}>
-                🏆 Did you earn any special badges on this hike?
-              </h3>
-              <p style={styles.badgeSectionSubtitle}>
-                Select all that apply (optional)
-              </p>
+          <div style={styles.badgeSection}>
+            <h3 style={styles.badgeSectionTitle}>
+              🏆 {editingHike ? 'Claim any new badges from this hike?' : 'Did you earn any special badges on this hike?'}
+            </h3>
+            <p style={styles.badgeSectionSubtitle}>
+              Select all that apply (optional)
+            </p>
 
-              {Object.entries(badgesByCategory).map(([type, badges]) => {
-                const category = BADGE_CATEGORIES.find(c => c.id === type);
-                return (
-                  <div key={type} style={styles.badgeCategory}>
-                    <div style={styles.badgeCategoryHeader}>
-                      <span style={styles.badgeCategoryIcon}>{category?.icon}</span>
-                      <span style={styles.badgeCategoryName}>{category?.name}</span>
-                    </div>
-                    <div style={styles.badgeGrid}>
-                      {badges.map(badge => (
-                        <label key={badge.id} style={styles.badgeCheckbox}>
-                          <input
-                            type="checkbox"
-                            checked={selectedBadges.includes(badge.id)}
-                            onChange={() => toggleBadge(badge.id)}
-                            style={styles.checkbox}
-                          />
-                          <span style={styles.badgeIcon}>{badge.icon}</span>
-                          <span style={styles.badgeLabel}>{badge.name}</span>
-                        </label>
-                      ))}
-                    </div>
+            {Object.entries(badgesByCategory).map(([type, badges]) => {
+              const category = BADGE_CATEGORIES.find(c => c.id === type);
+              return (
+                <div key={type} style={styles.badgeCategory}>
+                  <div style={styles.badgeCategoryHeader}>
+                    <span style={styles.badgeCategoryIcon}>{category?.icon}</span>
+                    <span style={styles.badgeCategoryName}>{category?.name}</span>
                   </div>
-                );
-              })}
-
-              {selectedBadges.length > 0 && (
-                <div style={styles.selectedBadgesCount}>
-                  {selectedBadges.length} badge{selectedBadges.length !== 1 ? 's' : ''} selected
+                  <div style={styles.badgeGrid}>
+                    {badges.map(badge => (
+                      <label key={badge.id} style={styles.badgeCheckbox}>
+                        <input
+                          type="checkbox"
+                          checked={selectedBadges.includes(badge.id)}
+                          onChange={() => toggleBadge(badge.id)}
+                          style={styles.checkbox}
+                        />
+                        <span style={styles.badgeIcon}>{badge.icon}</span>
+                        <span style={styles.badgeLabel}>{badge.name}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-              )}
-            </div>
-          )}
+              );
+            })}
+
+            {selectedBadges.length > 0 && (
+              <div style={styles.selectedBadgesCount}>
+                {selectedBadges.length} badge{selectedBadges.length !== 1 ? 's' : ''} selected
+              </div>
+            )}
+          </div>
 
           <div style={styles.buttonRow}>
             <button type="button" onClick={onCancel} style={styles.cancelButton}>

@@ -128,3 +128,30 @@ export const updateFamilyPreferences = async (familyId, preferences) => {
     return { success: false, error: error.message };
   }
 };
+
+// Ensure family has an invite code (for existing families that might not have one)
+export const ensureInviteCode = async (familyId) => {
+  try {
+    const familyDoc = await getDoc(doc(db, 'families', familyId));
+
+    if (!familyDoc.exists()) {
+      return { success: false, error: 'Family not found' };
+    }
+
+    const familyData = familyDoc.data();
+
+    // If family already has an invite code, return it
+    if (familyData.inviteCode) {
+      return { success: true, inviteCode: familyData.inviteCode };
+    }
+
+    // Generate new invite code
+    const inviteCode = generateInviteCode();
+    await updateDoc(doc(db, 'families', familyId), { inviteCode });
+
+    return { success: true, inviteCode };
+  } catch (error) {
+    console.error('Ensure invite code error:', error);
+    return { success: false, error: error.message };
+  }
+};

@@ -1,16 +1,13 @@
 import { useState, useEffect } from 'react';
 import { getHikes } from '../services/hikes';
 import { getAllBadgesWithStatus } from '../services/badges';
-import { getFamilyProgress } from '../services/gamification';
 import Footer from '../components/Footer';
 import { formatDistance, formatElevation, getDistanceUnit, getElevationUnit } from '../utils/units';
-import { COLORS, LEVELS, getLevelFromXP, getXPForNextLevel, BADGE_CATEGORIES } from '../utils/constants';
+import { COLORS, BADGE_CATEGORIES } from '../utils/constants';
 
 export default function StatsPage({ family, onShowHikes, onShowBadges, onShowSettings }) {
   const [hikes, setHikes] = useState([]);
   const [badges, setBadges] = useState([]);
-  const [totalXP, setTotalXP] = useState(0);
-  const [currentLevel, setCurrentLevel] = useState(LEVELS[0]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalHikes: 0,
@@ -42,13 +39,6 @@ export default function StatsPage({ family, onShowHikes, onShowBadges, onShowSet
       setBadges(badgesResult.badges);
     }
 
-    // Load XP/Level
-    const progressResult = await getFamilyProgress(family.id);
-    if (progressResult.success) {
-      setTotalXP(progressResult.totalXP);
-      setCurrentLevel(progressResult.currentLevel);
-    }
-
     setLoading(false);
   };
 
@@ -68,9 +58,6 @@ export default function StatsPage({ family, onShowHikes, onShowBadges, onShowSet
   };
 
   const earnedBadges = badges.filter(b => b.earned);
-  const xpForNext = getXPForNextLevel(totalXP);
-  const nextLevel = LEVELS.find(l => l.level === currentLevel.level + 1);
-  const progress = nextLevel ? ((totalXP - currentLevel.xpRequired) / (nextLevel.xpRequired - currentLevel.xpRequired)) * 100 : 100;
 
   // Badge stats by category
   const badgesByCategory = BADGE_CATEGORIES.map(category => ({
@@ -99,29 +86,6 @@ export default function StatsPage({ family, onShowHikes, onShowBadges, onShowSet
         <button style={styles.tab} onClick={onShowHikes}>🥾 Hikes</button>
         <button style={styles.tab} onClick={onShowBadges}>🏆 Badges</button>
         <button style={styles.tabActive}>📊 Stats</button>
-      </div>
-
-      {/* Level & XP Card */}
-      <div style={styles.levelCard}>
-        <div style={styles.levelHeader}>
-          <div style={styles.levelIcon}>{currentLevel.icon}</div>
-          <div>
-            <div style={styles.levelName}>{currentLevel.name}</div>
-            <div style={styles.levelNumber}>Level {currentLevel.level}</div>
-          </div>
-        </div>
-
-        <div style={styles.xpInfo}>
-          <div style={styles.xpText}>
-            <span>{totalXP.toLocaleString()} XP</span>
-            {nextLevel && <span style={styles.xpNext}>{xpForNext} XP to Level {nextLevel.level}</span>}
-          </div>
-          {nextLevel && (
-            <div style={styles.progressBar}>
-              <div style={{...styles.progressFill, width: `${progress}%`}} />
-            </div>
-          )}
-        </div>
       </div>
 
       {/* Quick Stats Grid */}
@@ -254,59 +218,6 @@ const styles = {
     cursor: 'pointer',
     borderBottom: `2px solid ${COLORS.primary}`,
     marginBottom: '-2px',
-  },
-  levelCard: {
-    background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.secondary} 100%)`,
-    borderRadius: '16px',
-    padding: '25px',
-    marginBottom: '20px',
-    color: 'white',
-  },
-  levelHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '15px',
-    marginBottom: '20px',
-  },
-  levelIcon: {
-    fontSize: '48px',
-  },
-  levelName: {
-    fontSize: '20px',
-    fontWeight: '600',
-    marginBottom: '5px',
-  },
-  levelNumber: {
-    fontSize: '16px',
-    opacity: 0.9,
-  },
-  xpInfo: {
-    background: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: '12px',
-    padding: '15px',
-  },
-  xpText: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    marginBottom: '10px',
-    fontSize: '16px',
-    fontWeight: '600',
-  },
-  xpNext: {
-    opacity: 0.9,
-    fontSize: '14px',
-  },
-  progressBar: {
-    height: '10px',
-    background: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: '5px',
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    background: 'white',
-    borderRadius: '5px',
-    transition: 'width 0.5s ease',
   },
   statsGrid: {
     display: 'grid',
