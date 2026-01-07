@@ -94,10 +94,12 @@ export default function SettingsPage({ family, user, onShowHikes, onShowBadges, 
           <div style={styles.row}>
             <span style={styles.label}>Invite Code</span>
             <div style={styles.inviteCode}>
-              <span style={styles.code}>{family.inviteCode}</span>
-              <button onClick={copyInviteCode} style={styles.copyButton}>
-                📋 Copy
-              </button>
+              <span style={styles.code}>{family.inviteCode || 'Not available'}</span>
+              {family.inviteCode && (
+                <button onClick={copyInviteCode} style={styles.copyButton}>
+                  📋 Copy
+                </button>
+              )}
             </div>
           </div>
 

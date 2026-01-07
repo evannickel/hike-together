@@ -16,21 +16,11 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage, analytics } from './firebase';
 import { logEvent } from 'firebase/analytics';
 
-export const addHike = async (familyId, userId, hikeData, photoFile) => {
+export const addHike = async (familyId, userId, hikeData) => {
   try {
-    let photoUrl = null;
-
-    // Upload photo if provided
-    if (photoFile) {
-      const photoRef = ref(storage, `hikes/${familyId}/${Date.now()}_${photoFile.name}`);
-      await uploadBytes(photoRef, photoFile);
-      photoUrl = await getDownloadURL(photoRef);
-    }
-
     // Add hike to Firestore
     const hikeRef = await addDoc(collection(db, 'families', familyId, 'hikes'), {
       ...hikeData,
-      photoUrl,
       addedByUserId: userId,
       createdAt: serverTimestamp(),
     });
@@ -52,18 +42,9 @@ export const addHike = async (familyId, userId, hikeData, photoFile) => {
   }
 };
 
-export const updateHike = async (familyId, hikeId, hikeData, photoFile) => {
+export const updateHike = async (familyId, hikeId, hikeData) => {
   try {
-    let updateData = { ...hikeData };
-
-    // Upload new photo if provided
-    if (photoFile) {
-      const photoRef = ref(storage, `hikes/${familyId}/${Date.now()}_${photoFile.name}`);
-      await uploadBytes(photoRef, photoFile);
-      updateData.photoUrl = await getDownloadURL(photoRef);
-    }
-
-    await updateDoc(doc(db, 'families', familyId, 'hikes', hikeId), updateData);
+    await updateDoc(doc(db, 'families', familyId, 'hikes', hikeId), hikeData);
 
     logEvent(analytics, 'hike_updated');
 
