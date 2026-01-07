@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getHikes } from '../services/hikes';
 import { getAllBadgesWithStatus } from '../services/badges';
 import { getFamilyProgress } from '../services/gamification';
+import Footer from '../components/Footer';
 import { COLORS, LEVELS, getLevelFromXP, getXPForNextLevel, BADGE_CATEGORIES } from '../utils/constants';
 
 export default function StatsPage({ family, onShowHikes, onShowBadges, onShowSettings }) {
@@ -186,6 +187,8 @@ export default function StatsPage({ family, onShowHikes, onShowBadges, onShowSet
           ))}
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

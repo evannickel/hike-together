@@ -3,6 +3,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  updateDoc,
   query,
   where,
   getDocs,
@@ -29,6 +30,7 @@ export const createFamily = async (userId, familyName) => {
       memberUserIds: [userId],
       subscriptionStatus: 'free',
       hikesThisMonth: 0,
+      unitSystem: 'imperial', // Default to imperial (miles, feet)
       createdAt: serverTimestamp(),
     });
 
@@ -112,6 +114,17 @@ export const getUserFamily = async (userId) => {
     return await getFamily(familyId);
   } catch (error) {
     console.error('Get user family error:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+export const updateFamilyPreferences = async (familyId, preferences) => {
+  try {
+    await updateDoc(doc(db, 'families', familyId), preferences);
+    logEvent(analytics, 'family_preferences_updated');
+    return { success: true };
+  } catch (error) {
+    console.error('Update family preferences error:', error);
     return { success: false, error: error.message };
   }
 };

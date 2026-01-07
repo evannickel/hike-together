@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { getHikes, addHike, updateHike, deleteHike, canAddHike } from '../services/hikes';
-import { checkForNewBadges } from '../services/badges';
+import { checkForNewBadges, claimBadge } from '../services/badges';
 import { calculateHikeXP, addXPToFamily } from '../services/gamification';
 import HikeCard from '../components/HikeCard';
 import HikeCelebration from '../components/HikeCelebration';
 import PaywallModal from '../components/PaywallModal';
-import { COLORS } from '../utils/constants';
+import Footer from '../components/Footer';
+import { COLORS, BADGES, BADGE_CATEGORIES } from '../utils/constants';
 
 export default function HomePage({ family, user, onShowBadges, onShowStats, onShowSettings }) {
   const [hikes, setHikes] = useState([]);
@@ -69,8 +70,25 @@ export default function HomePage({ family, user, onShowBadges, onShowStats, onSh
         const hikesResult = await getHikes(family.id);
         const updatedHikes = hikesResult.success ? hikesResult.hikes : hikes;
 
-        // Check for new badges with all hikes
+        // Check for new automatic badges with all hikes
         const badgeResult = await checkForNewBadges(family.id, updatedHikes);
+
+        // Claim manual badges selected by user
+        const claimedBadges = [];
+        if (hikeData.selectedBadges && hikeData.selectedBadges.length > 0) {
+          for (const badgeId of hikeData.selectedBadges) {
+            const claimResult = await claimBadge(family.id, badgeId);
+            if (claimResult.success && claimResult.badge) {
+              claimedBadges.push(claimResult.badge);
+            }
+          }
+        }
+
+        // Combine automatic and manually claimed badges
+        const allNewBadges = [
+          ...(badgeResult.success ? badgeResult.newBadges : []),
+          ...claimedBadges,
+        ];
 
         // Show celebration with all the data
         setCelebration({
@@ -79,7 +97,7 @@ export default function HomePage({ family, user, onShowBadges, onShowStats, onSh
             name: hikeData.name || 'Your Hike',
           },
           xpEarned,
-          badgesEarned: badgeResult.success ? badgeResult.newBadges : [],
+          badgesEarned: allNewBadges,
           leveledUp: xpResult.leveledUp || false,
           newLevel: xpResult.newLevel || null,
         });
@@ -204,6 +222,8 @@ export default function HomePage({ family, user, onShowBadges, onShowStats, onSh
           hikesThisMonth={canAdd.count || 0}
         />
       )}
+
+      <Footer />
     </div>
   );
 }
@@ -230,6 +250,29 @@ function HikeForm({ editingHike, onSubmit, onCancel }) {
   });
 
   const [photoPreview, setPhotoPreview] = useState(editingHike?.photoUrl || null);
+  const [selectedBadges, setSelectedBadges] = useState([]);
+
+  // Get claimable badges (manual claim types)
+  const claimableBadges = BADGES.filter(badge =>
+    ['weather', 'discovery', 'location', 'special', 'social'].includes(badge.type)
+  );
+
+  // Group badges by category
+  const badgesByCategory = {};
+  claimableBadges.forEach(badge => {
+    if (!badgesByCategory[badge.type]) {
+      badgesByCategory[badge.type] = [];
+    }
+    badgesByCategory[badge.type].push(badge);
+  });
+
+  const toggleBadge = (badgeId) => {
+    setSelectedBadges(prev =>
+      prev.includes(badgeId)
+        ? prev.filter(id => id !== badgeId)
+        : [...prev, badgeId]
+    );
+  };
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
@@ -241,7 +284,7 @@ function HikeForm({ editingHike, onSubmit, onCancel }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    onSubmit({ ...formData, selectedBadges });
   };
 
   return (
@@ -310,6 +353,50 @@ function HikeForm({ editingHike, onSubmit, onCancel }) {
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             style={{...styles.input, minHeight: '80px'}}
           />
+
+          {/* Badge Selection Section */}
+          {!editingHike && (
+            <div style={styles.badgeSection}>
+              <h3 style={styles.badgeSectionTitle}>
+                🏆 Did you earn any special badges on this hike?
+              </h3>
+              <p style={styles.badgeSectionSubtitle}>
+                Select all that apply (optional)
+              </p>
+
+              {Object.entries(badgesByCategory).map(([type, badges]) => {
+                const category = BADGE_CATEGORIES.find(c => c.id === type);
+                return (
+                  <div key={type} style={styles.badgeCategory}>
+                    <div style={styles.badgeCategoryHeader}>
+                      <span style={styles.badgeCategoryIcon}>{category?.icon}</span>
+                      <span style={styles.badgeCategoryName}>{category?.name}</span>
+                    </div>
+                    <div style={styles.badgeGrid}>
+                      {badges.map(badge => (
+                        <label key={badge.id} style={styles.badgeCheckbox}>
+                          <input
+                            type="checkbox"
+                            checked={selectedBadges.includes(badge.id)}
+                            onChange={() => toggleBadge(badge.id)}
+                            style={styles.checkbox}
+                          />
+                          <span style={styles.badgeIcon}>{badge.icon}</span>
+                          <span style={styles.badgeLabel}>{badge.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {selectedBadges.length > 0 && (
+                <div style={styles.selectedBadgesCount}>
+                  {selectedBadges.length} badge{selectedBadges.length !== 1 ? 's' : ''} selected
+                </div>
+              )}
+            </div>
+          )}
 
           <div style={styles.photoInput}>
             <label style={styles.photoLabel}>
@@ -540,5 +627,78 @@ const styles = {
     border: 'none',
     borderRadius: '6px',
     cursor: 'pointer',
+  },
+  badgeSection: {
+    marginTop: '20px',
+    padding: '16px',
+    background: COLORS.background,
+    borderRadius: '8px',
+    border: `1px solid ${COLORS.border}`,
+  },
+  badgeSectionTitle: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: COLORS.text,
+    margin: '0 0 5px 0',
+  },
+  badgeSectionSubtitle: {
+    fontSize: '13px',
+    color: COLORS.textLight,
+    margin: '0 0 15px 0',
+  },
+  badgeCategory: {
+    marginBottom: '16px',
+  },
+  badgeCategoryHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    marginBottom: '10px',
+  },
+  badgeCategoryIcon: {
+    fontSize: '18px',
+  },
+  badgeCategoryName: {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  badgeGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+    gap: '8px',
+  },
+  badgeCheckbox: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '8px',
+    background: 'white',
+    border: `1px solid ${COLORS.border}`,
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '13px',
+    transition: 'border-color 0.2s',
+  },
+  checkbox: {
+    cursor: 'pointer',
+  },
+  badgeIcon: {
+    fontSize: '16px',
+  },
+  badgeLabel: {
+    fontSize: '12px',
+    color: COLORS.text,
+    flex: 1,
+  },
+  selectedBadgesCount: {
+    marginTop: '12px',
+    padding: '8px',
+    background: `${COLORS.primary}15`,
+    color: COLORS.primary,
+    borderRadius: '4px',
+    fontSize: '13px',
+    fontWeight: '600',
+    textAlign: 'center',
   },
 };

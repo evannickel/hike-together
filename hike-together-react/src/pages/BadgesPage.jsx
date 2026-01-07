@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getAllBadgesWithStatus, claimBadge } from '../services/badges';
 import { getHikes } from '../services/hikes';
 import BadgeCard from '../components/BadgeCard';
+import Footer from '../components/Footer';
 import { COLORS, BADGE_CATEGORIES } from '../utils/constants';
 
 export default function BadgesPage({ family, onShowHikes, onShowStats, onShowSettings }) {
@@ -182,6 +183,8 @@ export default function BadgesPage({ family, onShowHikes, onShowStats, onShowSet
           </p>
         </div>
       )}
+
+      <Footer />
     </div>
   );
 }

@@ -1,12 +1,55 @@
-import { signOut } from '../services/auth';
+import { useState } from 'react';
+import { signOut, deleteAccount } from '../services/auth';
+import { updateFamilyPreferences } from '../services/family';
 import { COLORS, SUBSCRIPTION_PRICE } from '../utils/constants';
 
-export default function SettingsPage({ family, user, onShowHikes, onShowBadges }) {
+export default function SettingsPage({ family, user, onShowHikes, onShowBadges, onShowStats }) {
+  const [unitSystem, setUnitSystem] = useState(family.unitSystem || 'imperial');
+  const [updating, setUpdating] = useState(false);
+
   const handleSignOut = async () => {
     const result = await signOut();
     if (result.success) {
       window.location.reload();
     }
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete your account? This action cannot be undone. All your hikes and data will be permanently deleted.'
+    );
+
+    if (!confirmed) return;
+
+    const doubleConfirm = window.prompt(
+      'Type DELETE to confirm account deletion:'
+    );
+
+    if (doubleConfirm !== 'DELETE') {
+      alert('Account deletion cancelled');
+      return;
+    }
+
+    const result = await deleteAccount(user.uid, family.id);
+    if (result.success) {
+      alert('Your account has been deleted');
+      window.location.reload();
+    } else {
+      alert(result.error || 'Failed to delete account');
+    }
+  };
+
+  const handleUnitSystemChange = async (newSystem) => {
+    setUpdating(true);
+    const result = await updateFamilyPreferences(family.id, { unitSystem: newSystem });
+    if (result.success) {
+      setUnitSystem(newSystem);
+      // Reload to apply changes throughout the app
+      window.location.reload();
+    } else {
+      alert(result.error || 'Failed to update preferences');
+    }
+    setUpdating(false);
   };
 
   const handleUpgrade = () => {
@@ -34,6 +77,9 @@ export default function SettingsPage({ family, user, onShowHikes, onShowBadges }
         <button style={styles.tab} onClick={onShowBadges}>
           🏆 Badges
         </button>
+        <button style={styles.tab} onClick={onShowStats}>
+          📊 Stats
+        </button>
       </div>
 
       <div style={styles.section}>
@@ -57,6 +103,45 @@ export default function SettingsPage({ family, user, onShowHikes, onShowBadges }
 
           <div style={styles.helpText}>
             Share this code with family members so they can join!
+          </div>
+        </div>
+      </div>
+
+      <div style={styles.section}>
+        <h2 style={styles.sectionTitle}>Preferences</h2>
+
+        <div style={styles.card}>
+          <div style={styles.preferenceRow}>
+            <div>
+              <div style={styles.label}>Unit System</div>
+              <div style={styles.helpText}>
+                Choose how distances and elevations are displayed
+              </div>
+            </div>
+            <div style={styles.unitToggle}>
+              <button
+                onClick={() => handleUnitSystemChange('imperial')}
+                disabled={updating}
+                style={{
+                  ...styles.unitButton,
+                  ...(unitSystem === 'imperial' ? styles.unitButtonActive : {}),
+                }}
+              >
+                Imperial
+                <div style={styles.unitExample}>mi / ft</div>
+              </button>
+              <button
+                onClick={() => handleUnitSystemChange('metric')}
+                disabled={updating}
+                style={{
+                  ...styles.unitButton,
+                  ...(unitSystem === 'metric' ? styles.unitButtonActive : {}),
+                }}
+              >
+                Metric
+                <div style={styles.unitExample}>km / m</div>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -104,15 +189,28 @@ export default function SettingsPage({ family, user, onShowHikes, onShowBadges }
           <button onClick={handleSignOut} style={styles.signOutButton}>
             Sign Out
           </button>
+
+          <div style={styles.dangerZone}>
+            <h3 style={styles.dangerZoneTitle}>Danger Zone</h3>
+            <p style={styles.dangerZoneText}>
+              Once you delete your account, there is no going back. All your hikes will be permanently deleted.
+            </p>
+            <button onClick={handleDeleteAccount} style={styles.deleteButton}>
+              Delete Account
+            </button>
+          </div>
         </div>
       </div>
 
       <div style={styles.footer}>
         <p style={styles.footerText}>
-          Made with ❤️ for families who love hiking
+          Made with ❤️ for families who love hiking by{' '}
+          <a href="https://evannickel.com" target="_blank" rel="noopener noreferrer" style={styles.link}>
+            Evan Nickel
+          </a>
         </p>
         <p style={styles.footerText}>
-          Questions? <a href="mailto:support@hiketogether.app" style={styles.link}>Contact Support</a>
+          <a href="mailto:evan@evannickel.com" style={styles.link}>Questions?</a>
         </p>
       </div>
     </div>
@@ -174,6 +272,12 @@ const styles = {
     padding: '12px 0',
     borderBottom: `1px solid ${COLORS.border}`,
   },
+  preferenceRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    padding: '12px 0',
+  },
   label: {
     fontSize: '14px',
     fontWeight: '600',
@@ -206,6 +310,32 @@ const styles = {
     fontSize: '14px',
     color: COLORS.textLight,
     marginTop: '12px',
+  },
+  unitToggle: {
+    display: 'flex',
+    gap: '10px',
+  },
+  unitButton: {
+    padding: '10px 16px',
+    fontSize: '14px',
+    background: 'white',
+    color: COLORS.textLight,
+    border: `2px solid ${COLORS.border}`,
+    borderRadius: '8px',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    textAlign: 'center',
+  },
+  unitButtonActive: {
+    background: COLORS.primary,
+    color: 'white',
+    borderColor: COLORS.primary,
+    fontWeight: '600',
+  },
+  unitExample: {
+    fontSize: '11px',
+    marginTop: '4px',
+    opacity: 0.8,
   },
   premiumBadge: {
     display: 'flex',
@@ -243,12 +373,41 @@ const styles = {
     width: '100%',
     padding: '12px',
     fontSize: '16px',
-    color: COLORS.error,
+    color: COLORS.textLight,
     background: 'transparent',
-    border: `1px solid ${COLORS.error}`,
+    border: `1px solid ${COLORS.border}`,
     borderRadius: '8px',
     cursor: 'pointer',
     marginTop: '12px',
+  },
+  dangerZone: {
+    marginTop: '24px',
+    padding: '16px',
+    background: '#fee',
+    borderRadius: '8px',
+    border: '1px solid #fcc',
+  },
+  dangerZoneTitle: {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#c00',
+    margin: '0 0 8px 0',
+  },
+  dangerZoneText: {
+    fontSize: '13px',
+    color: '#666',
+    margin: '0 0 12px 0',
+  },
+  deleteButton: {
+    width: '100%',
+    padding: '12px',
+    fontSize: '16px',
+    fontWeight: '600',
+    color: 'white',
+    background: '#c00',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
   },
   footer: {
     textAlign: 'center',
