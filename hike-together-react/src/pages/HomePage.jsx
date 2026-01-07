@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
-import { getHikes, addHike, canAddHike } from '../services/hikes';
+import { getHikes, addHike, updateHike, deleteHike, canAddHike } from '../services/hikes';
 import { checkForNewBadges } from '../services/badges';
+import { calculateHikeXP, addXPToFamily } from '../services/gamification';
 import HikeCard from '../components/HikeCard';
-import BadgeCelebration from '../components/BadgeCelebration';
+import HikeCelebration from '../components/HikeCelebration';
 import PaywallModal from '../components/PaywallModal';
 import { COLORS } from '../utils/constants';
 
-export default function HomePage({ family, user, onShowBadges, onShowSettings }) {
+export default function HomePage({ family, user, onShowBadges, onShowStats, onShowSettings }) {
   const [hikes, setHikes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [newBadge, setNewBadge] = useState(null);
+  const [editingHike, setEditingHike] = useState(null);
+  const [celebration, setCelebration] = useState(null);
   const [showPaywall, setShowPaywall] = useState(false);
   const [canAdd, setCanAdd] = useState({ allowed: true });
 
@@ -41,18 +43,73 @@ export default function HomePage({ family, user, onShowBadges, onShowSettings })
   };
 
   const handleHikeSubmit = async (hikeData) => {
-    const result = await addHike(family.id, user.uid, hikeData, hikeData.photo);
+    let result;
+
+    if (editingHike) {
+      // Update existing hike
+      result = await updateHike(family.id, editingHike.id, hikeData, hikeData.photo);
+    } else {
+      // Add new hike
+      result = await addHike(family.id, user.uid, hikeData, hikeData.photo);
+    }
 
     if (result.success) {
+      // Reload hikes
       await loadHikes();
 
-      // Check for new badges
-      const badgeResult = await checkForNewBadges(family.id, hikes.length + 1);
-      if (badgeResult.success && badgeResult.newBadges.length > 0) {
-        setNewBadge(badgeResult.newBadges[0]); // Show first badge
+      // Only show celebration for new hikes, not edits
+      if (!editingHike) {
+        // Calculate XP earned from this hike
+        const xpEarned = calculateHikeXP(hikeData);
+
+        // Add XP to family and check for level ups
+        const xpResult = await addXPToFamily(family.id, xpEarned, 'hike');
+
+        // Get updated hikes list
+        const hikesResult = await getHikes(family.id);
+        const updatedHikes = hikesResult.success ? hikesResult.hikes : hikes;
+
+        // Check for new badges with all hikes
+        const badgeResult = await checkForNewBadges(family.id, updatedHikes);
+
+        // Show celebration with all the data
+        setCelebration({
+          hike: {
+            ...hikeData,
+            name: hikeData.name || 'Your Hike',
+          },
+          xpEarned,
+          badgesEarned: badgeResult.success ? badgeResult.newBadges : [],
+          leveledUp: xpResult.leveledUp || false,
+          newLevel: xpResult.newLevel || null,
+        });
+      } else {
+        alert('Hike updated successfully!');
       }
 
       setShowForm(false);
+      setEditingHike(null);
+    } else {
+      alert(result.error || 'Failed to save hike');
+    }
+  };
+
+  const handleEditHike = (hike) => {
+    setEditingHike(hike);
+    setShowForm(true);
+  };
+
+  const handleDeleteHike = async (hikeId) => {
+    if (!window.confirm('Are you sure you want to delete this hike?')) {
+      return;
+    }
+
+    const result = await deleteHike(family.id, hikeId);
+    if (result.success) {
+      await loadHikes();
+      alert('Hike deleted successfully');
+    } else {
+      alert(result.error || 'Failed to delete hike');
     }
   };
 
@@ -82,6 +139,9 @@ export default function HomePage({ family, user, onShowBadges, onShowSettings })
         <button style={styles.tab} onClick={onShowBadges}>
           🏆 Badges
         </button>
+        <button style={styles.tab} onClick={onShowStats}>
+          📊 Stats
+        </button>
       </div>
 
       <button onClick={handleAddHike} style={styles.addButton}>
@@ -105,22 +165,35 @@ export default function HomePage({ family, user, onShowBadges, onShowSettings })
           </div>
         ) : (
           hikes.map(hike => (
-            <HikeCard key={hike.id} hike={hike} onClick={() => {}} />
+            <HikeCard
+              key={hike.id}
+              hike={hike}
+              onEdit={() => handleEditHike(hike)}
+              onDelete={() => handleDeleteHike(hike.id)}
+            />
           ))
         )}
       </div>
 
       {showForm && (
         <HikeForm
+          editingHike={editingHike}
           onSubmit={handleHikeSubmit}
-          onCancel={() => setShowForm(false)}
+          onCancel={() => {
+            setShowForm(false);
+            setEditingHike(null);
+          }}
         />
       )}
 
-      {newBadge && (
-        <BadgeCelebration
-          badge={newBadge}
-          onClose={() => setNewBadge(null)}
+      {celebration && (
+        <HikeCelebration
+          hike={celebration.hike}
+          xpEarned={celebration.xpEarned}
+          badgesEarned={celebration.badgesEarned}
+          leveledUp={celebration.leveledUp}
+          newLevel={celebration.newLevel}
+          onClose={() => setCelebration(null)}
         />
       )}
 
@@ -135,8 +208,17 @@ export default function HomePage({ family, user, onShowBadges, onShowSettings })
   );
 }
 
-function HikeForm({ onSubmit, onCancel }) {
-  const [formData, setFormData] = useState({
+function HikeForm({ editingHike, onSubmit, onCancel }) {
+  const [formData, setFormData] = useState(editingHike ? {
+    name: editingHike.name || '',
+    date: editingHike.date || new Date().toISOString().split('T')[0],
+    location: editingHike.location || '',
+    distance: editingHike.distance || '',
+    elevation: editingHike.elevation || '',
+    difficulty: editingHike.difficulty || 'easy',
+    notes: editingHike.notes || '',
+    photo: null,
+  } : {
     name: '',
     date: new Date().toISOString().split('T')[0],
     location: '',
@@ -147,7 +229,7 @@ function HikeForm({ onSubmit, onCancel }) {
     photo: null,
   });
 
-  const [photoPreview, setPhotoPreview] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(editingHike?.photoUrl || null);
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
@@ -165,7 +247,7 @@ function HikeForm({ onSubmit, onCancel }) {
   return (
     <div style={styles.overlay} onClick={onCancel}>
       <div style={styles.formModal} onClick={(e) => e.stopPropagation()}>
-        <h2 style={styles.formTitle}>Add New Hike</h2>
+        <h2 style={styles.formTitle}>{editingHike ? 'Edit Hike' : 'Add New Hike'}</h2>
 
         <form onSubmit={handleSubmit} style={styles.form}>
           <input
@@ -249,7 +331,7 @@ function HikeForm({ onSubmit, onCancel }) {
               Cancel
             </button>
             <button type="submit" style={styles.submitButton}>
-              Add Hike
+              {editingHike ? 'Update Hike' : 'Add Hike'}
             </button>
           </div>
         </form>
