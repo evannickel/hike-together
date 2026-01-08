@@ -5,8 +5,9 @@ import HikeCard from '../components/HikeCard';
 import HikeCelebration from '../components/HikeCelebration';
 import PaywallModal from '../components/PaywallModal';
 import Footer from '../components/Footer';
-import { COLORS, BADGES, BADGE_CATEGORIES } from '../utils/constants';
+import { COLORS, BADGES, BADGE_CATEGORIES, SHADOWS, RADIUS, SPACING } from '../utils/constants';
 import { kmToMiles, metersToFeet, getDistancePlaceholder, getElevationPlaceholder } from '../utils/units';
+import { commonStyles, gradients } from '../utils/designSystem';
 
 export default function HomePage({ family, user, onShowBadges, onShowStats, onShowSettings }) {
   const [hikes, setHikes] = useState([]);
@@ -401,28 +402,24 @@ function HikeForm({ editingHike, unitSystem = 'imperial', onSubmit, onCancel }) 
 
 const styles = {
   container: {
-    maxWidth: '800px',
-    margin: '0 auto',
-    padding: '20px',
-    minHeight: '100vh',
-    background: COLORS.background,
+    ...commonStyles.pageContainer,
   },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: '20px',
+    marginBottom: SPACING.lg,
   },
   title: {
-    fontSize: '28px',
-    fontWeight: 'bold',
-    color: COLORS.text,
-    margin: '0 0 5px 0',
+    ...commonStyles.heading,
+    ...commonStyles.headingLarge,
+    fontFamily: "'Fredoka', sans-serif",
   },
   subtitle: {
     fontSize: '16px',
     color: COLORS.textLight,
     margin: 0,
+    fontWeight: '500',
   },
   settingsButton: {
     fontSize: '24px',
@@ -433,42 +430,22 @@ const styles = {
   },
   tabs: {
     display: 'flex',
-    gap: '10px',
-    marginBottom: '20px',
-    borderBottom: `2px solid ${COLORS.border}`,
+    gap: SPACING.sm,
+    marginBottom: SPACING.lg,
+    borderBottom: `3px solid ${COLORS.border}`,
   },
   tab: {
-    padding: '12px 20px',
-    background: 'none',
-    border: 'none',
-    fontSize: '16px',
-    color: COLORS.textLight,
-    cursor: 'pointer',
-    borderBottom: '2px solid transparent',
-    marginBottom: '-2px',
+    ...commonStyles.tab,
   },
   tabActive: {
-    padding: '12px 20px',
-    background: 'none',
-    border: 'none',
-    fontSize: '16px',
-    color: COLORS.primary,
-    fontWeight: '600',
-    cursor: 'pointer',
-    borderBottom: `2px solid ${COLORS.primary}`,
-    marginBottom: '-2px',
+    ...commonStyles.tab,
+    ...commonStyles.tabActive,
   },
   addButton: {
     width: '100%',
-    padding: '14px',
-    fontSize: '16px',
-    fontWeight: '600',
-    color: 'white',
-    background: COLORS.primary,
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    marginBottom: '10px',
+    ...commonStyles.button,
+    ...commonStyles.buttonPrimary,
+    marginBottom: SPACING.sm,
   },
   limitBanner: {
     padding: '10px',
