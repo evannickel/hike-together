@@ -5,6 +5,8 @@ import HikeCard from '../components/HikeCard';
 import HikeCelebration from '../components/HikeCelebration';
 import PaywallModal from '../components/PaywallModal';
 import Footer from '../components/Footer';
+import { PageDoodles } from '../components/NatureDoodles';
+import { HandwrittenNote } from '../components/FieldAnnotations';
 import { COLORS, BADGES, BADGE_CATEGORIES, SHADOWS, RADIUS, SPACING } from '../utils/constants';
 import { kmToMiles, metersToFeet, getDistancePlaceholder, getElevationPlaceholder } from '../utils/units';
 import { commonStyles, gradients } from '../utils/designSystem';
@@ -134,23 +136,21 @@ export default function HomePage({ family, user, onShowBadges, onShowStats, onSh
 
   return (
     <div style={styles.container}>
+      <PageDoodles density="low" />
       <div style={styles.header}>
-        <div>
-          <h1 style={styles.title}>{family.name}</h1>
-          <p style={styles.subtitle}>{hikes.length} hikes logged</p>
-        </div>
+        <h1 style={styles.title}>Hikes</h1>
         <button onClick={onShowSettings} style={styles.settingsButton}>
           ⚙️
         </button>
       </div>
 
       <div style={styles.tabs}>
-        <button style={styles.tabActive}>🥾 Hikes</button>
+        <button style={styles.tabActive}>Hikes</button>
         <button style={styles.tab} onClick={onShowBadges}>
-          🏆 Badges
+          Badges
         </button>
         <button style={styles.tab} onClick={onShowStats}>
-          📊 Stats
+          Stats
         </button>
       </div>
 

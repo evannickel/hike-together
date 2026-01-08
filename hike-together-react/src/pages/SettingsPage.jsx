@@ -81,18 +81,18 @@ export default function SettingsPage({ family, user, onShowHikes, onShowBadges, 
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h1 style={styles.title}>⚙️ Settings</h1>
+        <h1 style={styles.title}>Settings</h1>
       </div>
 
       <div style={styles.tabs}>
         <button style={styles.tab} onClick={onShowHikes}>
-          🥾 Hikes
+          Hikes
         </button>
         <button style={styles.tab} onClick={onShowBadges}>
-          🏆 Badges
+          Badges
         </button>
         <button style={styles.tab} onClick={onShowStats}>
-          📊 Stats
+          Stats
         </button>
       </div>
 
