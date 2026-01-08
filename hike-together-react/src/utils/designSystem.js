@@ -1,182 +1,236 @@
 import { COLORS, SHADOWS, RADIUS, SPACING } from './constants';
 
-// 🗺️ Topographic Pattern Background
-export const topographicPattern = `
+// 📖 Paper Texture Pattern - Simulates aged sketchbook paper
+export const paperTexture = `
   repeating-linear-gradient(
     0deg,
     transparent,
-    transparent 50px,
-    ${COLORS.forest.main}08 50px,
-    ${COLORS.forest.main}08 51px
+    transparent 2px,
+    ${COLORS.paper.shadow}10 2px,
+    ${COLORS.paper.shadow}10 3px
   ),
   repeating-linear-gradient(
     90deg,
     transparent,
-    transparent 50px,
-    ${COLORS.forest.main}06 50px,
-    ${COLORS.forest.main}06 51px
+    transparent 2px,
+    ${COLORS.paper.shadow}08 2px,
+    ${COLORS.paper.shadow}08 3px
   ),
   radial-gradient(
-    circle at 20% 80%,
-    ${COLORS.forest.pale}15 0%,
-    transparent 50%
+    circle at 30% 40%,
+    ${COLORS.paper.aged}20 0%,
+    transparent 60%
   ),
   radial-gradient(
-    circle at 80% 20%,
-    ${COLORS.sky.pale}20 0%,
+    circle at 70% 80%,
+    ${COLORS.paper.shadow}15 0%,
     transparent 50%
   )
 `;
 
-// 🎨 Gradient Backgrounds
-export const gradients = {
-  forest: `linear-gradient(135deg, ${COLORS.forest.main} 0%, ${COLORS.forest.medium} 100%)`,
-  sky: `linear-gradient(135deg, ${COLORS.sky.main} 0%, ${COLORS.sky.light} 100%)`,
-  sunset: `linear-gradient(135deg, ${COLORS.sunset.orange} 0%, ${COLORS.sunset.pink} 100%)`,
-  earth: `linear-gradient(135deg, ${COLORS.earth.medium} 0%, ${COLORS.earth.light} 100%)`,
-  nature: `linear-gradient(135deg, ${COLORS.nature.leaf} 0%, ${COLORS.nature.water} 100%)`,
+// ✏️ Sketchy Border Generator
+export const sketchyBorder = {
+  light: `
+    box-shadow:
+      0 0 0 1px ${COLORS.ink.light}40,
+      1px 1px 0 1px ${COLORS.ink.light}30,
+      2px 1px 0 1px ${COLORS.ink.light}20,
+      1px 2px 0 1px ${COLORS.ink.light}20
+  `,
+  medium: `
+    box-shadow:
+      0 0 0 2px ${COLORS.ink.medium}60,
+      1px 2px 0 2px ${COLORS.ink.medium}40,
+      2px 2px 0 2px ${COLORS.ink.medium}30,
+      1px 3px 0 2px ${COLORS.ink.medium}20
+  `,
+  dark: `
+    box-shadow:
+      0 0 0 2px ${COLORS.ink.black}80,
+      1px 2px 0 2px ${COLORS.ink.dark}60,
+      2px 3px 0 2px ${COLORS.ink.dark}40
+  `,
 };
 
-// 🏔️ Common Styles
+// 🎨 Colored Pencil Gradients
+export const gradients = {
+  forest: `linear-gradient(135deg, ${COLORS.pencil.forestGreen} 0%, ${COLORS.pencil.mossGreen} 100%)`,
+  sky: `linear-gradient(135deg, ${COLORS.pencil.skyBlue} 0%, ${COLORS.pencil.seaBlue} 100%)`,
+  earth: `linear-gradient(135deg, ${COLORS.pencil.earthBrown} 0%, ${COLORS.pencil.clayOrange} 100%)`,
+  sun: `linear-gradient(135deg, ${COLORS.pencil.sunYellow} 0%, ${COLORS.pencil.clayOrange} 100%)`,
+  berry: `linear-gradient(135deg, ${COLORS.pencil.berryRed} 0%, ${COLORS.pencil.lavender} 100%)`,
+};
+
+// 🏔️ Common Styles - Field Journal Aesthetic
 export const commonStyles = {
-  // Page container with topographic background
+  // Page container with paper texture
   pageContainer: {
     maxWidth: '800px',
     margin: '0 auto',
     padding: SPACING.lg,
     minHeight: '100vh',
-    background: COLORS.background,
-    backgroundImage: topographicPattern,
-    backgroundSize: '100px 100px, 100px 100px, 100% 100%, 100% 100%',
-    fontFamily: "'Poppins', sans-serif",
+    background: COLORS.paper.cream,
+    backgroundImage: paperTexture,
+    backgroundSize: '100% 100%',
+    fontFamily: "'Open Sans', sans-serif",
   },
 
-  // Card styles with nature theme
+  // Card styles like journal pages
   card: {
-    background: 'white',
-    borderRadius: RADIUS.lg,
+    background: COLORS.paper.offWhite,
+    borderRadius: '3px', // Slightly irregular, less rounded
     padding: SPACING.lg,
-    boxShadow: SHADOWS.card,
-    border: `1px solid ${COLORS.border}`,
+    border: `2px solid ${COLORS.ink.light}40`,
+    boxShadow: `
+      2px 2px 0 ${COLORS.ink.light}20,
+      4px 4px 8px ${COLORS.paper.shadow}30
+    `,
     transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+    position: 'relative',
   },
 
   cardHover: {
-    transform: 'translateY(-2px)',
-    boxShadow: SHADOWS.md,
+    transform: 'translateY(-2px) rotate(0.5deg)', // Slight rotation for hand-drawn feel
+    boxShadow: `
+      3px 3px 0 ${COLORS.ink.light}30,
+      6px 6px 12px ${COLORS.paper.shadow}40
+    `,
   },
 
-  // Button styles
+  // Button styles - hand-drawn
   button: {
     padding: `${SPACING.md} ${SPACING.lg}`,
-    borderRadius: RADIUS.md,
+    borderRadius: '4px',
     fontWeight: '600',
     fontSize: '16px',
-    fontFamily: "'Poppins', sans-serif",
+    fontFamily: "'Open Sans', sans-serif",
     cursor: 'pointer',
-    border: 'none',
+    border: `2px solid ${COLORS.ink.black}`,
     transition: 'all 0.2s ease',
+    position: 'relative',
   },
 
   buttonPrimary: {
-    background: gradients.forest,
-    color: 'white',
-    boxShadow: SHADOWS.sm,
+    background: COLORS.pencil.forestGreen,
+    color: COLORS.paper.offWhite,
+    border: `2px solid ${COLORS.ink.dark}`,
+    boxShadow: `
+      2px 2px 0 ${COLORS.ink.dark}40,
+      0 0 0 3px ${COLORS.pencil.forestGreen}30
+    `,
   },
 
   buttonPrimaryHover: {
     transform: 'translateY(-1px)',
-    boxShadow: SHADOWS.md,
+    boxShadow: `
+      3px 3px 0 ${COLORS.ink.dark}50,
+      0 0 0 4px ${COLORS.pencil.forestGreen}40
+    `,
   },
 
-  // Header styles with playful font
+  // Header styles with handwritten font
   heading: {
-    fontFamily: "'Fredoka', sans-serif",
+    fontFamily: "'Caveat', cursive",
     fontWeight: '600',
-    color: COLORS.text,
+    color: COLORS.ink.black,
     margin: 0,
+    letterSpacing: '0.5px',
   },
 
   headingLarge: {
-    fontSize: '32px',
-    background: gradients.forest,
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
+    fontSize: '42px',
+    color: COLORS.ink.black,
+    fontWeight: '700',
+    textShadow: `2px 2px 0 ${COLORS.paper.shadow}`,
   },
 
   headingMedium: {
-    fontSize: '24px',
-    color: COLORS.forest.main,
+    fontSize: '32px',
+    color: COLORS.pencil.forestGreen,
+    fontWeight: '600',
   },
 
   headingSmall: {
-    fontSize: '18px',
-    color: COLORS.text,
+    fontSize: '24px',
+    color: COLORS.ink.dark,
+    fontWeight: '500',
   },
 
-  // Badge card with illustrated style
+  // 🎨 Badge card styled as sticker/patch with stitched edges
   badgeCard: {
-    background: 'white',
-    borderRadius: RADIUS.lg,
+    background: COLORS.paper.offWhite,
+    borderRadius: '8px',
     padding: SPACING.md,
     textAlign: 'center',
     position: 'relative',
-    overflow: 'hidden',
     cursor: 'pointer',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    border: `2px solid ${COLORS.border}`,
+    border: `3px dashed ${COLORS.ink.light}60`, // Stitched edge effect
+    boxShadow: `
+      2px 2px 4px ${COLORS.paper.shadow}40,
+      inset 0 0 20px ${COLORS.paper.aged}30
+    `,
   },
 
   badgeCardEarned: {
-    background: `linear-gradient(135deg, white 0%, ${COLORS.forest.pale}30 100%)`,
-    border: `2px solid ${COLORS.forest.medium}`,
-    boxShadow: SHADOWS.badge,
+    background: COLORS.paper.offWhite,
+    border: `3px dashed ${COLORS.pencil.forestGreen}80`, // Stitched in colored pencil
+    boxShadow: `
+      3px 3px 6px ${COLORS.paper.shadow}60,
+      inset 0 0 30px ${COLORS.wash.green},
+      0 0 0 1px ${COLORS.pencil.forestGreen}30
+    `,
   },
 
   badgeCardHover: {
-    transform: 'translateY(-4px) scale(1.02)',
-    boxShadow: SHADOWS.lg,
+    transform: 'translateY(-4px) rotate(-1deg)', // Slight rotation for playful feel
+    boxShadow: `
+      4px 4px 8px ${COLORS.paper.shadow}70,
+      inset 0 0 30px ${COLORS.paper.aged}40
+    `,
   },
 
-  // Progress bar like a trail
+  // Progress bar like pencil marks
   trailProgress: {
-    height: '12px',
-    background: `linear-gradient(90deg, ${COLORS.earth.light}30 0%, ${COLORS.earth.light}30 100%)`,
-    borderRadius: RADIUS.full,
+    height: '10px',
+    background: COLORS.paper.aged,
+    borderRadius: '2px',
     overflow: 'hidden',
     position: 'relative',
-    border: `1px solid ${COLORS.earth.light}60`,
+    border: `1px solid ${COLORS.ink.light}40`,
+    boxShadow: `inset 0 1px 2px ${COLORS.paper.shadow}40`,
   },
 
   trailProgressFill: {
     height: '100%',
     background: gradients.forest,
-    borderRadius: RADIUS.full,
+    borderRadius: '2px',
     transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
     position: 'relative',
-    boxShadow: `0 0 10px ${COLORS.forest.main}60`,
+    boxShadow: `inset 0 1px 0 ${COLORS.pencil.mossGreen}40`,
   },
 
-  // Tab navigation
+  // Tab navigation - handwritten tabs
   tab: {
     padding: `${SPACING.md} ${SPACING.lg}`,
     background: 'none',
     border: 'none',
     fontSize: '16px',
-    color: COLORS.textLight,
+    color: COLORS.ink.medium,
     cursor: 'pointer',
     borderBottom: '3px solid transparent',
     marginBottom: '-3px',
     transition: 'all 0.2s ease',
-    fontFamily: "'Poppins', sans-serif",
+    fontFamily: "'Open Sans', sans-serif",
     fontWeight: '500',
   },
 
   tabActive: {
-    color: COLORS.forest.main,
-    borderBottom: `3px solid ${COLORS.forest.main}`,
+    color: COLORS.pencil.forestGreen,
+    borderBottom: `3px solid ${COLORS.pencil.forestGreen}`,
     fontWeight: '600',
+    fontFamily: "'Caveat', cursive",
+    fontSize: '18px',
   },
 };
 

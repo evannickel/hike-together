@@ -196,12 +196,21 @@ function BadgeDetailCard({ badge, onClaim }) {
         ...styles.badgeCard,
         opacity: badge.earned ? 1 : 0.7,
         background: badge.earned
-          ? `linear-gradient(135deg, white 0%, ${category?.gradient?.[1]}15 100%)`
-          : 'white',
+          ? COLORS.paper.offWhite
+          : COLORS.paper.cream,
         border: badge.earned
-          ? `3px solid ${category?.color || COLORS.border}`
-          : `2px solid ${COLORS.border}`,
-        boxShadow: badge.earned ? SHADOWS.badge : SHADOWS.sm,
+          ? `3px dashed ${category?.color || COLORS.pencil.forestGreen}80`
+          : `3px dashed ${COLORS.ink.light}60`,
+        boxShadow: badge.earned
+          ? `
+            3px 3px 6px ${COLORS.paper.shadow}60,
+            inset 0 0 40px ${category?.wash || COLORS.wash.green},
+            0 0 0 1px ${category?.color}30
+          `
+          : `
+            2px 2px 4px ${COLORS.paper.shadow}40,
+            inset 0 0 20px ${COLORS.paper.aged}30
+          `,
       }}
       className="fadeIn"
     >
@@ -209,16 +218,17 @@ function BadgeDetailCard({ badge, onClaim }) {
       {badge.earned && (
         <div style={{
           position: 'absolute',
-          top: '-2px',
-          right: '-2px',
+          top: '-3px',
+          right: '-3px',
           width: '40px',
           height: '40px',
           background: `linear-gradient(135deg, ${category?.gradient?.[0]} 0%, ${category?.gradient?.[1]} 100%)`,
-          borderRadius: '0 14px 0 20px',
+          borderRadius: '0 8px 0 20px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: SHADOWS.sm,
+          border: `2px solid ${COLORS.ink.dark}`,
+          boxShadow: `2px 2px 4px ${COLORS.paper.shadow}60`,
         }}>
           <span style={{ fontSize: '18px' }}>✨</span>
         </div>
@@ -228,11 +238,11 @@ function BadgeDetailCard({ badge, onClaim }) {
       <div style={{
         ...styles.badgeIconContainer,
         background: badge.earned
-          ? `linear-gradient(135deg, ${category?.gradient?.[0]}20 0%, ${category?.gradient?.[1]}20 100%)`
-          : `${COLORS.backgroundAlt}`,
+          ? category?.wash || COLORS.wash.green
+          : COLORS.paper.aged,
         border: badge.earned
-          ? `2px solid ${category?.color}40`
-          : `2px solid ${COLORS.border}`,
+          ? `2px dashed ${category?.color}80`
+          : `2px dashed ${COLORS.ink.light}50`,
       }}>
         <div style={styles.badgeIconLarge}>{badge.icon}</div>
       </div>
@@ -309,12 +319,12 @@ const styles = {
   title: {
     ...commonStyles.heading,
     ...commonStyles.headingLarge,
-    fontFamily: "'Fredoka', sans-serif",
   },
   subtitle: {
     fontSize: '16px',
-    color: COLORS.textLight,
+    color: COLORS.ink.medium,
     margin: 0,
+    fontFamily: "'Open Sans', sans-serif",
   },
   settingsButton: {
     fontSize: '24px',
@@ -327,34 +337,21 @@ const styles = {
     display: 'flex',
     gap: '10px',
     marginBottom: '20px',
-    borderBottom: `2px solid ${COLORS.border}`,
+    borderBottom: `3px solid ${COLORS.ink.light}40`,
   },
   tab: {
-    padding: '12px 20px',
-    background: 'none',
-    border: 'none',
-    fontSize: '16px',
-    color: COLORS.textLight,
-    cursor: 'pointer',
-    borderBottom: '2px solid transparent',
-    marginBottom: '-2px',
+    ...commonStyles.tab,
   },
   tabActive: {
-    padding: '12px 20px',
-    background: 'none',
-    border: 'none',
-    fontSize: '16px',
-    color: COLORS.primary,
-    fontWeight: '600',
-    cursor: 'pointer',
-    borderBottom: `2px solid ${COLORS.primary}`,
-    marginBottom: '-2px',
+    ...commonStyles.tabActive,
   },
   progress: {
-    background: 'white',
+    background: COLORS.paper.offWhite,
     padding: '20px',
-    borderRadius: '12px',
+    borderRadius: '4px',
     marginBottom: '20px',
+    border: `2px solid ${COLORS.ink.light}40`,
+    boxShadow: `2px 2px 0 ${COLORS.ink.light}20`,
   },
   progressHeader: {
     display: 'flex',
@@ -364,23 +361,22 @@ const styles = {
   progressLabel: {
     fontSize: '14px',
     fontWeight: '600',
-    color: COLORS.text,
+    color: COLORS.ink.black,
+    fontFamily: "'Caveat', cursive",
+    fontSize: '18px',
   },
   progressValue: {
     fontSize: '14px',
     fontWeight: '600',
-    color: COLORS.primary,
+    color: COLORS.pencil.forestGreen,
+    fontFamily: "'Caveat', cursive",
+    fontSize: '18px',
   },
   progressBar: {
-    height: '12px',
-    background: COLORS.border,
-    borderRadius: '6px',
-    overflow: 'hidden',
+    ...commonStyles.trailProgress,
   },
   progressFill: {
-    height: '100%',
-    background: `linear-gradient(90deg, ${COLORS.primary} 0%, ${COLORS.secondary} 100%)`,
-    transition: 'width 0.5s ease',
+    ...commonStyles.trailProgressFill,
   },
   filterSection: {
     marginBottom: '20px',
@@ -392,23 +388,26 @@ const styles = {
   },
   filterButton: {
     padding: '10px 16px',
-    background: 'white',
-    border: `1px solid ${COLORS.border}`,
-    borderRadius: '8px',
+    background: COLORS.paper.offWhite,
+    border: `2px solid ${COLORS.ink.light}60`,
+    borderRadius: '4px',
     fontSize: '14px',
-    color: COLORS.text,
+    color: COLORS.ink.dark,
     cursor: 'pointer',
     transition: 'all 0.2s',
+    fontFamily: "'Open Sans', sans-serif",
+    fontWeight: '500',
   },
   filterButtonActive: {
     padding: '10px 16px',
-    background: COLORS.primary,
-    border: `1px solid ${COLORS.primary}`,
-    borderRadius: '8px',
+    background: COLORS.pencil.forestGreen,
+    border: `2px solid ${COLORS.ink.dark}`,
+    borderRadius: '4px',
     fontSize: '14px',
-    color: 'white',
+    color: COLORS.paper.offWhite,
     fontWeight: '600',
     cursor: 'pointer',
+    boxShadow: `2px 2px 0 ${COLORS.ink.dark}40`,
   },
   categoryDropdownContainer: {
     display: 'flex',
@@ -417,20 +416,22 @@ const styles = {
     marginBottom: '25px',
   },
   categoryLabel: {
-    fontSize: '14px',
+    fontSize: '16px',
     fontWeight: '600',
-    color: COLORS.text,
+    color: COLORS.ink.black,
+    fontFamily: "'Caveat', cursive",
   },
   categoryDropdown: {
     flex: 1,
     padding: '10px 14px',
     fontSize: '14px',
-    background: 'white',
-    border: `1px solid ${COLORS.border}`,
-    borderRadius: '8px',
-    color: COLORS.text,
+    background: COLORS.paper.offWhite,
+    border: `2px solid ${COLORS.ink.light}60`,
+    borderRadius: '4px',
+    color: COLORS.ink.dark,
     cursor: 'pointer',
     outline: 'none',
+    fontFamily: "'Open Sans', sans-serif",
   },
   grid: {
     display: 'grid',
@@ -439,13 +440,7 @@ const styles = {
     marginBottom: SPACING.xl,
   },
   badgeCard: {
-    background: 'white',
-    borderRadius: RADIUS.lg,
-    padding: SPACING.md,
-    textAlign: 'center',
-    position: 'relative',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    cursor: 'pointer',
+    ...commonStyles.badgeCard,
   },
   badgeIconContainer: {
     width: '80px',
@@ -456,21 +451,25 @@ const styles = {
     justifyContent: 'center',
     margin: '0 auto 12px auto',
     transition: 'all 0.3s ease',
+    border: `2px dashed ${COLORS.ink.light}50`,
+    background: COLORS.paper.aged,
   },
   badgeIconLarge: {
     fontSize: '48px',
   },
   badgeName: {
-    fontSize: '15px',
+    fontSize: '16px',
     fontWeight: '600',
-    color: COLORS.text,
+    color: COLORS.ink.black,
     marginBottom: '6px',
+    fontFamily: "'Caveat', cursive",
   },
   badgeDesc: {
     fontSize: '12px',
-    color: COLORS.textLight,
+    color: COLORS.ink.medium,
     marginBottom: '10px',
     minHeight: '35px',
+    fontFamily: "'Open Sans', sans-serif",
   },
   earnedBadge: {
     display: 'flex',
@@ -494,44 +493,50 @@ const styles = {
   },
   progressText: {
     fontSize: '12px',
-    color: COLORS.textLight,
+    color: COLORS.ink.medium,
     marginBottom: '6px',
+    fontFamily: "'Open Sans', sans-serif",
   },
   miniProgressBar: {
     height: '6px',
-    background: COLORS.border,
-    borderRadius: '3px',
+    background: COLORS.paper.aged,
+    borderRadius: '2px',
     overflow: 'hidden',
+    border: `1px solid ${COLORS.ink.light}30`,
   },
   miniProgressFill: {
     height: '100%',
-    background: COLORS.primary,
+    background: COLORS.pencil.forestGreen,
     transition: 'width 0.5s ease',
   },
   claimButton: {
     width: '100%',
     padding: '10px',
     marginTop: '10px',
-    background: COLORS.secondary,
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
+    background: COLORS.pencil.forestGreen,
+    color: COLORS.paper.offWhite,
+    border: `2px solid ${COLORS.ink.dark}`,
+    borderRadius: '4px',
     fontSize: '14px',
     fontWeight: '600',
     cursor: 'pointer',
-    transition: 'opacity 0.2s',
+    transition: 'all 0.2s',
+    fontFamily: "'Open Sans', sans-serif",
+    boxShadow: `2px 2px 0 ${COLORS.ink.dark}40`,
   },
   badgeType: {
     position: 'absolute',
-    top: '10px',
-    right: '10px',
+    top: '8px',
+    right: '8px',
     fontSize: '10px',
     padding: '4px 8px',
-    background: COLORS.background,
-    borderRadius: '4px',
-    color: COLORS.textLight,
+    background: COLORS.paper.aged,
+    borderRadius: '3px',
+    color: COLORS.ink.medium,
     fontWeight: '600',
     textTransform: 'uppercase',
+    fontFamily: "'Open Sans', sans-serif",
+    border: `1px solid ${COLORS.ink.light}40`,
   },
   empty: {
     gridColumn: '1 / -1',
@@ -544,7 +549,8 @@ const styles = {
   },
   emptyText: {
     fontSize: '16px',
-    color: COLORS.textLight,
+    color: COLORS.ink.medium,
+    fontFamily: "'Open Sans', sans-serif",
   },
   loading: {
     display: 'flex',
@@ -552,24 +558,32 @@ const styles = {
     justifyContent: 'center',
     minHeight: '100vh',
     fontSize: '18px',
-    color: COLORS.textLight,
+    color: COLORS.ink.medium,
+    fontFamily: "'Open Sans', sans-serif",
   },
   celebration: {
-    background: 'white',
+    background: COLORS.paper.offWhite,
     padding: '40px',
-    borderRadius: '12px',
+    borderRadius: '4px',
     textAlign: 'center',
     marginTop: '30px',
+    border: `3px dashed ${COLORS.pencil.forestGreen}80`,
+    boxShadow: `
+      3px 3px 6px ${COLORS.paper.shadow}60,
+      inset 0 0 30px ${COLORS.wash.green}
+    `,
   },
   celebrationTitle: {
-    fontSize: '24px',
-    fontWeight: 'bold',
-    color: COLORS.primary,
+    fontSize: '32px',
+    fontWeight: '700',
+    color: COLORS.pencil.forestGreen,
     margin: '0 0 10px 0',
+    fontFamily: "'Caveat', cursive",
   },
   celebrationText: {
     fontSize: '16px',
-    color: COLORS.textLight,
+    color: COLORS.ink.medium,
     margin: 0,
+    fontFamily: "'Open Sans', sans-serif",
   },
 };
