@@ -63,11 +63,12 @@ export default function HikeCard({ hike, onEdit, onDelete, unitSystem = 'imperia
 
 const styles = {
   card: {
-    background: 'white',
-    borderRadius: '12px',
-    border: `1px solid ${COLORS.border}`,
+    background: COLORS.paper.offWhite,
+    borderRadius: '4px',
+    border: `2px solid ${COLORS.ink.light}60`,
     overflow: 'hidden',
     transition: 'transform 0.2s, box-shadow 0.2s',
+    boxShadow: `2px 2px 4px ${COLORS.paper.shadow}40`,
   },
   photo: {
     width: '100%',
@@ -84,11 +85,12 @@ const styles = {
     marginBottom: '12px',
   },
   name: {
-    fontSize: '20px',
+    fontSize: '24px',
     fontWeight: '600',
-    color: COLORS.text,
+    color: COLORS.ink.black,
     margin: 0,
     flex: 1,
+    fontFamily: "'Caveat', cursive",
   },
   actions: {
     display: 'flex',
@@ -126,20 +128,24 @@ const styles = {
   },
   date: {
     fontSize: '14px',
-    color: COLORS.textLight,
+    color: COLORS.ink.medium,
+    fontFamily: "'Open Sans', sans-serif",
   },
   difficulty: {
     fontSize: '12px',
     padding: '4px 8px',
-    borderRadius: '4px',
-    color: 'white',
+    borderRadius: '3px',
+    color: COLORS.paper.offWhite,
     fontWeight: '600',
     textTransform: 'capitalize',
+    fontFamily: "'Open Sans', sans-serif",
+    border: `1px solid ${COLORS.ink.dark}40`,
   },
   location: {
     fontSize: '14px',
-    color: COLORS.textLight,
+    color: COLORS.ink.medium,
     marginBottom: '8px',
+    fontFamily: "'Open Sans', sans-serif",
   },
   stats: {
     display: 'flex',
@@ -148,12 +154,15 @@ const styles = {
   },
   stat: {
     fontSize: '14px',
-    color: COLORS.text,
+    color: COLORS.ink.black,
+    fontFamily: "'Open Sans', sans-serif",
   },
   notes: {
     fontSize: '14px',
-    color: COLORS.textLight,
+    color: COLORS.ink.medium,
     margin: '8px 0 0 0',
     lineHeight: '1.5',
+    fontFamily: "'Open Sans', sans-serif",
+    fontStyle: 'italic',
   },
 };
