@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './hooks/useAuth';
 import { getUserFamily } from './services/family';
+import { signOut } from './services/auth';
 import AuthPage from './pages/AuthPage';
 import FamilySetup from './pages/FamilySetup';
 import HomePage from './pages/HomePage';
@@ -39,6 +40,11 @@ function App() {
     loadFamily();
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    // User state will be automatically updated by useAuth hook
+  };
+
   // Loading state
   if (authLoading || (user && loadingFamily)) {
     return (
@@ -58,7 +64,7 @@ function App() {
 
   // Logged in but no family - show family setup
   if (!family) {
-    return <FamilySetup user={user} onFamilyCreated={handleFamilyCreated} />;
+    return <FamilySetup user={user} onFamilyCreated={handleFamilyCreated} onSignOut={handleSignOut} />;
   }
 
   // Logged in with family - show main app

@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { signOut, deleteAccount } from '../services/auth';
 import { updateFamilyPreferences, ensureInviteCode } from '../services/family';
+import { createCheckoutSession, STRIPE_PRICES, PRICE_NAMES } from '../services/stripe';
 import { COLORS, SUBSCRIPTION_PRICE } from '../utils/constants';
 
 export default function SettingsPage({ family, user, onShowHikes, onShowBadges, onShowStats }) {
   const [unitSystem, setUnitSystem] = useState(family.unitSystem || 'imperial');
   const [updating, setUpdating] = useState(false);
   const [inviteCode, setInviteCode] = useState(family.inviteCode || null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   // Ensure invite code exists when component mounts
   useEffect(() => {
@@ -66,9 +68,17 @@ export default function SettingsPage({ family, user, onShowHikes, onShowBadges, 
     setUpdating(false);
   };
 
-  const handleUpgrade = () => {
-    alert('Stripe integration coming soon! This would redirect to payment page.');
-    // TODO: Integrate Stripe Checkout
+  const handleUpgrade = async (priceId) => {
+    setCheckoutLoading(true);
+
+    const result = await createCheckoutSession(family.id, priceId);
+
+    if (!result.success) {
+      alert(result.error || 'Failed to start checkout');
+      setCheckoutLoading(false);
+    }
+    // If successful, user will be redirected to Stripe Checkout
+    // Loading state will persist until redirect happens
   };
 
   const copyInviteCode = () => {
@@ -181,9 +191,33 @@ export default function SettingsPage({ family, user, onShowHikes, onShowBadges, 
                 <span style={styles.value}>Free (3 hikes/month)</span>
               </div>
 
-              <button onClick={handleUpgrade} style={styles.upgradeButton}>
-                Upgrade to Premium - {SUBSCRIPTION_PRICE}
-              </button>
+              <div style={styles.pricingOptions}>
+                <div style={styles.pricingCard}>
+                  <div style={styles.pricingTitle}>Monthly</div>
+                  <div style={styles.pricingPrice}>{PRICE_NAMES.monthly}</div>
+                  <button
+                    onClick={() => handleUpgrade(STRIPE_PRICES.monthly)}
+                    disabled={checkoutLoading}
+                    style={styles.upgradeButton}
+                  >
+                    {checkoutLoading ? 'Loading...' : 'Choose Monthly'}
+                  </button>
+                </div>
+
+                <div style={{ ...styles.pricingCard, ...styles.pricingCardPopular }}>
+                  <div style={styles.popularBadge}>Best Value</div>
+                  <div style={styles.pricingTitle}>Yearly</div>
+                  <div style={styles.pricingPrice}>{PRICE_NAMES.yearly}</div>
+                  <div style={styles.savingsText}>Save 16%!</div>
+                  <button
+                    onClick={() => handleUpgrade(STRIPE_PRICES.yearly)}
+                    disabled={checkoutLoading}
+                    style={{ ...styles.upgradeButton, ...styles.upgradeButtonPopular }}
+                  >
+                    {checkoutLoading ? 'Loading...' : 'Choose Yearly'}
+                  </button>
+                </div>
+              </div>
 
               <div style={styles.helpText}>
                 Get unlimited hikes, all badges, and support the app!
@@ -392,19 +426,80 @@ const styles = {
     color: COLORS.ink.medium,
     fontFamily: "'Open Sans', sans-serif",
   },
+  pricingOptions: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '15px',
+    marginTop: '20px',
+  },
+  pricingCard: {
+    background: COLORS.paper.cream,
+    border: `2px solid ${COLORS.ink.light}60`,
+    borderRadius: '4px',
+    padding: '20px',
+    textAlign: 'center',
+    position: 'relative',
+  },
+  pricingCardPopular: {
+    background: COLORS.wash.green,
+    border: `2px solid ${COLORS.pencil.forestGreen}80`,
+    boxShadow: `0 0 0 3px ${COLORS.wash.green}40`,
+  },
+  popularBadge: {
+    position: 'absolute',
+    top: '-10px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    background: COLORS.pencil.forestGreen,
+    color: COLORS.paper.offWhite,
+    padding: '4px 12px',
+    borderRadius: '3px',
+    fontSize: '11px',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    fontFamily: "'Open Sans', sans-serif",
+    border: `2px solid ${COLORS.ink.dark}`,
+    boxShadow: `2px 2px 0 ${COLORS.ink.dark}40`,
+  },
+  pricingTitle: {
+    fontSize: '18px',
+    fontWeight: '600',
+    color: COLORS.ink.black,
+    marginBottom: '10px',
+    fontFamily: "'Caveat', cursive",
+  },
+  pricingPrice: {
+    fontSize: '24px',
+    fontWeight: '700',
+    color: COLORS.pencil.forestGreen,
+    marginBottom: '8px',
+    fontFamily: "'Caveat', cursive",
+  },
+  savingsText: {
+    fontSize: '12px',
+    color: COLORS.pencil.forestGreen,
+    fontWeight: '600',
+    marginBottom: '10px',
+    fontFamily: "'Open Sans', sans-serif",
+  },
   upgradeButton: {
     width: '100%',
-    padding: '14px',
-    fontSize: '16px',
+    padding: '12px',
+    fontSize: '14px',
     fontWeight: '600',
     color: COLORS.paper.offWhite,
     background: COLORS.pencil.forestGreen,
     border: `2px solid ${COLORS.ink.dark}`,
     borderRadius: '4px',
     cursor: 'pointer',
-    marginTop: '12px',
+    marginTop: '8px',
     fontFamily: "'Open Sans', sans-serif",
     boxShadow: `2px 2px 0 ${COLORS.ink.dark}40`,
+    transition: 'all 0.2s',
+  },
+  upgradeButtonPopular: {
+    background: COLORS.ink.dark,
+    fontWeight: '700',
   },
   signOutButton: {
     width: '100%',

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { createFamily, joinFamily } from '../services/family';
 import { COLORS } from '../utils/constants';
 
-export default function FamilySetup({ user, onFamilyCreated }) {
+export default function FamilySetup({ user, onFamilyCreated, onSignOut }) {
   const [isJoining, setIsJoining] = useState(false);
   const [familyName, setFamilyName] = useState('');
   const [inviteCode, setInviteCode] = useState('');
@@ -44,6 +44,11 @@ export default function FamilySetup({ user, onFamilyCreated }) {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
+        {/* Back to Login Button */}
+        <button onClick={onSignOut} style={styles.backButton}>
+          ← Back to Login
+        </button>
+
         <div style={styles.header}>
           <h1 style={styles.title}>🏔️ Welcome to Hike Together!</h1>
           <p style={styles.subtitle}>
@@ -132,6 +137,20 @@ const styles = {
     padding: '40px',
     maxWidth: '400px',
     width: '100%',
+    position: 'relative',
+  },
+  backButton: {
+    position: 'absolute',
+    top: '15px',
+    left: '15px',
+    background: 'none',
+    border: 'none',
+    color: COLORS.textLight,
+    cursor: 'pointer',
+    fontSize: '14px',
+    padding: '8px 12px',
+    transition: 'color 0.2s',
+    fontWeight: '500',
   },
   header: {
     textAlign: 'center',
