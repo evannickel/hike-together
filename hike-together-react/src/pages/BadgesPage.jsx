@@ -523,7 +523,7 @@ const styles = {
   },
   badgeType: {
     position: 'absolute',
-    bottom: '8px',
+    top: '8px',
     left: '8px',
     fontSize: '10px',
     padding: '4px 8px',

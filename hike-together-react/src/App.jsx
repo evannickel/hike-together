@@ -65,49 +65,41 @@ function App() {
   return (
     <>
       {currentPage === 'hikes' && (
-        <div key="hikes" className="pageFlipIn" style={styles.pageTransition}>
-          <HomePage
-            family={family}
-            user={user}
-            onShowBadges={() => setCurrentPage('badges')}
-            onShowStats={() => setCurrentPage('stats')}
-            onShowSettings={() => setCurrentPage('settings')}
-          />
-        </div>
+        <HomePage
+          family={family}
+          user={user}
+          onShowBadges={() => setCurrentPage('badges')}
+          onShowStats={() => setCurrentPage('stats')}
+          onShowSettings={() => setCurrentPage('settings')}
+        />
       )}
 
       {currentPage === 'badges' && (
-        <div key="badges" className="pageFlipIn" style={styles.pageTransition}>
-          <BadgesPage
-            family={family}
-            onShowHikes={() => setCurrentPage('hikes')}
-            onShowStats={() => setCurrentPage('stats')}
-            onShowSettings={() => setCurrentPage('settings')}
-          />
-        </div>
+        <BadgesPage
+          family={family}
+          onShowHikes={() => setCurrentPage('hikes')}
+          onShowStats={() => setCurrentPage('stats')}
+          onShowSettings={() => setCurrentPage('settings')}
+        />
       )}
 
       {currentPage === 'stats' && (
-        <div key="stats" className="pageFlipIn" style={styles.pageTransition}>
-          <StatsPage
-            family={family}
-            onShowHikes={() => setCurrentPage('hikes')}
-            onShowBadges={() => setCurrentPage('badges')}
-            onShowSettings={() => setCurrentPage('settings')}
-          />
-        </div>
+        <StatsPage
+          family={family}
+          onShowHikes={() => setCurrentPage('hikes')}
+          onShowBadges={() => setCurrentPage('badges')}
+          onShowSettings={() => setCurrentPage('settings')}
+        />
       )}
 
       {currentPage === 'settings' && (
-        <div key="settings" className="pageFlipIn" style={styles.pageTransition}>
-          <SettingsPage
-            family={family}
-            user={user}
-            onShowHikes={() => setCurrentPage('hikes')}
-            onShowBadges={() => setCurrentPage('badges')}
-            onShowStats={() => setCurrentPage('stats')}
-          />
-        </div>
+        <SettingsPage
+          family={family}
+          user={user}
+          onShowHikes={() => setCurrentPage('hikes')}
+          onShowBadges={() => setCurrentPage('badges')}
+          onShowStats={() => setCurrentPage('stats')}
+        />
       )}
     </>
   );
@@ -131,9 +123,6 @@ const styles = {
   loadingText: {
     fontSize: '18px',
     color: '#6b7280',
-  },
-  pageTransition: {
-    minHeight: '100vh',
   },
 };
 
