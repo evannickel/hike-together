@@ -135,26 +135,21 @@ export default function BadgesPage({ family, onShowHikes, onShowStats, onShowSet
         </div>
       </div>
 
-      {/* Category Tabs */}
-      <div style={styles.categoryTabs}>
-        <button
-          onClick={() => setSelectedCategory('all')}
-          style={selectedCategory === 'all' ? styles.categoryTabActive : styles.categoryTab}
+      {/* Category Dropdown */}
+      <div style={styles.categoryDropdownContainer}>
+        <label style={styles.categoryLabel}>Category:</label>
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          style={styles.categoryDropdown}
         >
-          <span style={styles.categoryIcon}>🌟</span>
-          <span>All</span>
-        </button>
-        {categoryBadgeCounts.map(cat => (
-          <button
-            key={cat.id}
-            onClick={() => setSelectedCategory(cat.id)}
-            style={selectedCategory === cat.id ? styles.categoryTabActive : styles.categoryTab}
-          >
-            <span style={styles.categoryIcon}>{cat.icon}</span>
-            <span style={styles.categoryName}>{cat.name}</span>
-            <span style={styles.categoryCount}>({cat.earned}/{cat.total})</span>
-          </button>
-        ))}
+          <option value="all">🌟 All Badges</option>
+          {categoryBadgeCounts.map(cat => (
+            <option key={cat.id} value={cat.id}>
+              {cat.icon} {cat.name} ({cat.earned}/{cat.total})
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Badge Grid */}
@@ -249,7 +244,7 @@ function BadgeDetailCard({ badge, onClaim }) {
 
 const styles = {
   container: {
-    maxWidth: '1200px',
+    maxWidth: '800px',
     margin: '0 auto',
     padding: '20px',
     minHeight: '100vh',
@@ -366,50 +361,27 @@ const styles = {
     fontWeight: '600',
     cursor: 'pointer',
   },
-  categoryTabs: {
-    display: 'flex',
-    gap: '10px',
-    overflowX: 'auto',
-    marginBottom: '25px',
-    paddingBottom: '10px',
-  },
-  categoryTab: {
+  categoryDropdownContainer: {
     display: 'flex',
     alignItems: 'center',
-    gap: '6px',
+    gap: '10px',
+    marginBottom: '25px',
+  },
+  categoryLabel: {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  categoryDropdown: {
+    flex: 1,
     padding: '10px 14px',
+    fontSize: '14px',
     background: 'white',
     border: `1px solid ${COLORS.border}`,
     borderRadius: '8px',
-    fontSize: '13px',
     color: COLORS.text,
     cursor: 'pointer',
-    whiteSpace: 'nowrap',
-    transition: 'all 0.2s',
-  },
-  categoryTabActive: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    padding: '10px 14px',
-    background: COLORS.primary,
-    border: `1px solid ${COLORS.primary}`,
-    borderRadius: '8px',
-    fontSize: '13px',
-    color: 'white',
-    fontWeight: '600',
-    cursor: 'pointer',
-    whiteSpace: 'nowrap',
-  },
-  categoryIcon: {
-    fontSize: '16px',
-  },
-  categoryName: {
-    fontSize: '13px',
-  },
-  categoryCount: {
-    fontSize: '12px',
-    opacity: 0.8,
+    outline: 'none',
   },
   grid: {
     display: 'grid',
