@@ -3,6 +3,7 @@ import { getAllBadgesWithStatus, claimBadge } from '../services/badges';
 import { getHikes } from '../services/hikes';
 import BadgeCard from '../components/BadgeCard';
 import Footer from '../components/Footer';
+import { PageDoodles } from '../components/NatureDoodles';
 import { COLORS, BADGE_CATEGORIES, SHADOWS, RADIUS, SPACING } from '../utils/constants';
 import { commonStyles, topographicPattern, getBadgeCategoryStyle } from '../utils/designSystem';
 
@@ -74,13 +75,9 @@ export default function BadgesPage({ family, onShowHikes, onShowStats, onShowSet
 
   return (
     <div style={styles.container}>
+      <PageDoodles density="medium" />
       <div style={styles.header}>
-        <div>
-          <h1 style={styles.title}>🏆 Badges</h1>
-          <p style={styles.subtitle}>
-            {earnedCount} of {badges.length} earned
-          </p>
-        </div>
+        <h1 style={styles.title}>Badges</h1>
         <button onClick={onShowSettings} style={styles.settingsButton}>
           ⚙️
         </button>
@@ -88,11 +85,11 @@ export default function BadgesPage({ family, onShowHikes, onShowStats, onShowSet
 
       <div style={styles.tabs}>
         <button style={styles.tab} onClick={onShowHikes}>
-          🥾 Hikes
+          Hikes
         </button>
-        <button style={styles.tabActive}>🏆 Badges</button>
+        <button style={styles.tabActive}>Badges</button>
         <button style={styles.tab} onClick={onShowStats}>
-          📊 Stats
+          Stats
         </button>
       </div>
 
@@ -144,10 +141,10 @@ export default function BadgesPage({ family, onShowHikes, onShowStats, onShowSet
           onChange={(e) => setSelectedCategory(e.target.value)}
           style={styles.categoryDropdown}
         >
-          <option value="all">🌟 All Badges</option>
+          <option value="all">All Badges</option>
           {categoryBadgeCounts.map(cat => (
             <option key={cat.id} value={cat.id}>
-              {cat.icon} {cat.name} ({cat.earned}/{cat.total})
+              {cat.name} ({cat.earned}/{cat.total})
             </option>
           ))}
         </select>
@@ -300,7 +297,7 @@ function BadgeDetailCard({ badge, onClaim }) {
         color: category?.color || COLORS.textLight,
         border: `1px solid ${category?.color}30`,
       }}>
-        {category?.icon} {category?.name || badge.type}
+        {category?.name || badge.type}
       </div>
     </div>
   );
@@ -526,8 +523,8 @@ const styles = {
   },
   badgeType: {
     position: 'absolute',
-    top: '8px',
-    right: '8px',
+    bottom: '8px',
+    left: '8px',
     fontSize: '10px',
     padding: '4px 8px',
     background: COLORS.paper.aged,

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { getHikes } from '../services/hikes';
 import { getAllBadgesWithStatus } from '../services/badges';
 import Footer from '../components/Footer';
+import { PageDoodles } from '../components/NatureDoodles';
+import { TallyMarks, MountainPeaks } from '../components/TallyMarks';
 import { formatDistance, formatElevation, getDistanceUnit, getElevationUnit } from '../utils/units';
 import { COLORS, BADGE_CATEGORIES, SHADOWS, RADIUS, SPACING } from '../utils/constants';
 import { commonStyles, gradients } from '../utils/designSystem';
@@ -73,20 +75,18 @@ export default function StatsPage({ family, onShowHikes, onShowBadges, onShowSet
 
   return (
     <div style={styles.container}>
+      <PageDoodles density="low" />
       <div style={styles.header}>
-        <div>
-          <h1 style={styles.title}>📊 Family Stats</h1>
-          <p style={styles.subtitle}>{family.name}</p>
-        </div>
+        <h1 style={styles.title}>Stats</h1>
         <button onClick={onShowSettings} style={styles.settingsButton}>
           ⚙️
         </button>
       </div>
 
       <div style={styles.tabs}>
-        <button style={styles.tab} onClick={onShowHikes}>🥾 Hikes</button>
-        <button style={styles.tab} onClick={onShowBadges}>🏆 Badges</button>
-        <button style={styles.tabActive}>📊 Stats</button>
+        <button style={styles.tab} onClick={onShowHikes}>Hikes</button>
+        <button style={styles.tab} onClick={onShowBadges}>Badges</button>
+        <button style={styles.tabActive}>Stats</button>
       </div>
 
       {/* Quick Stats Grid */}
@@ -94,6 +94,7 @@ export default function StatsPage({ family, onShowHikes, onShowBadges, onShowSet
         <div style={styles.statCard}>
           <div style={styles.statIcon}>🥾</div>
           <div style={styles.statValue}>{stats.totalHikes}</div>
+          <TallyMarks count={stats.totalHikes} style={{ justifyContent: 'center', marginTop: '8px' }} />
           <div style={styles.statLabel}>Total Hikes</div>
         </div>
 
@@ -106,6 +107,7 @@ export default function StatsPage({ family, onShowHikes, onShowBadges, onShowSet
         <div style={styles.statCard}>
           <div style={styles.statIcon}>⛰️</div>
           <div style={styles.statValue}>{formatElevation(stats.totalElevation, unitSystem)}</div>
+          <MountainPeaks count={Math.min(Math.floor(stats.totalElevation / 1000), 15)} style={{ justifyContent: 'center', marginTop: '8px' }} />
           <div style={styles.statLabel}>Elevation Climbed</div>
         </div>
 
@@ -118,7 +120,7 @@ export default function StatsPage({ family, onShowHikes, onShowBadges, onShowSet
 
       {/* Personal Records */}
       <div style={styles.section}>
-        <h2 style={styles.sectionTitle}>🌟 Personal Records</h2>
+        <h2 style={styles.sectionTitle}>Personal Records</h2>
         <div style={styles.recordsGrid}>
           <div style={styles.recordCard}>
             <div style={styles.recordLabel}>Longest Hike</div>
@@ -133,7 +135,7 @@ export default function StatsPage({ family, onShowHikes, onShowBadges, onShowSet
 
       {/* Badge Progress by Category */}
       <div style={styles.section}>
-        <h2 style={styles.sectionTitle}>🏅 Badge Progress</h2>
+        <h2 style={styles.sectionTitle}>Badge Progress</h2>
         <div style={styles.categoryList}>
           {badgesByCategory.map(category => (
             <div key={category.id} style={styles.categoryCard}>
