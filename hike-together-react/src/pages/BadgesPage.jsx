@@ -3,7 +3,8 @@ import { getAllBadgesWithStatus, claimBadge } from '../services/badges';
 import { getHikes } from '../services/hikes';
 import BadgeCard from '../components/BadgeCard';
 import Footer from '../components/Footer';
-import { COLORS, BADGE_CATEGORIES } from '../utils/constants';
+import { COLORS, BADGE_CATEGORIES, SHADOWS, RADIUS, SPACING } from '../utils/constants';
+import { commonStyles, topographicPattern, getBadgeCategoryStyle } from '../utils/designSystem';
 
 export default function BadgesPage({ family, onShowHikes, onShowStats, onShowSettings }) {
   const [badges, setBadges] = useState([]);
@@ -135,26 +136,21 @@ export default function BadgesPage({ family, onShowHikes, onShowStats, onShowSet
         </div>
       </div>
 
-      {/* Category Tabs */}
-      <div style={styles.categoryTabs}>
-        <button
-          onClick={() => setSelectedCategory('all')}
-          style={selectedCategory === 'all' ? styles.categoryTabActive : styles.categoryTab}
+      {/* Category Dropdown */}
+      <div style={styles.categoryDropdownContainer}>
+        <label style={styles.categoryLabel}>Category:</label>
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          style={styles.categoryDropdown}
         >
-          <span style={styles.categoryIcon}>🌟</span>
-          <span>All</span>
-        </button>
-        {categoryBadgeCounts.map(cat => (
-          <button
-            key={cat.id}
-            onClick={() => setSelectedCategory(cat.id)}
-            style={selectedCategory === cat.id ? styles.categoryTabActive : styles.categoryTab}
-          >
-            <span style={styles.categoryIcon}>{cat.icon}</span>
-            <span style={styles.categoryName}>{cat.name}</span>
-            <span style={styles.categoryCount}>({cat.earned}/{cat.total})</span>
-          </button>
-        ))}
+          <option value="all">🌟 All Badges</option>
+          {categoryBadgeCounts.map(cat => (
+            <option key={cat.id} value={cat.id}>
+              {cat.icon} {cat.name} ({cat.earned}/{cat.total})
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Badge Grid */}
@@ -189,16 +185,57 @@ export default function BadgesPage({ family, onShowHikes, onShowStats, onShowSet
   );
 }
 
-// Enhanced Badge Card with details
+// 🎨 Enhanced Badge Card with Illustrated Style
 function BadgeDetailCard({ badge, onClaim }) {
+  const category = BADGE_CATEGORIES.find(c => c.id === badge.type);
+  const categoryStyle = getBadgeCategoryStyle(category);
+
   return (
-    <div style={{
-      ...styles.badgeCard,
-      opacity: badge.earned ? 1 : 0.6,
-      border: badge.earned ? `2px solid ${COLORS.primary}` : `1px solid ${COLORS.border}`,
-    }}>
-      {/* Badge Icon */}
-      <div style={styles.badgeIconLarge}>{badge.icon}</div>
+    <div
+      style={{
+        ...styles.badgeCard,
+        opacity: badge.earned ? 1 : 0.7,
+        background: badge.earned
+          ? `linear-gradient(135deg, white 0%, ${category?.gradient?.[1]}15 100%)`
+          : 'white',
+        border: badge.earned
+          ? `3px solid ${category?.color || COLORS.border}`
+          : `2px solid ${COLORS.border}`,
+        boxShadow: badge.earned ? SHADOWS.badge : SHADOWS.sm,
+      }}
+      className="fadeIn"
+    >
+      {/* Decorative corner accent for earned badges */}
+      {badge.earned && (
+        <div style={{
+          position: 'absolute',
+          top: '-2px',
+          right: '-2px',
+          width: '40px',
+          height: '40px',
+          background: `linear-gradient(135deg, ${category?.gradient?.[0]} 0%, ${category?.gradient?.[1]} 100%)`,
+          borderRadius: '0 14px 0 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: SHADOWS.sm,
+        }}>
+          <span style={{ fontSize: '18px' }}>✨</span>
+        </div>
+      )}
+
+      {/* Badge Icon with decorative circle background */}
+      <div style={{
+        ...styles.badgeIconContainer,
+        background: badge.earned
+          ? `linear-gradient(135deg, ${category?.gradient?.[0]}20 0%, ${category?.gradient?.[1]}20 100%)`
+          : `${COLORS.backgroundAlt}`,
+        border: badge.earned
+          ? `2px solid ${category?.color}40`
+          : `2px solid ${COLORS.border}`,
+      }}>
+        <div style={styles.badgeIconLarge}>{badge.icon}</div>
+      </div>
 
       {/* Badge Name */}
       <div style={styles.badgeName}>{badge.name}</div>
@@ -208,8 +245,11 @@ function BadgeDetailCard({ badge, onClaim }) {
 
       {/* Progress or Earned Status */}
       {badge.earned ? (
-        <div style={styles.earnedBadge}>
-          <span style={styles.earnedIcon}>✓</span>
+        <div style={{
+          ...styles.earnedBadge,
+          ...categoryStyle,
+        }}>
+          <span style={styles.earnedIcon}>🏆</span>
           <span style={styles.earnedText}>Earned!</span>
         </div>
       ) : (
@@ -222,6 +262,7 @@ function BadgeDetailCard({ badge, onClaim }) {
                   <div style={{
                     ...styles.miniProgressFill,
                     width: `${badge.progress}%`,
+                    background: `linear-gradient(90deg, ${category?.gradient?.[0]} 0%, ${category?.gradient?.[1]} 100%)`,
                   }} />
                 </div>
               )}
@@ -231,7 +272,10 @@ function BadgeDetailCard({ badge, onClaim }) {
           {badge.canClaim && (
             <button
               onClick={() => onClaim(badge.id)}
-              style={styles.claimButton}
+              style={{
+                ...styles.claimButton,
+                ...categoryStyle,
+              }}
             >
               Claim Badge
             </button>
@@ -240,8 +284,13 @@ function BadgeDetailCard({ badge, onClaim }) {
       )}
 
       {/* Badge Type Tag */}
-      <div style={styles.badgeType}>
-        {BADGE_CATEGORIES.find(c => c.id === badge.type)?.name || badge.type}
+      <div style={{
+        ...styles.badgeType,
+        background: `${category?.color}15`,
+        color: category?.color || COLORS.textLight,
+        border: `1px solid ${category?.color}30`,
+      }}>
+        {category?.icon} {category?.name || badge.type}
       </div>
     </div>
   );
@@ -249,23 +298,18 @@ function BadgeDetailCard({ badge, onClaim }) {
 
 const styles = {
   container: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '20px',
-    minHeight: '100vh',
-    background: COLORS.background,
+    ...commonStyles.pageContainer,
   },
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: '20px',
+    marginBottom: SPACING.lg,
   },
   title: {
-    fontSize: '28px',
-    fontWeight: 'bold',
-    color: COLORS.text,
-    margin: '0 0 5px 0',
+    ...commonStyles.heading,
+    ...commonStyles.headingLarge,
+    fontFamily: "'Fredoka', sans-serif",
   },
   subtitle: {
     fontSize: '16px',
@@ -366,69 +410,55 @@ const styles = {
     fontWeight: '600',
     cursor: 'pointer',
   },
-  categoryTabs: {
-    display: 'flex',
-    gap: '10px',
-    overflowX: 'auto',
-    marginBottom: '25px',
-    paddingBottom: '10px',
-  },
-  categoryTab: {
+  categoryDropdownContainer: {
     display: 'flex',
     alignItems: 'center',
-    gap: '6px',
+    gap: '10px',
+    marginBottom: '25px',
+  },
+  categoryLabel: {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  categoryDropdown: {
+    flex: 1,
     padding: '10px 14px',
+    fontSize: '14px',
     background: 'white',
     border: `1px solid ${COLORS.border}`,
     borderRadius: '8px',
-    fontSize: '13px',
     color: COLORS.text,
     cursor: 'pointer',
-    whiteSpace: 'nowrap',
-    transition: 'all 0.2s',
-  },
-  categoryTabActive: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    padding: '10px 14px',
-    background: COLORS.primary,
-    border: `1px solid ${COLORS.primary}`,
-    borderRadius: '8px',
-    fontSize: '13px',
-    color: 'white',
-    fontWeight: '600',
-    cursor: 'pointer',
-    whiteSpace: 'nowrap',
-  },
-  categoryIcon: {
-    fontSize: '16px',
-  },
-  categoryName: {
-    fontSize: '13px',
-  },
-  categoryCount: {
-    fontSize: '12px',
-    opacity: 0.8,
+    outline: 'none',
   },
   grid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-    gap: '15px',
-    marginBottom: '30px',
+    gap: SPACING.md,
+    marginBottom: SPACING.xl,
   },
   badgeCard: {
     background: 'white',
-    borderRadius: '10px',
-    padding: '15px',
+    borderRadius: RADIUS.lg,
+    padding: SPACING.md,
     textAlign: 'center',
     position: 'relative',
-    transition: 'transform 0.2s, box-shadow 0.2s',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
     cursor: 'pointer',
+  },
+  badgeIconContainer: {
+    width: '80px',
+    height: '80px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    margin: '0 auto 12px auto',
+    transition: 'all 0.3s ease',
   },
   badgeIconLarge: {
     fontSize: '48px',
-    marginBottom: '8px',
   },
   badgeName: {
     fontSize: '15px',
@@ -446,21 +476,18 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '6px',
-    background: `${COLORS.primary}15`,
-    padding: '8px',
-    borderRadius: '6px',
-    marginTop: '10px',
+    gap: SPACING.sm,
+    padding: `${SPACING.sm} ${SPACING.md}`,
+    borderRadius: RADIUS.md,
+    marginTop: SPACING.sm,
+    fontWeight: '600',
   },
   earnedIcon: {
-    fontSize: '16px',
-    color: COLORS.primary,
-    fontWeight: 'bold',
+    fontSize: '18px',
   },
   earnedText: {
     fontSize: '14px',
     fontWeight: '600',
-    color: COLORS.primary,
   },
   progressSection: {
     marginTop: '10px',

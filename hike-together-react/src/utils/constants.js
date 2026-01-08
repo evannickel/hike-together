@@ -163,17 +163,18 @@ export const BADGES = [
   { id: 'fullmoon', name: 'Full Moon Walker', icon: '🌕', type: 'holiday', desc: 'Hike during a full moon' },
 ];
 
+// 🏆 Badge Categories with Nature-Inspired Colors
 export const BADGE_CATEGORIES = [
-  { id: 'count', name: 'Hike Milestones', icon: '🥾', color: '#8B5CF6' },
-  { id: 'distance', name: 'Distance Goals', icon: '🏃', color: '#3B82F6' },
-  { id: 'elevation', name: 'Elevation Climbs', icon: '⛰️', color: '#EF4444' },
-  { id: 'seasonal', name: 'Seasonal', icon: '🌸', color: '#F59E0B' },
-  { id: 'weather', name: 'Weather Warriors', icon: '🌧️', color: '#6366F1' },
-  { id: 'discovery', name: 'Nature Discovery', icon: '🔍', color: '#22C55E' },
-  { id: 'location', name: 'Locations', icon: '📍', color: '#14B8A6' },
-  { id: 'special', name: 'Special Activities', icon: '⭐', color: '#EC4899' },
-  { id: 'streak', name: 'Hiking Streaks', icon: '🔥', color: '#F97316' },
-  { id: 'holiday', name: 'Holiday Hikes', icon: '🎉', color: '#EF4444' },
+  { id: 'count', name: 'Hike Milestones', icon: '🥾', color: '#2d5a2e', gradient: ['#2d5a2e', '#4a7c4e'] },
+  { id: 'distance', name: 'Distance Goals', icon: '🏃', color: '#3b82f6', gradient: ['#3b82f6', '#93c5fd'] },
+  { id: 'elevation', name: 'Elevation Climbs', icon: '⛰️', color: '#78350f', gradient: ['#78350f', '#b45309'] },
+  { id: 'seasonal', name: 'Seasonal', icon: '🌸', color: '#a855f7', gradient: ['#a855f7', '#ec4899'] },
+  { id: 'weather', name: 'Weather Warriors', icon: '🌧️', color: '#06b6d4', gradient: ['#06b6d4', '#3b82f6'] },
+  { id: 'discovery', name: 'Nature Discovery', icon: '🔍', color: '#22c55e', gradient: ['#22c55e', '#a8d5aa'] },
+  { id: 'location', name: 'Locations', icon: '📍', color: '#d97706', gradient: ['#d97706', '#fbbf24'] },
+  { id: 'special', name: 'Special Activities', icon: '⭐', color: '#f97316', gradient: ['#f97316', '#fb923c'] },
+  { id: 'streak', name: 'Hiking Streaks', icon: '🔥', color: '#dc2626', gradient: ['#dc2626', '#fb923c'] },
+  { id: 'holiday', name: 'Holiday Hikes', icon: '🎉', color: '#ec4899', gradient: ['#ec4899', '#fbbf24'] },
 ];
 
 export const DIFFICULTY_LEVELS = [
@@ -185,14 +186,89 @@ export const DIFFICULTY_LEVELS = [
 export const FREE_HIKE_LIMIT = 3;
 export const SUBSCRIPTION_PRICE = '$0.99/month';
 
+// 🎨 Explorer's Handbook Design System - Nature-Inspired Colors
 export const COLORS = {
-  primary: '#166534', // Green
-  secondary: '#15803d',
-  background: '#f9fafb',
-  text: '#111827',
+  // Primary Nature Palette
+  forest: {
+    dark: '#1e4620',      // Deep forest
+    main: '#2d5a2e',      // Forest green
+    medium: '#4a7c4e',    // Moss green
+    light: '#6b9b6f',     // Sage
+    pale: '#a8d5aa',      // Mint
+  },
+  sky: {
+    dark: '#1e3a5f',      // Twilight
+    main: '#3b82f6',      // Sky blue
+    light: '#93c5fd',     // Cloud blue
+    pale: '#dbeafe',      // Soft sky
+  },
+  earth: {
+    dark: '#78350f',      // Rich soil
+    main: '#92400e',      // Earth brown
+    medium: '#b45309',    // Clay
+    light: '#d97706',     // Amber
+  },
+  sunset: {
+    orange: '#f97316',    // Sunset orange
+    pink: '#ec4899',      // Wildflower pink
+    yellow: '#fbbf24',    // Golden hour
+    coral: '#fb923c',     // Coral sky
+  },
+  nature: {
+    leaf: '#22c55e',      // Fresh leaf
+    flower: '#a855f7',    // Wildflower purple
+    berry: '#dc2626',     // Wild berry
+    water: '#06b6d4',     // Stream water
+  },
+
+  // UI Colors
+  primary: '#2d5a2e',
+  secondary: '#4a7c4e',
+  accent: '#f97316',
+
+  // Backgrounds
+  background: '#faf9f7',        // Warm off-white (like paper)
+  backgroundAlt: '#f5f3f0',     // Subtle texture
+
+  // Text
+  text: '#1f2937',
   textLight: '#6b7280',
+  textMuted: '#9ca3af',
+
+  // Borders & Dividers
   border: '#e5e7eb',
-  success: '#10b981',
-  error: '#ef4444',
+  borderDark: '#d1d5db',
+
+  // Status Colors
+  success: '#22c55e',
+  error: '#dc2626',
   warning: '#f59e0b',
+  info: '#3b82f6',
+};
+
+// 🎭 Design Tokens
+export const SHADOWS = {
+  sm: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+  md: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+  lg: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+  xl: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+  badge: '0 4px 12px rgba(45, 90, 46, 0.15)',
+  card: '0 2px 8px rgba(0, 0, 0, 0.08)',
+};
+
+export const RADIUS = {
+  sm: '6px',
+  md: '10px',
+  lg: '16px',
+  xl: '24px',
+  full: '9999px',
+};
+
+export const SPACING = {
+  xs: '4px',
+  sm: '8px',
+  md: '16px',
+  lg: '24px',
+  xl: '32px',
+  xxl: '48px',
 };

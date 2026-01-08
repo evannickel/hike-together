@@ -3,7 +3,8 @@ import { getHikes } from '../services/hikes';
 import { getAllBadgesWithStatus } from '../services/badges';
 import Footer from '../components/Footer';
 import { formatDistance, formatElevation, getDistanceUnit, getElevationUnit } from '../utils/units';
-import { COLORS, BADGE_CATEGORIES } from '../utils/constants';
+import { COLORS, BADGE_CATEGORIES, SHADOWS, RADIUS, SPACING } from '../utils/constants';
+import { commonStyles, gradients } from '../utils/designSystem';
 
 export default function StatsPage({ family, onShowHikes, onShowBadges, onShowSettings }) {
   const [hikes, setHikes] = useState([]);
@@ -162,11 +163,7 @@ export default function StatsPage({ family, onShowHikes, onShowBadges, onShowSet
 
 const styles = {
   container: {
-    maxWidth: '800px',
-    margin: '0 auto',
-    padding: '20px',
-    minHeight: '100vh',
-    background: COLORS.background,
+    ...commonStyles.pageContainer,
   },
   header: {
     display: 'flex',
@@ -175,10 +172,9 @@ const styles = {
     marginBottom: '20px',
   },
   title: {
-    fontSize: '28px',
-    fontWeight: 'bold',
-    color: COLORS.text,
-    margin: '0 0 5px 0',
+    ...commonStyles.heading,
+    ...commonStyles.headingLarge,
+    fontFamily: "'Fredoka', sans-serif",
   },
   subtitle: {
     fontSize: '16px',
