@@ -90,7 +90,7 @@ const styles = {
     color: COLORS.ink.black,
     margin: 0,
     flex: 1,
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
   },
   actions: {
     display: 'flex',

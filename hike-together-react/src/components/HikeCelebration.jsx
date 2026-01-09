@@ -115,14 +115,14 @@ const styles = {
     fontWeight: '700',
     color: COLORS.ink.black,
     margin: '0 0 10px 0',
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
   },
   hikeName: {
     fontSize: '24px',
     fontWeight: '600',
     color: COLORS.pencil.forestGreen,
     margin: 0,
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
   },
   badgesSection: {
     marginBottom: '25px',
@@ -133,7 +133,7 @@ const styles = {
     color: COLORS.ink.black,
     textAlign: 'center',
     marginBottom: '15px',
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
   },
   badgesGrid: {
     display: 'grid',

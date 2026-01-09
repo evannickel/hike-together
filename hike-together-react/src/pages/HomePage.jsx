@@ -489,7 +489,7 @@ const styles = {
     fontWeight: '600',
     color: COLORS.ink.black,
     margin: '0 0 10px 0',
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
   },
   emptyText: {
     fontSize: '16px',
@@ -526,7 +526,7 @@ const styles = {
     fontWeight: '700',
     color: COLORS.ink.black,
     margin: '0 0 20px 0',
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
   },
   form: {
     display: 'flex',
@@ -610,7 +610,7 @@ const styles = {
     fontWeight: '600',
     color: COLORS.ink.black,
     margin: '0 0 5px 0',
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
   },
   badgeSectionSubtitle: {
     fontSize: '13px',
@@ -675,7 +675,7 @@ const styles = {
     fontWeight: '600',
     textAlign: 'center',
     border: `2px dashed ${COLORS.pencil.forestGreen}60`,
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
     fontSize: '16px',
   },
 };
