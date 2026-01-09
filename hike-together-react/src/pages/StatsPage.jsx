@@ -228,6 +228,7 @@ const styles = {
     ...commonStyles.heading,
     ...commonStyles.headingMedium,
     marginBottom: '15px',
+    textAlign: 'center',
   },
   recordsGrid: {
     display: 'grid',
