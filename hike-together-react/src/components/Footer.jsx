@@ -4,7 +4,7 @@ export default function Footer() {
   return (
     <div style={styles.footer}>
       <p style={styles.footerText}>
-        Made with ❤️ for families who love hiking by{' '}
+        Hike Together was made with ❤️ for families who love hiking by{' '}
         <a href="https://evannickel.com" target="_blank" rel="noopener noreferrer" style={styles.link}>
           Evan Nickel
         </a>

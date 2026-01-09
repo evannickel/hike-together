@@ -1,11 +1,9 @@
 import { useState } from 'react';
-import { createFamily, joinFamily } from '../services/family';
+import { createFamily } from '../services/family';
 import { COLORS } from '../utils/constants';
 
 export default function FamilySetup({ user, onFamilyCreated, onSignOut }) {
-  const [isJoining, setIsJoining] = useState(false);
   const [familyName, setFamilyName] = useState('');
-  const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -15,22 +13,6 @@ export default function FamilySetup({ user, onFamilyCreated, onSignOut }) {
     setLoading(true);
 
     const result = await createFamily(user.uid, familyName);
-
-    if (result.success) {
-      onFamilyCreated(result.familyId);
-    } else {
-      setError(result.error);
-    }
-
-    setLoading(false);
-  };
-
-  const handleJoinFamily = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    const result = await joinFamily(user.uid, inviteCode);
 
     if (result.success) {
       onFamilyCreated(result.familyId);
@@ -52,70 +34,26 @@ export default function FamilySetup({ user, onFamilyCreated, onSignOut }) {
         <div style={styles.header}>
           <h1 style={styles.title}>🏔️ Welcome to Hike Together!</h1>
           <p style={styles.subtitle}>
-            {isJoining
-              ? 'Join your family to start tracking hikes together'
-              : 'Create a family to get started'}
+            Create a family to get started
           </p>
         </div>
 
-        {!isJoining ? (
-          <form onSubmit={handleCreateFamily} style={styles.form}>
-            <input
-              type="text"
-              placeholder="Family Name (e.g., The Smith Family)"
-              value={familyName}
-              onChange={(e) => setFamilyName(e.target.value)}
-              required
-              style={styles.input}
-            />
+        <form onSubmit={handleCreateFamily} style={styles.form}>
+          <input
+            type="text"
+            placeholder="Family Name (e.g., The Smith Family)"
+            value={familyName}
+            onChange={(e) => setFamilyName(e.target.value)}
+            required
+            style={styles.input}
+          />
 
-            {error && <div style={styles.error}>{error}</div>}
+          {error && <div style={styles.error}>{error}</div>}
 
-            <button type="submit" disabled={loading} style={styles.button}>
-              {loading ? 'Creating...' : 'Create Family'}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setIsJoining(true);
-                setError('');
-              }}
-              style={styles.linkButton}
-            >
-              Already have an invite code? Join Family
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={handleJoinFamily} style={styles.form}>
-            <input
-              type="text"
-              placeholder="Invite Code (e.g., ABC123)"
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-              required
-              style={styles.input}
-              maxLength={6}
-            />
-
-            {error && <div style={styles.error}>{error}</div>}
-
-            <button type="submit" disabled={loading} style={styles.button}>
-              {loading ? 'Joining...' : 'Join Family'}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setIsJoining(false);
-                setError('');
-              }}
-              style={styles.linkButton}
-            >
-              Want to create a new family instead?
-            </button>
-          </form>
-        )}
+          <button type="submit" disabled={loading} style={styles.button}>
+            {loading ? 'Creating...' : 'Create Family'}
+          </button>
+        </form>
       </div>
     </div>
   );
@@ -189,15 +127,6 @@ const styles = {
     borderRadius: '8px',
     cursor: 'pointer',
     transition: 'background 0.2s',
-  },
-  linkButton: {
-    background: 'none',
-    border: 'none',
-    color: COLORS.primary,
-    cursor: 'pointer',
-    fontSize: '14px',
-    textDecoration: 'underline',
-    padding: '8px',
   },
   error: {
     padding: '12px',
