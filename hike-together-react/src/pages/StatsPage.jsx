@@ -76,16 +76,14 @@ export default function StatsPage({ family, onShowHikes, onShowBadges, onShowSet
     <div style={styles.container}>
       <PageDoodles density="low" />
       <div style={styles.header}>
-        <h1 style={styles.title}>Stats</h1>
+        <div style={styles.tabs}>
+          <button style={styles.tab} onClick={onShowHikes}>Hikes</button>
+          <button style={styles.tab} onClick={onShowBadges}>Badges</button>
+          <button style={styles.tabActive}>Stats</button>
+        </div>
         <button onClick={onShowSettings} style={styles.settingsButton}>
           ⚙️
         </button>
-      </div>
-
-      <div style={styles.tabs}>
-        <button style={styles.tab} onClick={onShowHikes}>Hikes</button>
-        <button style={styles.tab} onClick={onShowBadges}>Badges</button>
-        <button style={styles.tabActive}>Stats</button>
       </div>
 
       {/* Quick Stats Grid */}
@@ -167,18 +165,9 @@ const styles = {
   header: {
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: '20px',
-  },
-  title: {
-    ...commonStyles.heading,
-    ...commonStyles.headingLarge,
-  },
-  subtitle: {
-    fontSize: '16px',
-    color: COLORS.ink.medium,
-    margin: 0,
-    fontFamily: "'Open Sans', sans-serif",
+    borderBottom: `3px solid ${COLORS.ink.light}40`,
   },
   settingsButton: {
     fontSize: '24px',
@@ -186,12 +175,11 @@ const styles = {
     border: 'none',
     cursor: 'pointer',
     padding: '8px',
+    marginBottom: '-3px',
   },
   tabs: {
     display: 'flex',
     gap: '10px',
-    marginBottom: '20px',
-    borderBottom: `3px solid ${COLORS.ink.light}40`,
   },
   tab: {
     ...commonStyles.tab,

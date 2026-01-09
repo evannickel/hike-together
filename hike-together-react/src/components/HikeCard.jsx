@@ -18,7 +18,7 @@ export default function HikeCard({ hike, onEdit, onDelete, unitSystem = 'imperia
               style={styles.editButton}
               title="Edit hike"
             >
-              ✏️
+              <span className="material-icons">edit</span>
             </button>
             <button
               onClick={(e) => {
@@ -28,7 +28,7 @@ export default function HikeCard({ hike, onEdit, onDelete, unitSystem = 'imperia
               style={styles.deleteButton}
               title="Delete hike"
             >
-              🗑️
+              <span className="material-icons">delete</span>
             </button>
           </div>
         </div>
@@ -99,26 +99,24 @@ const styles = {
   editButton: {
     background: 'none',
     border: 'none',
-    fontSize: '18px',
     cursor: 'pointer',
     padding: '4px',
-    opacity: 0.6,
-    transition: 'opacity 0.2s',
-    ':hover': {
-      opacity: 1,
-    },
+    color: COLORS.ink.medium,
+    transition: 'color 0.2s',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   deleteButton: {
     background: 'none',
     border: 'none',
-    fontSize: '18px',
     cursor: 'pointer',
     padding: '4px',
-    opacity: 0.6,
-    transition: 'opacity 0.2s',
-    ':hover': {
-      opacity: 1,
-    },
+    color: COLORS.pencil.berryRed,
+    transition: 'color 0.2s',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   meta: {
     display: 'flex',
