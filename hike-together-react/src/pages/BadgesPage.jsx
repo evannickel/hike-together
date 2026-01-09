@@ -334,6 +334,7 @@ const styles = {
     ...commonStyles.tab,
   },
   tabActive: {
+    ...commonStyles.tab,
     ...commonStyles.tabActive,
   },
   progress: {
