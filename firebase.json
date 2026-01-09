@@ -2,6 +2,11 @@
   "firestore": {
     "rules": "firestore.rules"
   },
+  "functions": {
+    "source": "functions",
+    "predeploy": [],
+    "runtime": "nodejs18"
+  },
   "hosting": {
     "public": "hike-together-react/dist",
     "ignore": [
