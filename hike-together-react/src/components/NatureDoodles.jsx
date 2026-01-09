@@ -251,6 +251,13 @@ export function ArrowDoodle({ style, size = 50, rotation = 0 }) {
 
 // Container component to scatter doodles around the page
 export function PageDoodles({ density = 'low' }) {
+  // Hide doodles on mobile to reduce clutter
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+  if (isMobile) {
+    return null;
+  }
+
   const doodleCount = density === 'low' ? 3 : density === 'medium' ? 5 : 8;
 
   const doodles = [

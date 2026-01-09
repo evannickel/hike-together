@@ -77,19 +77,17 @@ export default function BadgesPage({ family, onShowHikes, onShowStats, onShowSet
     <div style={styles.container}>
       <PageDoodles density="medium" />
       <div style={styles.header}>
-        <h1 style={styles.title}>Badges</h1>
+        <div style={styles.tabs}>
+          <button style={styles.tab} onClick={onShowHikes}>
+            Hikes
+          </button>
+          <button style={styles.tabActive}>Badges</button>
+          <button style={styles.tab} onClick={onShowStats}>
+            Stats
+          </button>
+        </div>
         <button onClick={onShowSettings} style={styles.settingsButton}>
           ⚙️
-        </button>
-      </div>
-
-      <div style={styles.tabs}>
-        <button style={styles.tab} onClick={onShowHikes}>
-          Hikes
-        </button>
-        <button style={styles.tabActive}>Badges</button>
-        <button style={styles.tab} onClick={onShowStats}>
-          Stats
         </button>
       </div>
 
@@ -316,18 +314,9 @@ const styles = {
   header: {
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: SPACING.lg,
-  },
-  title: {
-    ...commonStyles.heading,
-    ...commonStyles.headingLarge,
-  },
-  subtitle: {
-    fontSize: '16px',
-    color: COLORS.ink.medium,
-    margin: 0,
-    fontFamily: "'Open Sans', sans-serif",
+    borderBottom: `3px solid ${COLORS.ink.light}40`,
   },
   settingsButton: {
     fontSize: '24px',
@@ -335,12 +324,11 @@ const styles = {
     border: 'none',
     cursor: 'pointer',
     padding: '8px',
+    marginBottom: '-3px',
   },
   tabs: {
     display: 'flex',
     gap: '10px',
-    marginBottom: '20px',
-    borderBottom: `3px solid ${COLORS.ink.light}40`,
   },
   tab: {
     ...commonStyles.tab,
