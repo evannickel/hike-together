@@ -191,6 +191,9 @@ function BadgeDetailCard({ badge, onClaim }) {
     <div
       style={{
         ...styles.badgeCard,
+        position: 'relative',  // For absolute positioned corner accent
+        display: 'flex',
+        flexDirection: 'column',
         opacity: badge.earned ? 1 : 0.7,
         background: badge.earned
           ? COLORS.paper.offWhite
@@ -231,7 +234,18 @@ function BadgeDetailCard({ badge, onClaim }) {
         </div>
       )}
 
-      {/* Badge Icon with decorative circle background */}
+      {/* Top Section: Badge Type Tag */}
+      <div style={{
+        ...styles.badgeType,
+        background: `${category?.color}15`,
+        color: category?.color || COLORS.textLight,
+        border: `1px solid ${category?.color}30`,
+        marginBottom: '12px',  // Space before icon
+      }}>
+        {category?.name || badge.type}
+      </div>
+
+      {/* Icon Section */}
       <div style={{
         ...styles.badgeIconContainer,
         background: badge.earned
@@ -244,60 +258,52 @@ function BadgeDetailCard({ badge, onClaim }) {
         <div style={styles.badgeIconLarge}>{badge.icon}</div>
       </div>
 
-      {/* Badge Name */}
-      <div style={styles.badgeName}>{badge.name}</div>
+      {/* Text Section: Name and Description */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', marginTop: '12px' }}>
+        <div style={styles.badgeName}>{badge.name}</div>
+        <div style={styles.badgeDesc}>{badge.desc}</div>
+      </div>
 
-      {/* Badge Description */}
-      <div style={styles.badgeDesc}>{badge.desc}</div>
+      {/* Bottom Section: Progress or Earned Status */}
+      <div style={{ marginTop: '8px' }}>
+        {badge.earned ? (
+          <div style={{
+            ...styles.earnedBadge,
+            ...categoryStyle,
+          }}>
+            <span style={styles.earnedIcon}>🏆</span>
+            <span style={styles.earnedText}>Earned!</span>
+          </div>
+        ) : (
+          <>
+            {badge.progressText && (
+              <div style={styles.progressSection}>
+                <div style={styles.progressText}>{badge.progressText}</div>
+                {badge.progress > 0 && (
+                  <div style={styles.miniProgressBar}>
+                    <div style={{
+                      ...styles.miniProgressFill,
+                      width: `${badge.progress}%`,
+                      background: `linear-gradient(90deg, ${category?.gradient?.[0]} 0%, ${category?.gradient?.[1]} 100%)`,
+                    }} />
+                  </div>
+                )}
+              </div>
+            )}
 
-      {/* Progress or Earned Status */}
-      {badge.earned ? (
-        <div style={{
-          ...styles.earnedBadge,
-          ...categoryStyle,
-        }}>
-          <span style={styles.earnedIcon}>🏆</span>
-          <span style={styles.earnedText}>Earned!</span>
-        </div>
-      ) : (
-        <>
-          {badge.progressText && (
-            <div style={styles.progressSection}>
-              <div style={styles.progressText}>{badge.progressText}</div>
-              {badge.progress > 0 && (
-                <div style={styles.miniProgressBar}>
-                  <div style={{
-                    ...styles.miniProgressFill,
-                    width: `${badge.progress}%`,
-                    background: `linear-gradient(90deg, ${category?.gradient?.[0]} 0%, ${category?.gradient?.[1]} 100%)`,
-                  }} />
-                </div>
-              )}
-            </div>
-          )}
-
-          {badge.canClaim && (
-            <button
-              onClick={() => onClaim(badge.id)}
-              style={{
-                ...styles.claimButton,
-                ...categoryStyle,
-              }}
-            >
-              Claim Badge
-            </button>
-          )}
-        </>
-      )}
-
-      {/* Badge Type Tag */}
-      <div style={{
-        ...styles.badgeType,
-        background: `${category?.color}15`,
-        color: category?.color || COLORS.textLight,
-        border: `1px solid ${category?.color}30`,
-      }}>
-        {category?.name || badge.type}
+            {badge.canClaim && (
+              <button
+                onClick={() => onClaim(badge.id)}
+                style={{
+                  ...styles.claimButton,
+                  ...categoryStyle,
+                }}
+              >
+                Claim Badge
+              </button>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
@@ -446,7 +452,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    margin: '0 auto 12px auto',
+    margin: '0 auto',  // Centered, no bottom margin
     transition: 'all 0.3s ease',
     border: `2px dashed ${COLORS.ink.light}50`,
     background: COLORS.paper.aged,
@@ -460,13 +466,14 @@ const styles = {
     color: COLORS.ink.black,
     marginBottom: '6px',
     fontFamily: "'Caveat', cursive",
+    textAlign: 'center',
   },
   badgeDesc: {
     fontSize: '12px',
     color: COLORS.ink.medium,
-    marginBottom: '10px',
     minHeight: '35px',
     fontFamily: "'Open Sans', sans-serif",
+    textAlign: 'center',
   },
   earnedBadge: {
     display: 'flex',
@@ -522,11 +529,8 @@ const styles = {
     boxShadow: `2px 2px 0 ${COLORS.ink.dark}40`,
   },
   badgeType: {
-    position: 'absolute',
-    top: '8px',
-    left: '8px',
     fontSize: '10px',
-    padding: '4px 8px',
+    padding: '6px 10px',
     background: COLORS.paper.aged,
     borderRadius: '3px',
     color: COLORS.ink.medium,
@@ -534,6 +538,7 @@ const styles = {
     textTransform: 'uppercase',
     fontFamily: "'Open Sans', sans-serif",
     border: `1px solid ${COLORS.ink.light}40`,
+    textAlign: 'center',
   },
   empty: {
     gridColumn: '1 / -1',

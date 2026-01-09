@@ -8,6 +8,7 @@ import {
   where,
   getDocs,
   serverTimestamp,
+  arrayUnion,
 } from 'firebase/firestore';
 import { db, analytics } from './firebase';
 import { logEvent } from 'firebase/analytics';
@@ -52,24 +53,35 @@ export const createFamily = async (userId, familyName) => {
 
 export const joinFamily = async (userId, inviteCode) => {
   try {
+    if (!inviteCode || inviteCode.trim().length === 0) {
+      return { success: false, error: 'Please enter an invite code' };
+    }
+
+    // Normalize invite code
+    const normalizedCode = inviteCode.trim().toUpperCase();
+
     // Find family by invite code
     const familiesRef = collection(db, 'families');
-    const q = query(familiesRef, where('inviteCode', '==', inviteCode.toUpperCase()));
+    const q = query(familiesRef, where('inviteCode', '==', normalizedCode));
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
-      return { success: false, error: 'Invalid invite code' };
+      return { success: false, error: 'Invalid invite code. Please check the code and try again.' };
     }
 
     const familyDoc = querySnapshot.docs[0];
     const familyId = familyDoc.id;
     const familyData = familyDoc.data();
 
-    // Add user to family's member list
-    const updatedMembers = [...(familyData.memberUserIds || []), userId];
-    await setDoc(doc(db, 'families', familyId), {
-      memberUserIds: updatedMembers,
-    }, { merge: true });
+    // Check if user is already a member
+    if (familyData.memberUserIds && familyData.memberUserIds.includes(userId)) {
+      return { success: false, error: 'You are already a member of this family' };
+    }
+
+    // Add user to family's member list using arrayUnion (prevents race conditions)
+    await updateDoc(doc(db, 'families', familyId), {
+      memberUserIds: arrayUnion(userId),
+    });
 
     // Link user to family
     await setDoc(doc(db, 'users', userId), {
@@ -83,7 +95,13 @@ export const joinFamily = async (userId, inviteCode) => {
     return { success: true, familyId };
   } catch (error) {
     console.error('Join family error:', error);
-    return { success: false, error: error.message };
+
+    // Provide more helpful error messages
+    if (error.code === 'permission-denied') {
+      return { success: false, error: 'Permission denied. Please check your Firestore security rules.' };
+    }
+
+    return { success: false, error: error.message || 'Failed to join family. Please try again.' };
   }
 };
 
@@ -132,6 +150,10 @@ export const updateFamilyPreferences = async (familyId, preferences) => {
 // Ensure family has an invite code (for existing families that might not have one)
 export const ensureInviteCode = async (familyId) => {
   try {
+    if (!familyId) {
+      return { success: false, error: 'Family ID is required' };
+    }
+
     const familyDoc = await getDoc(doc(db, 'families', familyId));
 
     if (!familyDoc.exists()) {
@@ -149,9 +171,17 @@ export const ensureInviteCode = async (familyId) => {
     const inviteCode = generateInviteCode();
     await updateDoc(doc(db, 'families', familyId), { inviteCode });
 
+    logEvent(analytics, 'invite_code_generated');
+
     return { success: true, inviteCode };
   } catch (error) {
     console.error('Ensure invite code error:', error);
-    return { success: false, error: error.message };
+
+    // Provide more helpful error messages
+    if (error.code === 'permission-denied') {
+      return { success: false, error: 'Permission denied. Please check your Firestore security rules.' };
+    }
+
+    return { success: false, error: error.message || 'Failed to generate invite code' };
   }
 };
