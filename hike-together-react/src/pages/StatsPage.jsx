@@ -226,7 +226,7 @@ const styles = {
     fontWeight: '700',
     color: COLORS.pencil.forestGreen,
     marginBottom: '5px',
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
   },
   statLabel: {
     fontSize: '14px',
@@ -264,7 +264,7 @@ const styles = {
     fontSize: '28px',
     fontWeight: '700',
     color: COLORS.pencil.forestGreen,
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
   },
   categoryList: {
     display: 'flex',
@@ -313,7 +313,7 @@ const styles = {
     color: COLORS.pencil.forestGreen,
     minWidth: '50px',
     textAlign: 'right',
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
   },
   loading: {
     display: 'flex',

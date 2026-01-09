@@ -365,14 +365,14 @@ const styles = {
     fontSize: '14px',
     fontWeight: '600',
     color: COLORS.ink.black,
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
     fontSize: '18px',
   },
   progressValue: {
     fontSize: '14px',
     fontWeight: '600',
     color: COLORS.pencil.forestGreen,
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
     fontSize: '18px',
   },
   progressBar: {
@@ -422,7 +422,7 @@ const styles = {
     fontSize: '16px',
     fontWeight: '600',
     color: COLORS.ink.black,
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
   },
   categoryDropdown: {
     flex: 1,
@@ -465,7 +465,7 @@ const styles = {
     fontWeight: '600',
     color: COLORS.ink.black,
     marginBottom: '6px',
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
     textAlign: 'center',
   },
   badgeDesc: {
@@ -580,7 +580,7 @@ const styles = {
     fontWeight: '700',
     color: COLORS.pencil.forestGreen,
     margin: '0 0 10px 0',
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
   },
   celebrationText: {
     fontSize: '16px',

@@ -287,7 +287,7 @@ const styles = {
     fontWeight: '700',
     color: COLORS.ink.black,
     margin: 0,
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
   },
   tabs: {
     display: 'flex',
@@ -314,7 +314,7 @@ const styles = {
     fontWeight: '600',
     color: COLORS.pencil.forestGreen,
     margin: '0 0 12px 0',
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
   },
   card: {
     background: COLORS.paper.offWhite,
@@ -357,7 +357,7 @@ const styles = {
     fontWeight: '700',
     color: COLORS.pencil.forestGreen,
     letterSpacing: '2px',
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
   },
   copyButton: {
     padding: '6px 12px',
@@ -419,7 +419,7 @@ const styles = {
     fontSize: '18px',
     fontWeight: '600',
     color: COLORS.pencil.forestGreen,
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
   },
   premiumSubtext: {
     fontSize: '14px',
@@ -466,14 +466,14 @@ const styles = {
     fontWeight: '600',
     color: COLORS.ink.black,
     marginBottom: '10px',
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
   },
   pricingPrice: {
     fontSize: '24px',
     fontWeight: '700',
     color: COLORS.pencil.forestGreen,
     marginBottom: '8px',
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
   },
   savingsText: {
     fontSize: '12px',
@@ -526,7 +526,7 @@ const styles = {
     fontWeight: '600',
     color: COLORS.pencil.berryRed,
     margin: '0 0 8px 0',
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
   },
   dangerZoneText: {
     fontSize: '13px',

@@ -130,7 +130,7 @@ export const commonStyles = {
 
   // Header styles with handwritten font
   heading: {
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
     fontWeight: '600',
     color: COLORS.ink.black,
     margin: 0,
@@ -229,7 +229,7 @@ export const commonStyles = {
     color: COLORS.pencil.forestGreen,
     borderBottom: `3px solid ${COLORS.pencil.forestGreen}`,
     fontWeight: '600',
-    fontFamily: "'Caveat', cursive",
+    fontFamily: "'Just Another Hand', cursive",
     fontSize: '18px',
   },
 };
