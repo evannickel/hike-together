@@ -1,5 +1,10 @@
 // Unit conversion utilities
 
+// Format number with commas in thousands place
+const formatNumberWithCommas = (number) => {
+  return number.toLocaleString('en-US');
+};
+
 // Convert miles to kilometers
 export const milesToKm = (miles) => {
   return miles * 1.60934;
@@ -24,18 +29,18 @@ export const metersToFeet = (meters) => {
 export const formatDistance = (miles, unitSystem = 'imperial', decimals = 1) => {
   if (unitSystem === 'metric') {
     const km = milesToKm(miles);
-    return `${km.toFixed(decimals)} km`;
+    return `${formatNumberWithCommas(parseFloat(km.toFixed(decimals)))} km`;
   }
-  return `${parseFloat(miles).toFixed(decimals)} mi`;
+  return `${formatNumberWithCommas(parseFloat(parseFloat(miles).toFixed(decimals)))} mi`;
 };
 
 // Format elevation based on unit system
 export const formatElevation = (feet, unitSystem = 'imperial') => {
   if (unitSystem === 'metric') {
     const meters = feetToMeters(feet);
-    return `${Math.round(meters)} m`;
+    return `${formatNumberWithCommas(Math.round(meters))} m`;
   }
-  return `${Math.round(feet)} ft`;
+  return `${formatNumberWithCommas(Math.round(feet))} ft`;
 };
 
 // Get distance unit label

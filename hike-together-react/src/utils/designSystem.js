@@ -228,9 +228,7 @@ export const commonStyles = {
   tabActive: {
     color: COLORS.pencil.forestGreen,
     borderBottom: `3px solid ${COLORS.pencil.forestGreen}`,
-    fontWeight: '600',
-    fontFamily: "'Just Another Hand', cursive",
-    fontSize: '18px',
+    fontWeight: '700',
   },
 };
 

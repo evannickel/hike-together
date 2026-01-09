@@ -1,27 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { signOut, deleteAccount } from '../services/auth';
-import { updateFamilyPreferences, ensureInviteCode } from '../services/family';
+import { updateFamilyPreferences } from '../services/family';
 import { createCheckoutSession, STRIPE_PRICES, PRICE_NAMES } from '../services/stripe';
 import { COLORS, SUBSCRIPTION_PRICE } from '../utils/constants';
 
 export default function SettingsPage({ family, user, onShowHikes, onShowBadges, onShowStats }) {
   const [unitSystem, setUnitSystem] = useState(family.unitSystem || 'imperial');
   const [updating, setUpdating] = useState(false);
-  const [inviteCode, setInviteCode] = useState(family.inviteCode || null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
-
-  // Ensure invite code exists when component mounts
-  useEffect(() => {
-    const checkInviteCode = async () => {
-      if (!inviteCode && family.id) {
-        const result = await ensureInviteCode(family.id);
-        if (result.success) {
-          setInviteCode(result.inviteCode);
-        }
-      }
-    };
-    checkInviteCode();
-  }, [family.id, inviteCode]);
 
   const handleSignOut = async () => {
     const result = await signOut();
@@ -81,11 +67,6 @@ export default function SettingsPage({ family, user, onShowHikes, onShowBadges, 
     // Loading state will persist until redirect happens
   };
 
-  const copyInviteCode = () => {
-    navigator.clipboard.writeText(inviteCode);
-    alert(`Invite code "${inviteCode}" copied to clipboard!`);
-  };
-
   const isPremium = family.subscriptionStatus === 'premium';
 
   return (
@@ -113,22 +94,6 @@ export default function SettingsPage({ family, user, onShowHikes, onShowBadges, 
           <div style={styles.row}>
             <span style={styles.label}>Family Name</span>
             <span style={styles.value}>{family.name}</span>
-          </div>
-
-          <div style={styles.row}>
-            <span style={styles.label}>Invite Code</span>
-            <div style={styles.inviteCode}>
-              <span style={styles.code}>{inviteCode || 'Generating...'}</span>
-              {inviteCode && (
-                <button onClick={copyInviteCode} style={styles.copyButton}>
-                  📋 Copy
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div style={styles.helpText}>
-            Share this code with family members so they can join!
           </div>
         </div>
       </div>
@@ -345,27 +310,6 @@ const styles = {
   value: {
     fontSize: '14px',
     color: COLORS.ink.medium,
-    fontFamily: "'Open Sans', sans-serif",
-  },
-  inviteCode: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-  },
-  code: {
-    fontSize: '18px',
-    fontWeight: '700',
-    color: COLORS.pencil.forestGreen,
-    letterSpacing: '2px',
-    fontFamily: "'Just Another Hand', cursive",
-  },
-  copyButton: {
-    padding: '6px 12px',
-    fontSize: '14px',
-    background: COLORS.paper.aged,
-    border: `2px solid ${COLORS.ink.light}60`,
-    borderRadius: '4px',
-    cursor: 'pointer',
     fontFamily: "'Open Sans', sans-serif",
   },
   helpText: {
