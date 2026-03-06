@@ -720,6 +720,7 @@
           const [showForm, setShowForm] = useState(false);
           const [selectedBadge, setSelectedBadge] = useState(null);
           const [showLocationPicker, setShowLocationPicker] = useState(false);
+          const [useMetric, setUseMetric] = useState(false); // false = imperial, true = metric
           const [formData, setFormData] = useState({
             name: '',
             date: new Date().toISOString().split('T')[0],
@@ -740,13 +741,35 @@
                 Sentry.setUser({ id: user.uid, email: user.email });
                 analytics.logEvent('user_active');
                 
+                // Load user settings (metric/imperial preference)
+                try {
+                  const settingsDoc = await db.collection('users').doc(user.uid).collection('settings').doc('preferences').get();
+                  if (settingsDoc.exists) {
+                    setUseMetric(settingsDoc.data().useMetric || false);
+                  }
+                } catch (error) {
+                  console.log('Settings not found, using defaults');
+                }
+                
                 // Load user's hikes
-                db.collection('users').doc(user.uid).collection('hikes')
+                const unsubscribeHikes = db.collection('users').doc(user.uid).collection('hikes')
                   .orderBy('date', 'desc')
-                  .onSnapshot(snapshot => {
-                    setHikes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                    setLoading(false);
-                  });
+                  .onSnapshot(
+                    snapshot => {
+                      setHikes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                      setLoading(false);
+                    },
+                    error => {
+                      console.error('Firestore error:', error);
+                      Sentry.captureException(error);
+                      if (error.code === 'permission-denied') {
+                        alert('Database permission error. Please make sure you have updated your Firestore security rules.');
+                      }
+                      setLoading(false);
+                    }
+                  );
+                  
+                return () => unsubscribeHikes();
               } else {
                 setUser(null);
                 setLoading(false);
@@ -760,6 +783,28 @@
             setUser(user);
             setShowAuthScreen(false);
           };
+
+          const toggleMetric = async () => {
+            const newValue = !useMetric;
+            setUseMetric(newValue);
+            
+            try {
+              await db.collection('users').doc(user.uid).collection('settings').doc('preferences').set({
+                useMetric: newValue
+              }, { merge: true });
+            } catch (error) {
+              console.error('Error saving preference:', error);
+              Sentry.captureException(error);
+            }
+          };
+
+          // Conversion helpers
+          const toKm = (miles) => (miles * 1.60934).toFixed(1);
+          const toMeters = (feet) => Math.round(feet * 0.3048);
+          const distanceUnit = useMetric ? 'km' : 'mi';
+          const elevationUnit = useMetric ? 'm' : 'ft';
+          const distanceLabel = useMetric ? 'Distance (kilometers)' : 'Distance (miles)';
+          const elevationLabel = useMetric ? 'Elevation (meters)' : 'Elevation (feet)';
 
           const handleLogout = async () => {
             if (confirm('Are you sure you want to log out?')) {
@@ -900,15 +945,18 @@
 
           const badgeStats = BADGES.map(badge => {
             let earned = false, count = 0;
-            if (badge.type === 'count') {
-              earned = hikes.length >= badge.requirement;
-              count = badge.milestone ? Math.min(hikes.length, badge.requirement) : hikes.length;
-            } else if (badge.type === 'distance') {
-              earned = totalDistance >= badge.requirement;
-              count = badge.milestone ? Math.min(Math.floor(totalDistance), badge.requirement) : Math.floor(totalDistance);
-            } else if (badge.type === 'elevation') {
-              earned = totalElevation >= badge.requirement;
-              count = badge.milestone ? Math.min(Math.floor(totalElevation), badge.requirement) : Math.floor(totalElevation);
+            
+            if (badge.type === 'milestone') {
+              if (badge.subtype === 'count') {
+                earned = hikes.length >= badge.requirement;
+                count = Math.min(hikes.length, badge.requirement);
+              } else if (badge.subtype === 'distance') {
+                earned = totalDistance >= badge.requirement;
+                count = Math.min(Math.floor(totalDistance), badge.requirement);
+              } else if (badge.subtype === 'elevation') {
+                earned = totalElevation >= badge.requirement;
+                count = Math.min(Math.floor(totalElevation), badge.requirement);
+              }
             } else if (badge.type === 'seasonal') {
               if (badge.id === 'spring') { count = seasonalHikes.spring; earned = count > 0; }
               else if (badge.id === 'summer') { count = seasonalHikes.summer; earned = count > 0; }
@@ -920,6 +968,7 @@
                 earned = seasonsCompleted >= 4;
               }
             } else {
+              // location, weather, discovery, activity badges
               count = activityCounts[badge.id] || 0;
               earned = count > 0;
             }
@@ -991,7 +1040,7 @@
                     <div className="mb-6">
                       <h2 className="text-3xl font-bold mb-2" style={{color: 'var(--text-dark)'}}>My Hikes</h2>
                       <p style={{color: 'var(--text-medium)'}}>
-                        {hikes.length} hike{hikes.length !== 1 ? 's' : ''} • {totalDistance.toFixed(1)} miles • {totalElevation.toLocaleString()} feet
+                        {hikes.length} hike{hikes.length !== 1 ? 's' : ''} • {useMetric ? toKm(totalDistance) : totalDistance.toFixed(1)} {distanceUnit} • {useMetric ? toMeters(totalElevation).toLocaleString() : totalElevation.toLocaleString()} {elevationUnit}
                       </p>
                     </div>
 
@@ -1036,7 +1085,7 @@
                           <input
                             type="number"
                             step="0.1"
-                            placeholder="Distance (miles)"
+                            placeholder={distanceLabel}
                             value={formData.distance}
                             onChange={(e) => setFormData({...formData, distance: e.target.value})}
                             className="w-full p-3 border-2 rounded-lg outline-none"
@@ -1044,7 +1093,7 @@
                           />
                           <input
                             type="number"
-                            placeholder="Elevation (feet)"
+                            placeholder={elevationLabel}
                             value={formData.elevation}
                             onChange={(e) => setFormData({...formData, elevation: e.target.value})}
                             className="w-full p-3 border-2 rounded-lg outline-none"
@@ -1080,36 +1129,38 @@
                           {/* Badge Selection */}
                           <div className="border-2 rounded-lg p-4" style={{borderColor: 'var(--aged-paper)'}}>
                             <h4 className="font-semibold mb-2" style={{color: 'var(--forest-green)'}}>
-                              🏆 What did you see/do?
+                              🏆 What did you see/do? (Click to toggle)
                             </h4>
                             <p className="text-sm mb-3" style={{color: 'var(--text-medium)'}}>
-                              Click badges to see definitions
+                              Select all the activities, wildlife, and features you encountered
                             </p>
-                            <div className="grid grid-cols-4 md:grid-cols-6 gap-2">
-                              {BADGES.filter(b => b.type !== 'count' && b.type !== 'distance' && b.type !== 'elevation').map(badge => {
+                            <div className="space-y-2 max-h-96 overflow-y-auto">
+                              {BADGES.filter(b => b.type !== 'milestone' || (b.type === 'milestone' && !b.requirement)).map(badge => {
                                 const selected = formData.activities && formData.activities.includes(badge.id);
                                 return (
-                                  <div key={badge.id} className="relative">
-                                    <button
-                                      type="button"
-                                      onClick={() => toggleActivity(badge.id)}
-                                      className="w-full p-2 rounded-lg border-2 transition"
-                                      style={{
-                                        borderColor: selected ? 'var(--forest-green)' : 'var(--aged-paper)',
-                                        backgroundColor: selected ? '#e8f5e9' : 'white'
-                                      }}
-                                    >
-                                      <div className="text-2xl">{badge.icon}</div>
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => setSelectedBadge(badge)}
-                                      className="absolute top-0 right-0 w-5 h-5 rounded-full flex items-center justify-center text-xs"
-                                      style={{backgroundColor: 'var(--forest-green)', color: 'white'}}
-                                    >
-                                      <Info className="w-3 h-3" />
-                                    </button>
-                                  </div>
+                                  <button
+                                    key={badge.id}
+                                    type="button"
+                                    onClick={() => toggleActivity(badge.id)}
+                                    className="w-full p-3 rounded-lg border-2 transition text-left flex items-start gap-3"
+                                    style={{
+                                      borderColor: selected ? 'var(--forest-green)' : 'var(--aged-paper)',
+                                      backgroundColor: selected ? '#e8f5e9' : 'white'
+                                    }}
+                                  >
+                                    <div className="text-3xl flex-shrink-0">{badge.icon}</div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-semibold" style={{color: 'var(--forest-green)'}}>
+                                        {badge.name}
+                                      </div>
+                                      <div className="text-sm" style={{color: 'var(--text-medium)'}}>
+                                        {badge.desc}
+                                      </div>
+                                    </div>
+                                    {selected && (
+                                      <div className="flex-shrink-0 text-green-600 text-xl">✓</div>
+                                    )}
+                                  </button>
                                 );
                               })}
                             </div>
@@ -1163,12 +1214,16 @@
                             <div className="grid grid-cols-2 gap-2 mb-2">
                               <div className="rounded p-2" style={{backgroundColor: 'var(--cream)'}}>
                                 <div className="text-xs" style={{color: 'var(--text-medium)'}}>Distance</div>
-                                <div className="font-bold" style={{color: 'var(--forest-green)'}}>{hike.distance} mi</div>
+                                <div className="font-bold" style={{color: 'var(--forest-green)'}}>
+                                  {useMetric ? toKm(hike.distance) : hike.distance} {distanceUnit}
+                                </div>
                               </div>
                               {hike.elevation > 0 && (
                                 <div className="rounded p-2" style={{backgroundColor: 'var(--cream)'}}>
                                   <div className="text-xs" style={{color: 'var(--text-medium)'}}>Elevation</div>
-                                  <div className="font-bold" style={{color: 'var(--forest-green)'}}>{hike.elevation} ft</div>
+                                  <div className="font-bold" style={{color: 'var(--forest-green)'}}>
+                                    {useMetric ? toMeters(hike.elevation).toLocaleString() : hike.elevation} {elevationUnit}
+                                  </div>
                                 </div>
                               )}
                             </div>
@@ -1270,17 +1325,47 @@
                             <div className="text-sm" style={{color: 'var(--text-medium)'}}>Total Hikes</div>
                           </div>
                           <div className="rounded-lg p-4 text-center" style={{backgroundColor: 'var(--cream)'}}>
-                            <div className="text-3xl font-bold" style={{color: 'var(--forest-green)'}}>{totalDistance.toFixed(1)}</div>
-                            <div className="text-sm" style={{color: 'var(--text-medium)'}}>Miles</div>
+                            <div className="text-3xl font-bold" style={{color: 'var(--forest-green)'}}>
+                              {useMetric ? toKm(totalDistance) : totalDistance.toFixed(1)}
+                            </div>
+                            <div className="text-sm" style={{color: 'var(--text-medium)'}}>{distanceUnit === 'km' ? 'Kilometers' : 'Miles'}</div>
                           </div>
                           <div className="rounded-lg p-4 text-center" style={{backgroundColor: 'var(--cream)'}}>
-                            <div className="text-3xl font-bold" style={{color: 'var(--forest-green)'}}>{totalElevation.toLocaleString()}</div>
-                            <div className="text-sm" style={{color: 'var(--text-medium)'}}>Feet Climbed</div>
+                            <div className="text-3xl font-bold" style={{color: 'var(--forest-green)'}}>
+                              {useMetric ? toMeters(totalElevation).toLocaleString() : totalElevation.toLocaleString()}
+                            </div>
+                            <div className="text-sm" style={{color: 'var(--text-medium)'}}>{elevationUnit === 'm' ? 'Meters' : 'Feet'} Climbed</div>
                           </div>
                           <div className="rounded-lg p-4 text-center" style={{backgroundColor: 'var(--cream)'}}>
                             <div className="text-3xl font-bold" style={{color: 'var(--forest-green)'}}>{earnedBadges.length}</div>
                             <div className="text-sm" style={{color: 'var(--text-medium)'}}>Badges</div>
                           </div>
+                        </div>
+                      </div>
+
+                      {/* Units Preference */}
+                      <div className="mb-6 pb-6 border-b-2" style={{borderColor: 'var(--aged-paper)'}}>
+                        <h3 className="font-semibold mb-3" style={{color: 'var(--forest-green)'}}>📏 Units</h3>
+                        <div className="flex items-center justify-between p-4 rounded-lg" style={{backgroundColor: 'var(--cream)'}}>
+                          <div>
+                            <div className="font-semibold" style={{color: 'var(--text-dark)'}}>
+                              {useMetric ? 'Metric (km, m)' : 'Imperial (mi, ft)'}
+                            </div>
+                            <div className="text-sm" style={{color: 'var(--text-medium)'}}>
+                              Distance and elevation units
+                            </div>
+                          </div>
+                          <button
+                            onClick={toggleMetric}
+                            className="px-6 py-2 font-semibold rounded-lg border-2 transition"
+                            style={{
+                              backgroundColor: 'var(--forest-green)',
+                              borderColor: 'var(--forest-green)',
+                              color: 'white'
+                            }}
+                          >
+                            Switch to {useMetric ? 'Imperial' : 'Metric'}
+                          </button>
                         </div>
                       </div>
 
