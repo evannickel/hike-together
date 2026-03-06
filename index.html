@@ -760,14 +760,32 @@
             activities: []
           });
 
+          // Failsafe: If auth listener doesn't fire within 3 seconds, force it to complete
+          useEffect(() => {
+            console.log('⏰ Setting up 3-second auth failsafe timeout...');
+            const failsafeTimer = setTimeout(() => {
+              console.warn('⚠️ AUTH FAILSAFE TRIGGERED! Auth listener took too long.');
+              console.log('🔧 Forcing authLoading = false');
+              setAuthLoading(false);
+            }, 3000);
+            
+            return () => {
+              console.log('⏰ Clearing failsafe timer');
+              clearTimeout(failsafeTimer);
+            };
+          }, []);
+
           useEffect(() => {
             console.log('🔍 Auth state change listener starting...');
             const unsubscribe = auth.onAuthStateChanged(async (user) => {
               console.log('🔍 Auth state changed. User:', user ? user.email : 'null');
               
               if (user) {
+                console.log('👤 Setting user state...');
                 setUser(user);
+                console.log('📊 Setting Sentry user...');
                 Sentry.setUser({ id: user.uid, email: user.email });
+                console.log('📈 Logging analytics event...');
                 analytics.logEvent('user_active');
                 console.log('✅ User logged in:', user.email);
                 
@@ -834,14 +852,17 @@
                   setHikes([]);
                 }
               } else {
-                console.log('👋 User logged out');
+                console.log('❌ No user, clearing user state');
                 setUser(null);
                 setHikes([]);
                 setLoading(false);
               }
+              console.log('🔓 About to set authLoading = false (currently:', authLoading, ')');
               setAuthLoading(false);
+              console.log('✅ setAuthLoading(false) called! Auth state processing complete.');
             });
             
+            console.log('👂 Auth listener registered, returning cleanup function');
             return () => {
               console.log('🧹 Cleaning up auth listener');
               unsubscribe();
