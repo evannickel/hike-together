@@ -1046,21 +1046,7 @@
 
           const earnedBadges = badgeStats.filter(b => b.earned);
 
-          // Add timeout to prevent infinite auth loading
-          useEffect(() => {
-            console.log('⏰ Setting authLoading timeout (5 seconds)');
-            const timeout = setTimeout(() => {
-              if (authLoading) {
-                console.warn('⚠️ Auth loading timeout reached! Force setting authLoading to false...');
-                setAuthLoading(false);
-              }
-            }, 5000); // 5 seconds
-            
-            return () => clearTimeout(timeout);
-          }, []);
-
           if (authLoading) {
-            console.log('🔐 Auth loading screen shown. authLoading:', authLoading);
             return (
               <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: 'var(--cream)'}}>
                 <div className="text-center">
@@ -1071,8 +1057,6 @@
             );
           }
 
-          console.log('🎯 Auth check passed. User:', user ? user.email : 'null', 'showAuthScreen:', showAuthScreen);
-
           if (!user && !showAuthScreen) {
             return <JournalLandingPage onGetStarted={() => setShowAuthScreen(true)} onLogin={() => setShowAuthScreen(true)} />;
           }
@@ -1081,27 +1065,13 @@
             return <LoginScreen onLogin={handleLogin} onBack={() => setShowAuthScreen(false)} />;
           }
 
-          // Add timeout to prevent infinite loading
-          useEffect(() => {
-            if (loading && user) {
-              console.log('⏰ Loading timeout started (10 seconds)');
-              const timeout = setTimeout(() => {
-                console.warn('⚠️ Loading timeout reached! Force showing app...');
-                setLoading(false);
-              }, 10000); // 10 seconds
-              
-              return () => clearTimeout(timeout);
-            }
-          }, [loading, user]);
-
           if (loading) {
-            console.log('📺 Showing loading screen... user:', user ? user.email : 'null');
             return (
               <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: 'var(--cream)'}}>
                 <div className="text-center">
                   <div className="text-2xl mb-4" style={{color: 'var(--forest-green)'}}>Loading your journal...</div>
                   <div className="text-sm" style={{color: 'var(--text-medium)'}}>
-                    If this takes more than 10 seconds, please refresh the page
+                    This should only take a moment
                   </div>
                 </div>
               </div>
