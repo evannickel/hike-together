@@ -1064,13 +1064,10 @@
               {/* Header */}
               <header className="bg-white shadow-sm sticky top-0 z-40 border-b-2" style={{borderColor: 'var(--aged-paper)'}}>
                 <div className="max-w-4xl mx-auto px-4 py-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-center">
                     <div className="flex items-center gap-2">
                       <Mountain className="w-8 h-8" style={{color: 'var(--forest-green)'}} />
                       <h1 className="text-2xl font-bold" style={{color: 'var(--forest-green)'}}>Hike Together</h1>
-                    </div>
-                    <div className="text-sm" style={{color: 'var(--text-medium)'}}>
-                      {user.email}
                     </div>
                   </div>
                 </div>
@@ -1081,10 +1078,7 @@
                 {currentPage === 'hikes' && (
                   <>
                     <div className="mb-6">
-                      <h2 className="text-3xl font-bold mb-2" style={{color: 'var(--text-dark)'}}>My Hikes</h2>
-                      <p style={{color: 'var(--text-medium)'}}>
-                        {hikes.length} hike{hikes.length !== 1 ? 's' : ''} • {useMetric ? toKm(totalDistance) : totalDistance.toFixed(1)} {distanceUnit} • {useMetric ? toMeters(totalElevation).toLocaleString() : totalElevation.toLocaleString()} {elevationUnit}
-                      </p>
+                      <h2 className="text-3xl font-bold" style={{color: 'var(--text-dark)'}}>My Hikes</h2>
                     </div>
 
                     <button
