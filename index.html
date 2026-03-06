@@ -735,48 +735,91 @@
           });
 
           useEffect(() => {
+            console.log('🔍 Auth state change listener starting...');
             const unsubscribe = auth.onAuthStateChanged(async (user) => {
+              console.log('🔍 Auth state changed. User:', user ? user.email : 'null');
+              
               if (user) {
                 setUser(user);
                 Sentry.setUser({ id: user.uid, email: user.email });
                 analytics.logEvent('user_active');
+                console.log('✅ User logged in:', user.email);
                 
                 // Load user settings (metric/imperial preference)
                 try {
+                  console.log('📏 Loading user settings...');
                   const settingsDoc = await db.collection('users').doc(user.uid).collection('settings').doc('preferences').get();
                   if (settingsDoc.exists) {
                     setUseMetric(settingsDoc.data().useMetric || false);
+                    console.log('✅ Settings loaded:', settingsDoc.data());
+                  } else {
+                    console.log('ℹ️ No settings found, using defaults');
                   }
                 } catch (error) {
-                  console.log('Settings not found, using defaults');
+                  console.warn('⚠️ Settings load error (non-critical):', error);
                 }
                 
                 // Load user's hikes
-                const unsubscribeHikes = db.collection('users').doc(user.uid).collection('hikes')
-                  .orderBy('date', 'desc')
-                  .onSnapshot(
-                    snapshot => {
-                      setHikes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-                      setLoading(false);
-                    },
-                    error => {
-                      console.error('Firestore error:', error);
-                      Sentry.captureException(error);
-                      if (error.code === 'permission-denied') {
-                        alert('Database permission error. Please make sure you have updated your Firestore security rules.');
+                console.log('🥾 Setting up hikes listener for user:', user.uid);
+                try {
+                  const unsubscribeHikes = db.collection('users').doc(user.uid).collection('hikes')
+                    .orderBy('date', 'desc')
+                    .onSnapshot(
+                      snapshot => {
+                        console.log('✅ Hikes loaded successfully! Count:', snapshot.docs.length);
+                        const hikesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        setHikes(hikesData);
+                        setLoading(false);
+                        console.log('✅ Loading complete!');
+                      },
+                      error => {
+                        console.error('❌ Firestore listener error:', error);
+                        console.error('Error code:', error.code);
+                        console.error('Error message:', error.message);
+                        Sentry.captureException(error);
+                        
+                        if (error.code === 'permission-denied') {
+                          alert('❌ Database Permission Error\n\nYour Firestore security rules need to be updated.\n\nPlease check the console for instructions.');
+                          console.error('================================');
+                          console.error('FIRESTORE RULES ERROR');
+                          console.error('================================');
+                          console.error('You need to update your Firestore Security Rules.');
+                          console.error('Go to: Firebase Console → Firestore Database → Rules');
+                          console.error('Then copy the rules from FIRESTORE_RULES_SINGLE_USER.txt');
+                          console.error('================================');
+                        } else {
+                          alert(`Database Error: ${error.message}\n\nCheck the console for details.`);
+                        }
+                        
+                        setLoading(false);
+                        setHikes([]);
                       }
-                      setLoading(false);
-                    }
-                  );
-                  
-                return () => unsubscribeHikes();
+                    );
+                    
+                  return () => {
+                    console.log('🧹 Cleaning up hikes listener');
+                    unsubscribeHikes();
+                  };
+                } catch (error) {
+                  console.error('❌ Fatal error setting up hikes listener:', error);
+                  Sentry.captureException(error);
+                  alert(`Fatal Error: ${error.message}\n\nCannot load hikes. Check console for details.`);
+                  setLoading(false);
+                  setHikes([]);
+                }
               } else {
+                console.log('👋 User logged out');
                 setUser(null);
+                setHikes([]);
                 setLoading(false);
               }
               setAuthLoading(false);
             });
-            return unsubscribe;
+            
+            return () => {
+              console.log('🧹 Cleaning up auth listener');
+              unsubscribe();
+            };
           }, []);
 
           const handleLogin = (user) => {
