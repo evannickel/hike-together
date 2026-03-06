@@ -1047,29 +1047,37 @@
           const earnedBadges = badgeStats.filter(b => b.earned);
 
           if (authLoading) {
+            console.log('🟥 SHOWING AUTH LOADING SCREEN');
             return (
               <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: 'var(--cream)'}}>
                 <div className="text-center">
                   <div className="text-6xl mb-4">🥾</div>
-                  <div className="text-xl" style={{color: 'var(--text-medium)'}}>Loading...</div>
+                  <div className="text-xl" style={{color: 'var(--text-medium)'}}>AUTH Loading...</div>
                 </div>
               </div>
             );
           }
 
+          console.log('✅ Passed authLoading check. authLoading=', authLoading, 'user=', user ? user.email : null);
+
           if (!user && !showAuthScreen) {
+            console.log('🟦 SHOWING LANDING PAGE');
             return <JournalLandingPage onGetStarted={() => setShowAuthScreen(true)} onLogin={() => setShowAuthScreen(true)} />;
           }
 
           if (!user && showAuthScreen) {
+            console.log('🟨 SHOWING LOGIN SCREEN');
             return <LoginScreen onLogin={handleLogin} onBack={() => setShowAuthScreen(false)} />;
           }
 
+          console.log('✅ Passed auth checks. loading=', loading, 'user=', user ? user.email : null);
+
           if (loading) {
+            console.log('🟧 SHOWING DATA LOADING SCREEN');
             return (
               <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: 'var(--cream)'}}>
                 <div className="text-center">
-                  <div className="text-2xl mb-4" style={{color: 'var(--forest-green)'}}>Loading your journal...</div>
+                  <div className="text-2xl mb-4" style={{color: 'var(--forest-green)'}}>DATA Loading your journal...</div>
                   <div className="text-sm" style={{color: 'var(--text-medium)'}}>
                     This should only take a moment
                   </div>
@@ -1077,6 +1085,8 @@
               </div>
             );
           }
+
+          console.log('🟢 SHOWING MAIN APP! authLoading=', authLoading, 'loading=', loading, 'user=', user ? user.email : null);
 
           return (
             <div className="min-h-screen pb-20" style={{backgroundColor: 'var(--cream)'}}>
