@@ -99,7 +99,33 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const analytics = firebase.analytics();
+        
+        // Initialize Analytics only if supported (prevents IndexedDB errors)
+        let analytics = null;
+        if (typeof firebase.analytics !== 'undefined') {
+          try {
+            analytics = firebase.analytics();
+            console.log('✅ Analytics initialized');
+          } catch (error) {
+            console.warn('⚠️ Analytics not available:', error.message);
+            analytics = {
+              logEvent: () => {}, // No-op fallback
+            };
+          }
+        } else {
+          analytics = {
+            logEvent: () => {}, // No-op fallback
+          };
+        }
+        
+        // Set auth persistence to LOCAL (survives page refreshes)
+        auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+          .then(() => {
+            console.log('✅ Auth persistence set to LOCAL');
+          })
+          .catch((error) => {
+            console.warn('⚠️ Could not set auth persistence:', error);
+          });
         
         Sentry.init({
             dsn: "https://b4050c2a9ebf6203d9c113239d953b9b@o4510307370795008.ingest.us.sentry.io/4510307402252288",
@@ -1039,10 +1065,29 @@
             return <LoginScreen onLogin={handleLogin} onBack={() => setShowAuthScreen(false)} />;
           }
 
+          // Add timeout to prevent infinite loading
+          useEffect(() => {
+            if (loading && user) {
+              console.log('⏰ Loading timeout started (10 seconds)');
+              const timeout = setTimeout(() => {
+                console.warn('⚠️ Loading timeout reached! Force showing app...');
+                setLoading(false);
+              }, 10000); // 10 seconds
+              
+              return () => clearTimeout(timeout);
+            }
+          }, [loading, user]);
+
           if (loading) {
+            console.log('📺 Showing loading screen... user:', user ? user.email : 'null');
             return (
               <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: 'var(--cream)'}}>
-                <div className="text-2xl" style={{color: 'var(--forest-green)'}}>Loading your journal...</div>
+                <div className="text-center">
+                  <div className="text-2xl mb-4" style={{color: 'var(--forest-green)'}}>Loading your journal...</div>
+                  <div className="text-sm" style={{color: 'var(--text-medium)'}}>
+                    If this takes more than 10 seconds, please refresh the page
+                  </div>
+                </div>
               </div>
             );
           }
