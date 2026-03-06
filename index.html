@@ -1046,7 +1046,21 @@
 
           const earnedBadges = badgeStats.filter(b => b.earned);
 
+          // Add timeout to prevent infinite auth loading
+          useEffect(() => {
+            console.log('⏰ Setting authLoading timeout (5 seconds)');
+            const timeout = setTimeout(() => {
+              if (authLoading) {
+                console.warn('⚠️ Auth loading timeout reached! Force setting authLoading to false...');
+                setAuthLoading(false);
+              }
+            }, 5000); // 5 seconds
+            
+            return () => clearTimeout(timeout);
+          }, []);
+
           if (authLoading) {
+            console.log('🔐 Auth loading screen shown. authLoading:', authLoading);
             return (
               <div className="min-h-screen flex items-center justify-center" style={{backgroundColor: 'var(--cream)'}}>
                 <div className="text-center">
@@ -1056,6 +1070,8 @@
               </div>
             );
           }
+
+          console.log('🎯 Auth check passed. User:', user ? user.email : 'null', 'showAuthScreen:', showAuthScreen);
 
           if (!user && !showAuthScreen) {
             return <JournalLandingPage onGetStarted={() => setShowAuthScreen(true)} onLogin={() => setShowAuthScreen(true)} />;
