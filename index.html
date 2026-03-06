@@ -634,14 +634,14 @@
                   <div className="text-6xl mb-4">{badge.icon}</div>
                   <h3 className="text-2xl font-bold mb-2" style={{color: 'var(--forest-green)'}}>{badge.name}</h3>
                   <p className="mb-4" style={{color: 'var(--text-medium)'}}>{badge.desc}</p>
-                  {badge.requirement && (
+                  {badge.type === 'milestone' && badge.requirement && (
                     <div className="rounded-lg p-3 mb-4" style={{backgroundColor: 'var(--cream)'}}>
                       <p className="text-sm font-semibold" style={{color: 'var(--forest-green)'}}>
-                        Requirement: {badge.requirement} {badge.type === 'count' ? 'hikes' : badge.type === 'distance' ? 'miles' : 'feet'}
+                        Requirement: {badge.requirement} {badge.subtype === 'count' ? 'hikes' : badge.subtype === 'distance' ? 'miles' : 'feet'}
                       </p>
                     </div>
                   )}
-                  {badge.milestone && badge.requirement && (
+                  {badge.type === 'milestone' && badge.requirement && (
                     <div className="bg-blue-50 rounded-lg p-3 mb-4">
                       <p className="text-sm font-semibold text-blue-800">
                         Progress: {badge.count} / {badge.requirement}
@@ -649,7 +649,7 @@
                       {badge.earned && <p className="text-sm font-semibold text-green-600 mt-1">✓ Achieved!</p>}
                     </div>
                   )}
-                  {!badge.milestone && badge.earned && badge.count > 0 && (
+                  {badge.type !== 'milestone' && badge.earned && badge.count > 0 && (
                     <div className="bg-yellow-50 rounded-lg p-3 mb-4">
                       <p className="text-sm font-semibold text-yellow-800">✨ Achieved {badge.count} times!</p>
                     </div>
@@ -660,6 +660,97 @@
                     style={{backgroundColor: 'var(--forest-green)'}}
                   >
                     Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        // Celebration Modal for New Badges
+        const CelebrationModal = ({ badges, onClose }) => {
+          if (!badges || badges.length === 0) return null;
+          
+          // Simple confetti effect using emojis
+          const confettiEmojis = ['🎉', '✨', '🎊', '⭐', '🌟', '💫', '🏆'];
+          const [confetti, setConfetti] = React.useState([]);
+          
+          React.useEffect(() => {
+            // Generate random confetti positions
+            const newConfetti = Array.from({ length: 30 }, (_, i) => ({
+              id: i,
+              emoji: confettiEmojis[Math.floor(Math.random() * confettiEmojis.length)],
+              left: Math.random() * 100,
+              delay: Math.random() * 0.5,
+              duration: 2 + Math.random() * 2
+            }));
+            setConfetti(newConfetti);
+          }, []);
+          
+          return (
+            <div 
+              className="fixed inset-0 flex items-center justify-center z-50 p-4" 
+              style={{backgroundColor: 'rgba(0,0,0,0.8)'}}
+              onClick={onClose}
+            >
+              {/* Confetti */}
+              {confetti.map(c => (
+                <div
+                  key={c.id}
+                  className="absolute text-2xl pointer-events-none"
+                  style={{
+                    left: `${c.left}%`,
+                    top: '-10%',
+                    animation: `fall ${c.duration}s linear ${c.delay}s forwards`,
+                  }}
+                >
+                  {c.emoji}
+                </div>
+              ))}
+              
+              <style>{`
+                @keyframes fall {
+                  to {
+                    transform: translateY(110vh) rotate(360deg);
+                    opacity: 0;
+                  }
+                }
+              `}</style>
+              
+              <div 
+                className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl relative" 
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="text-center">
+                  <div className="text-6xl mb-4">🎉</div>
+                  <h2 className="text-3xl font-bold mb-4" style={{color: 'var(--forest-green)'}}>
+                    New Badge{badges.length > 1 ? 's' : ''} Earned!
+                  </h2>
+                  
+                  <div className="space-y-4 mb-6">
+                    {badges.map(badge => (
+                      <div 
+                        key={badge.id} 
+                        className="p-4 rounded-lg border-2"
+                        style={{backgroundColor: '#fff9e6', borderColor: '#ffd54f'}}
+                      >
+                        <div className="text-4xl mb-2">{badge.icon}</div>
+                        <div className="text-xl font-bold mb-1" style={{color: 'var(--forest-green)'}}>
+                          {badge.name}
+                        </div>
+                        <div className="text-sm" style={{color: 'var(--text-medium)'}}>
+                          {badge.desc}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <button 
+                    onClick={onClose} 
+                    className="w-full text-white font-bold py-3 rounded-lg text-lg"
+                    style={{backgroundColor: 'var(--forest-green)'}}
+                  >
+                    Awesome! 🎊
                   </button>
                 </div>
               </div>
@@ -747,6 +838,9 @@
           const [selectedBadge, setSelectedBadge] = useState(null);
           const [showLocationPicker, setShowLocationPicker] = useState(false);
           const [useMetric, setUseMetric] = useState(false); // false = imperial, true = metric
+          const [newBadges, setNewBadges] = useState([]); // Track newly earned badges
+          const [showCelebration, setShowCelebration] = useState(false); // Show celebration modal
+          const [showAllHikes, setShowAllHikes] = useState(false); // Show all hikes vs first 5
           const [formData, setFormData] = useState({
             name: '',
             date: new Date().toISOString().split('T')[0],
@@ -943,6 +1037,10 @@
             if (!formData.name || !formData.distance) return;
             
             try {
+              // Calculate badges BEFORE saving
+              const earnedBadgeIdsBefore = badgeStats.filter(b => b.earned).map(b => b.id);
+              
+              // Save the hike
               await db.collection('users').doc(user.uid).collection('hikes').add({
                 ...formData,
                 distance: parseFloat(formData.distance),
@@ -951,6 +1049,20 @@
               });
               
               analytics.logEvent('hike_created');
+              
+              // Wait a moment for Firestore to update and re-render
+              setTimeout(() => {
+                // Calculate badges AFTER saving (badgeStats will be recalculated on re-render)
+                // We'll detect new badges in a useEffect instead
+                const earnedBadgeIdsAfter = badgeStats.filter(b => b.earned).map(b => b.id);
+                const newlyEarnedBadgeIds = earnedBadgeIdsAfter.filter(id => !earnedBadgeIdsBefore.includes(id));
+                
+                if (newlyEarnedBadgeIds.length > 0) {
+                  const newlyEarnedBadges = badgeStats.filter(b => newlyEarnedBadgeIds.includes(b.id));
+                  setNewBadges(newlyEarnedBadges);
+                  setShowCelebration(true);
+                }
+              }, 500);
               
               setFormData({
                 name: '',
@@ -1122,6 +1234,7 @@
           return (
             <div className="min-h-screen pb-20" style={{backgroundColor: 'var(--cream)'}}>
               {selectedBadge && <BadgeModal badge={selectedBadge} onClose={() => setSelectedBadge(null)} />}
+              {showCelebration && <CelebrationModal badges={newBadges} onClose={() => setShowCelebration(false)} />}
               {showLocationPicker && (
                 <LocationPicker
                   initialLocation={formData.lat && formData.lng ? { lat: formData.lat, lng: formData.lng } : null}
@@ -1244,7 +1357,7 @@
                               Select all the activities, wildlife, and features you encountered
                             </p>
                             <div className="space-y-2 max-h-96 overflow-y-auto">
-                              {BADGES.filter(b => b.type !== 'milestone' || (b.type === 'milestone' && !b.requirement)).map(badge => {
+                              {BADGES.filter(b => b.type !== 'milestone').map(badge => {
                                 const selected = formData.activities && formData.activities.includes(badge.id);
                                 return (
                                   <button
@@ -1303,45 +1416,68 @@
                         <p className="text-sm" style={{color: 'var(--text-medium)'}}>Tap "Add New Hike" to get started</p>
                       </div>
                     ) : (
-                      <div className="space-y-4">
-                        {hikes.map(hike => (
-                          <div key={hike.id} className="bg-white rounded-lg shadow-md p-4 border-l-4" style={{borderColor: 'var(--forest-green)'}}>
-                            <div className="flex justify-between items-start mb-2">
-                              <div className="flex-1">
-                                <h3 className="text-lg font-bold" style={{color: 'var(--forest-green)'}}>{hike.name}</h3>
-                                <p className="text-sm" style={{color: 'var(--text-medium)'}}>
-                                  {new Date(hike.date).toLocaleDateString()}
-                                </p>
-                              </div>
-                              <button
-                                onClick={() => deleteHike(hike.id)}
-                                className="text-red-600 hover:text-red-700"
-                              >
-                                <Trash />
-                              </button>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2 mb-2">
-                              <div className="rounded p-2" style={{backgroundColor: 'var(--cream)'}}>
-                                <div className="text-xs" style={{color: 'var(--text-medium)'}}>Distance</div>
-                                <div className="font-bold" style={{color: 'var(--forest-green)'}}>
-                                  {useMetric ? toKm(hike.distance) : hike.distance} {distanceUnit}
+                      <>
+                        <div className="space-y-4 mb-6">
+                          {(showAllHikes ? hikes : hikes.slice(0, 5)).map(hike => (
+                            <div key={hike.id} className="bg-white rounded-lg shadow-md p-4 border-l-4" style={{borderColor: 'var(--forest-green)'}}>
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="flex-1">
+                                  <h3 className="text-lg font-bold" style={{color: 'var(--forest-green)'}}>{hike.name}</h3>
+                                  <p className="text-sm" style={{color: 'var(--text-medium)'}}>
+                                    {new Date(hike.date).toLocaleDateString()}
+                                  </p>
+                                  {hike.location && (
+                                    <p className="text-xs mt-1" style={{color: 'var(--text-medium)'}}>
+                                      📍 {hike.location}
+                                    </p>
+                                  )}
                                 </div>
+                                <button
+                                  onClick={() => deleteHike(hike.id)}
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  <Trash />
+                                </button>
                               </div>
-                              {hike.elevation > 0 && (
+                              <div className="grid grid-cols-2 gap-2 mb-2">
                                 <div className="rounded p-2" style={{backgroundColor: 'var(--cream)'}}>
-                                  <div className="text-xs" style={{color: 'var(--text-medium)'}}>Elevation</div>
+                                  <div className="text-xs" style={{color: 'var(--text-medium)'}}>Distance</div>
                                   <div className="font-bold" style={{color: 'var(--forest-green)'}}>
-                                    {useMetric ? toMeters(hike.elevation).toLocaleString() : hike.elevation} {elevationUnit}
+                                    {useMetric ? toKm(hike.distance) : hike.distance} {distanceUnit}
                                   </div>
                                 </div>
+                                {hike.elevation > 0 && (
+                                  <div className="rounded p-2" style={{backgroundColor: 'var(--cream)'}}>
+                                    <div className="text-xs" style={{color: 'var(--text-medium)'}}>Elevation</div>
+                                    <div className="font-bold" style={{color: 'var(--forest-green)'}}>
+                                      {useMetric ? toMeters(hike.elevation).toLocaleString() : hike.elevation} {elevationUnit}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                              {hike.notes && (
+                                <p className="text-sm italic mt-2" style={{color: 'var(--text-medium)'}}>"{hike.notes}"</p>
                               )}
                             </div>
-                            {hike.notes && (
-                              <p className="text-sm italic mt-2" style={{color: 'var(--text-medium)'}}>"{hike.notes}"</p>
-                            )}
+                          ))}
+                        </div>
+                        
+                        {/* View All / View Less Button */}
+                        {hikes.length > 5 && (
+                          <div className="text-center">
+                            <button
+                              onClick={() => setShowAllHikes(!showAllHikes)}
+                              className="px-6 py-3 rounded-lg font-semibold"
+                              style={{
+                                backgroundColor: 'var(--aged-paper)',
+                                color: 'var(--forest-green)'
+                              }}
+                            >
+                              {showAllHikes ? '← View Recent (5)' : `View All (${hikes.length}) →`}
+                            </button>
                           </div>
-                        ))}
-                      </div>
+                        )}
+                      </>
                     )}
                   </>
                 )}
@@ -1372,7 +1508,7 @@
                               >
                                 <div className="text-3xl mb-1">{badge.icon}</div>
                                 <div className="font-semibold text-xs leading-tight">{badge.name}</div>
-                                {badge.count > 0 && !badge.milestone && (
+                                {badge.count > 1 && (
                                   <div className="absolute -top-2 -right-2 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold" style={{backgroundColor: 'var(--forest-green)', color: 'white'}}>
                                     {badge.count}
                                   </div>
@@ -1389,7 +1525,7 @@
                         </h3>
                         <div className="grid grid-cols-4 md:grid-cols-6 gap-3">
                           {badgeStats.filter(b => !b.earned).map(badge => {
-                            const progress = badge.milestone && badge.requirement ? Math.min((badge.count / badge.requirement) * 100, 100) : 0;
+                            const progress = badge.type === 'milestone' && badge.requirement ? Math.min((badge.count / badge.requirement) * 100, 100) : 0;
                             return (
                               <div
                                 key={badge.id}
@@ -1399,7 +1535,7 @@
                               >
                                 <div className="text-3xl mb-1 opacity-50">{badge.icon}</div>
                                 <div className="font-semibold text-xs leading-tight opacity-70">{badge.name}</div>
-                                {badge.milestone && badge.requirement && progress > 0 && (
+                                {badge.type === 'milestone' && badge.requirement && progress > 0 && (
                                   <div className="mt-1">
                                     <div className="w-full rounded-full h-1.5 overflow-hidden" style={{backgroundColor: 'var(--aged-paper)'}}>
                                       <div className="h-1.5 rounded-full" style={{backgroundColor: 'var(--forest-green)', width: `${progress}%`}}></div>
