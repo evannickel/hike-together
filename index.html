@@ -778,16 +778,17 @@
           useEffect(() => {
             console.log('🔍 Auth state change listener starting...');
             const unsubscribe = auth.onAuthStateChanged(async (user) => {
-              console.log('🔍 Auth state changed. User:', user ? user.email : 'null');
-              
-              if (user) {
-                console.log('👤 Setting user state...');
-                setUser(user);
-                console.log('📊 Setting Sentry user...');
-                Sentry.setUser({ id: user.uid, email: user.email });
-                console.log('📈 Logging analytics event...');
-                analytics.logEvent('user_active');
-                console.log('✅ User logged in:', user.email);
+              try {
+                console.log('🔍 Auth state changed. User:', user ? user.email : 'null');
+                
+                if (user) {
+                  console.log('👤 Setting user state...');
+                  setUser(user);
+                  console.log('📊 Setting Sentry user...');
+                  Sentry.setUser({ id: user.uid, email: user.email });
+                  console.log('📈 Logging analytics event...');
+                  analytics.logEvent('user_active');
+                  console.log('✅ User logged in:', user.email);
                 
                 // Load user settings (metric/imperial preference)
                 try {
@@ -851,15 +852,25 @@
                   setLoading(false);
                   setHikes([]);
                 }
-              } else {
-                console.log('❌ No user, clearing user state');
-                setUser(null);
-                setHikes([]);
+                } else {
+                  console.log('❌ No user, clearing user state');
+                  setUser(null);
+                  setHikes([]);
+                  setLoading(false);
+                }
+                console.log('🔓 About to set authLoading = false (currently:', authLoading, ')');
+                setAuthLoading(false);
+                console.log('✅ setAuthLoading(false) called! Auth state processing complete.');
+              } catch (error) {
+                console.error('💥 CRITICAL ERROR in auth listener callback:', error);
+                console.error('Error name:', error.name);
+                console.error('Error message:', error.message);
+                console.error('Error stack:', error.stack);
+                Sentry.captureException(error);
+                // Still set authLoading to false so the app doesn't get stuck
+                setAuthLoading(false);
                 setLoading(false);
               }
-              console.log('🔓 About to set authLoading = false (currently:', authLoading, ')');
-              setAuthLoading(false);
-              console.log('✅ setAuthLoading(false) called! Auth state processing complete.');
             });
             
             console.log('👂 Auth listener registered, returning cleanup function');
