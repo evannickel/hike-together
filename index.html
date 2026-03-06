@@ -1,0 +1,2288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hike Together</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23166534' stroke-width='2'%3E%3Cpath d='m8 3 4 8 5-5 5 15H2L8 3z'/%3E%3C/svg%3E">
+    
+    <!-- Sentry Error Tracking -->
+    <script
+      src="https://browser.sentry-cdn.com/7.119.0/bundle.min.js"
+      crossorigin="anonymous"
+    ></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Lato', 'Helvetica Neue', Arial, sans-serif; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+        h1, h2, h3, h4, h5, h6, .font-bold, .font-semibold, .font-extrabold { font-family: 'Nunito', 'Helvetica Neue', Arial, sans-serif; }
+        button { font-family: 'Nunito', 'Helvetica Neue', Arial, sans-serif; }
+        input, textarea, select { font-family: 'Lato', 'Helvetica Neue', Arial, sans-serif; font-size: 15px; }
+        /* Center emojis in selector boxes */
+        button[class*="text-3xl p-2"] { display: flex; align-items: center; justify-content: center; }
+        /* Map styles */
+        .leaflet-container { height: 100%; width: 100%; }
+        /* Cluster styling to match green theme */
+        .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
+            background-color: rgba(22, 101, 52, 0.6);
+        }
+        .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div {
+            background-color: rgb(22, 101, 52);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        // âš ï¸ REPLACE WITH YOUR FIREBASE CONFIG
+    const firebaseConfig = {
+  apiKey: "AIzaSyDS6292P80pBlZ-rMVOAEwHfFEGo9RDDrk",
+  authDomain: "hike-together-app.firebaseapp.com",
+  projectId: "hike-together-app",
+  storageBucket: "hike-together-app.firebasestorage.app",
+  messagingSenderId: "773950556723",
+  appId: "1:773950556723:web:36b9faae2ec3ceaeaa7146",
+  measurementId: "G-WXFDKVVEER"
+};
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const analytics = firebase.analytics();
+        
+        // Initialize Sentry Error Tracking
+        Sentry.init({
+            dsn: "https://b4050c2a9ebf6203d9c113239d953b9b@o4510307370795008.ingest.us.sentry.io/4510307402252288",
+            integrations: [
+                new Sentry.BrowserTracing(),
+                new Sentry.Replay({
+                    maskAllText: true,
+                    blockAllMedia: true,
+                }),
+            ],
+            tracesSampleRate: 1.0,
+            replaysSessionSampleRate: 0.1,
+            replaysOnErrorSampleRate: 1.0,
+            environment: window.location.hostname === 'localhost' ? 'development' : 'production',
+            sendDefaultPii: true
+        });
+        
+        const { useState, useEffect, useRef } = React;
+
+        const AVATARS = ['ðŸ‘¨', 'ðŸ‘©', 'ðŸ‘¦', 'ðŸ‘§', 'ðŸ§’', 'ðŸ‘¶', 'ðŸ§‘', 'ðŸ‘´', 'ðŸ‘µ', 'ðŸ¶', 'ðŸ±', 'ðŸ»', 'ðŸ¦Š', 'ðŸ¦', 'ðŸ¯', 'ðŸ¦„'];
+        const COLORS = ['#4CAF50', '#2196F3', '#FF9800', '#E91E63', '#9C27B0', '#00BCD4', '#FF5722', '#795548'];
+
+        const Mountain = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>;
+        const Award = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>;
+        const Calendar = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>;
+        const MapPin = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>;
+        const Plus = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14"/><path d="M12 5v14"/></svg>;
+        const LogOut = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>;
+
+        // ============================================
+        // AUTHENTICATION FUNCTIONS
+        // ============================================
+        
+        async function signUpWithEmail(email, password) {
+            try {
+                const result = await auth.createUserWithEmailAndPassword(email, password);
+                analytics.logEvent('sign_up', { method: 'email' });
+                return { success: true, user: result.user };
+            } catch (error) {
+                Sentry.captureException(error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function signInWithEmail(email, password) {
+            try {
+                const result = await auth.signInWithEmailAndPassword(email, password);
+                analytics.logEvent('login', { method: 'email' });
+                return { success: true, user: result.user };
+            } catch (error) {
+                Sentry.captureException(error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function signOutUser() {
+            try {
+                await auth.signOut();
+                analytics.logEvent('logout');
+                Sentry.setUser(null);
+                localStorage.removeItem('familyId');
+                return { success: true };
+            } catch (error) {
+                Sentry.captureException(error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function resetPassword(email) {
+            try {
+                await auth.sendPasswordResetEmail(email);
+                analytics.logEvent('password_reset_requested');
+                return { success: true };
+            } catch (error) {
+                Sentry.captureException(error);
+                return { success: false, error: error.message };
+            }
+        }
+
+        // ============================================
+        // LOGIN SCREEN COMPONENT
+        // ============================================
+        
+        function LoginScreen({ onLogin }) {
+            const [mode, setMode] = useState('signin');
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [confirmPassword, setConfirmPassword] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
+            const [message, setMessage] = useState('');
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                setError('');
+                setMessage('');
+                setLoading(true);
+
+                try {
+                    if (mode === 'reset') {
+                        const result = await resetPassword(email);
+                        if (result.success) {
+                            setMessage('Password reset email sent! Check your inbox.');
+                            setEmail('');
+                        } else {
+                            setError(result.error);
+                        }
+                    } else if (mode === 'signup') {
+                        if (password !== confirmPassword) {
+                            setError('Passwords do not match');
+                            setLoading(false);
+                            return;
+                        }
+                        if (password.length < 6) {
+                            setError('Password must be at least 6 characters');
+                            setLoading(false);
+                            return;
+                        }
+                        const result = await signUpWithEmail(email, password);
+                        if (result.success) {
+                            Sentry.setUser({ id: result.user.uid, email: result.user.email });
+                            onLogin(result.user);
+                        } else {
+                            setError(result.error);
+                        }
+                    } else {
+                        const result = await signInWithEmail(email, password);
+                        if (result.success) {
+                            Sentry.setUser({ id: result.user.uid, email: result.user.email });
+                            onLogin(result.user);
+                        } else {
+                            setError(result.error);
+                        }
+                    }
+                } catch (err) {
+                    setError(err.message);
+                    Sentry.captureException(err);
+                }
+                setLoading(false);
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+                        <div className="text-center mb-8">
+                            <div className="text-6xl mb-4">ðŸ¥¾</div>
+                            <h1 className="text-3xl font-bold text-gray-800">Hike Together</h1>
+                            <p className="text-gray-600 mt-2">Track your family adventures</p>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Email
+                                </label>
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    required
+                                    disabled={loading}
+                                />
+                            </div>
+
+                            {mode !== 'reset' && (
+                                <>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Password
+                                        </label>
+                                        <input
+                                            type="password"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                            required
+                                            disabled={loading}
+                                            minLength={6}
+                                        />
+                                    </div>
+
+                                    {mode === 'signup' && (
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                Confirm Password
+                                            </label>
+                                            <input
+                                                type="password"
+                                                value={confirmPassword}
+                                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                                required
+                                                disabled={loading}
+                                                minLength={6}
+                                            />
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
+                            {error && (
+                                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                                    {error}
+                                </div>
+                            )}
+
+                            {message && (
+                                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
+                                    {message}
+                                </div>
+                            )}
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition disabled:bg-gray-400"
+                            >
+                                {loading ? 'Processing...' : mode === 'signin' ? 'Sign In' : mode === 'signup' ? 'Sign Up' : 'Reset Password'}
+                            </button>
+                        </form>
+
+                        <div className="mt-6 text-center text-sm">
+                            {mode === 'signin' && (
+                                <>
+                                    <button
+                                        onClick={() => setMode('signup')}
+                                        className="text-green-600 hover:text-green-700 font-medium"
+                                    >
+                                        Create an account
+                                    </button>
+                                    <span className="mx-2 text-gray-400">â€¢</span>
+                                    <button
+                                        onClick={() => setMode('reset')}
+                                        className="text-green-600 hover:text-green-700 font-medium"
+                                    >
+                                        Forgot password?
+                                    </button>
+                                </>
+                            )}
+                            {mode === 'signup' && (
+                                <button
+                                    onClick={() => setMode('signin')}
+                                    className="text-green-600 hover:text-green-700 font-medium"
+                                >
+                                    Already have an account? Sign in
+                                </button>
+                            )}
+                            {mode === 'reset' && (
+                                <button
+                                    onClick={() => setMode('signin')}
+                                    className="text-green-600 hover:text-green-700 font-medium"
+                                >
+                                    Back to sign in
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const BadgeModal = ({ badge, onClose }) => {
+          if (!badge) return null;
+          return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+              <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                <div className="text-center">
+                  <div className="text-6xl mb-4">{badge.icon}</div>
+                  <h3 className="text-2xl font-bold text-green-800 mb-2">{badge.name}</h3>
+                  <p className="text-gray-600 mb-4">{badge.desc}</p>
+                  {badge.requirement && <div className="bg-green-50 rounded-lg p-3 mb-4"><p className="text-sm font-semibold text-green-800">Requirement: {badge.requirement} {badge.type === 'count' ? 'hikes' : badge.type === 'distance' ? 'miles' : 'feet'}</p></div>}
+                  {badge.milestone && badge.requirement && (
+                    <div className="bg-blue-50 rounded-lg p-3 mb-4">
+                      <p className="text-sm font-semibold text-blue-800">Progress: {badge.count} / {badge.requirement}</p>
+                      {badge.earned && <p className="text-sm font-semibold text-green-600 mt-1">âœ“ Achieved!</p>}
+                    </div>
+                  )}
+                  {!badge.milestone && badge.earned && badge.count > 0 && <div className="bg-yellow-50 rounded-lg p-3 mb-4"><p className="text-sm font-semibold text-yellow-800">âœ¨ Achieved {badge.count} times!</p></div>}
+                  <button onClick={onClose} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg">Close</button>
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        const BADGES = [
+          // Hike Count Milestones
+          { id: 'first', name: 'First Steps', icon: 'ðŸ¥¾', type: 'count', requirement: 1, desc: 'Complete your first hike', milestone: true },
+          { id: 'explorer', name: 'Explorer', icon: 'ðŸ—ºï¸', type: 'count', requirement: 5, desc: 'Complete 5 hikes', milestone: true },
+          { id: 'adventurer', name: 'Adventurer', icon: 'â›°ï¸', type: 'count', requirement: 10, desc: 'Complete 10 hikes', milestone: true },
+          { id: 'trailblazer', name: 'Trailblazer', icon: 'ðŸ”¥', type: 'count', requirement: 25, desc: 'Complete 25 hikes', milestone: true },
+          { id: 'legend', name: 'Hiking Legend', icon: 'ðŸ‘‘', type: 'count', requirement: 50, desc: 'Complete 50 hikes', milestone: true },
+          { id: 'century', name: 'Century Club', icon: 'ðŸ’¯', type: 'count', requirement: 100, desc: 'Complete 100 hikes', milestone: true },
+          
+          // Distance Milestones
+          { id: 'distance10', name: 'First 10', icon: 'ðŸƒ', type: 'distance', requirement: 10, desc: 'Hike 10 total miles', milestone: true },
+          { id: 'distance25', name: 'Quarter Century', icon: 'ðŸš¶', type: 'distance', requirement: 25, desc: 'Hike 25 total miles', milestone: true },
+          { id: 'distance50', name: 'Half Century', icon: 'ðŸ¥‡', type: 'distance', requirement: 50, desc: 'Hike 50 total miles', milestone: true },
+          { id: 'distance100', name: 'Centurion', icon: 'â­', type: 'distance', requirement: 100, desc: 'Hike 100 total miles', milestone: true },
+          { id: 'distance250', name: 'Ultra Hiker', icon: 'ðŸ’ª', type: 'distance', requirement: 250, desc: 'Hike 250 total miles', milestone: true },
+          { id: 'distance500', name: 'Marathon Master', icon: 'ðŸ†', type: 'distance', requirement: 500, desc: 'Hike 500 total miles', milestone: true },
+          
+          // Basic Elevation Milestones
+          { id: 'climber1k', name: 'Hill Climber', icon: 'ðŸ§—', type: 'elevation', requirement: 1000, desc: 'Climb 1,000 feet', milestone: true },
+          { id: 'climber5k', name: 'Peak Climber', icon: 'ðŸ”ï¸', type: 'elevation', requirement: 5000, desc: 'Climb 5,000 feet', milestone: true },
+          
+          // Seven Summits Elevation Series
+          { id: 'kosciuszko', name: 'Kosciuszko Climber', icon: 'ðŸ”ï¸', type: 'elevation', requirement: 7310, desc: 'Reach the height of Mt. Kosciuszko (Australia)', milestone: true },
+          { id: 'climber10k', name: 'Mountain Goat', icon: 'ðŸ', type: 'elevation', requirement: 10000, desc: 'Climb 10,000 feet', milestone: true },
+          { id: 'elbrus', name: 'Elbrus Achiever', icon: 'â›°ï¸', type: 'elevation', requirement: 18510, desc: 'Reach the height of Mt. Elbrus (Europe)', milestone: true },
+          { id: 'kilimanjaro', name: 'Kilimanjaro Conqueror', icon: 'ðŸ—»', type: 'elevation', requirement: 19341, desc: 'Reach the height of Mt. Kilimanjaro (Africa)', milestone: true },
+          { id: 'denali', name: 'Denali Master', icon: 'ðŸ”ï¸', type: 'elevation', requirement: 20310, desc: 'Reach the height of Denali (North America)', milestone: true },
+          { id: 'aconcagua', name: 'Aconcagua Champion', icon: 'â›°ï¸', type: 'elevation', requirement: 22838, desc: 'Reach the height of Aconcagua (South America)', milestone: true },
+          { id: 'everest', name: 'Everest Dreamer', icon: 'ðŸ”ï¸', type: 'elevation', requirement: 29032, desc: 'Reach the height of Mt. Everest (Asia)', milestone: true },
+          { id: 'climber50k', name: 'Sky Walker', icon: 'â˜ï¸', type: 'elevation', requirement: 50000, desc: 'Climb 50,000 feet', milestone: true },
+          { id: 'climber100k', name: 'Altitude King', icon: 'ðŸ‘‘', type: 'elevation', requirement: 100000, desc: 'Climb 100,000 feet', milestone: true },
+          
+          // Seasonal Badges
+          { id: 'spring', name: 'Spring Awakening', icon: 'ðŸŒ¸', type: 'seasonal', desc: 'Complete a hike in spring (Mar-May)' },
+          { id: 'summer', name: 'Summer Solstice', icon: 'â˜€ï¸', type: 'seasonal', desc: 'Complete a hike in summer (Jun-Aug)' },
+          { id: 'fall', name: 'Fall Colors', icon: 'ðŸ‚', type: 'seasonal', desc: 'Complete a hike in autumn (Sep-Nov)' },
+          { id: 'winter', name: 'Winter Warrior', icon: 'â„ï¸', type: 'seasonal', desc: 'Complete a hike in winter (Dec-Feb)' },
+          { id: 'fourseasons', name: 'Four Seasons', icon: 'ðŸŒˆ', type: 'seasonal', desc: 'Complete hikes in all four seasons', requirement: 4, milestone: true },
+          
+          // Weather Warrior Series
+          { id: 'rainhiker', name: 'Rain Hiker', icon: 'ðŸŒ§ï¸', type: 'weather', desc: 'Complete a hike in the rain' },
+          { id: 'fogwalker', name: 'Fog Walker', icon: 'ðŸŒ«ï¸', type: 'weather', desc: 'Hike through fog or mist' },
+          { id: 'windrider', name: 'Wind Rider', icon: 'ðŸŒ¬ï¸', type: 'weather', desc: 'Hike on a windy day' },
+          { id: 'hotstepper', name: 'Hot Stepper', icon: 'ðŸŒ¡ï¸', type: 'weather', desc: 'Hike when it\'s over 85Â°F' },
+          { id: 'waterfall', name: 'Waterfall Finder', icon: 'ðŸ’¦', type: 'discovery', desc: 'Find a waterfall' },
+          { id: 'wildlife', name: 'Wildlife Spotter', icon: 'ðŸ¦Œ', type: 'discovery', desc: 'See a wild animal' },
+          { id: 'bird', name: 'Bird Watcher', icon: 'ðŸ¦…', type: 'discovery', desc: 'Spot a bird' },
+          { id: 'butterfly', name: 'Butterfly Hunter', icon: 'ðŸ¦‹', type: 'discovery', desc: 'See a butterfly' },
+          { id: 'mushroom', name: 'Fungi Finder', icon: 'ðŸ„', type: 'discovery', desc: 'Discover mushrooms' },
+          { id: 'wildflower', name: 'Flower Power', icon: 'ðŸŒ¸', type: 'discovery', desc: 'Find wildflowers' },
+          { id: 'treeclimb', name: 'Tree Hugger', icon: 'ðŸŒ³', type: 'discovery', desc: 'Hug a big tree' },
+          { id: 'pinecone', name: 'Pine Collector', icon: 'ðŸŒ²', type: 'discovery', desc: 'Collect a pinecone' },
+          { id: 'rock', name: 'Rock Hound', icon: 'ðŸª¨', type: 'discovery', desc: 'Find a cool rock' },
+          { id: 'feather', name: 'Feather Finder', icon: 'ðŸª¶', type: 'discovery', desc: 'Find a feather' },
+          { id: 'stream', name: 'Stream Crosser', icon: 'ðŸŒŠ', type: 'discovery', desc: 'Cross a stream' },
+          { id: 'cave', name: 'Cave Explorer', icon: 'ðŸ•³ï¸', type: 'discovery', desc: 'Explore a cave' },
+          { id: 'bridge', name: 'Bridge Walker', icon: 'ðŸŒ‰', type: 'discovery', desc: 'Cross a bridge' },
+          { id: 'sunset', name: 'Sunset Chaser', icon: 'ðŸŒ…', type: 'discovery', desc: 'Watch a sunset' },
+          { id: 'sunrise', name: 'Early Bird', icon: 'ðŸŒ„', type: 'discovery', desc: 'Watch a sunrise' },
+          { id: 'rainbow', name: 'Rainbow Finder', icon: 'ðŸŒˆ', type: 'discovery', desc: 'See a rainbow' },
+          { id: 'fog', name: 'Mist Walker', icon: 'ðŸŒ«ï¸', type: 'discovery', desc: 'Hike in fog' },
+          { id: 'snow', name: 'Snow Trekker', icon: 'â„ï¸', type: 'discovery', desc: 'Hike in snow' },
+          { id: 'rain', name: 'Rain Ranger', icon: 'ðŸŒ§ï¸', type: 'discovery', desc: 'Hike in rain' },
+          { id: 'frog', name: 'Frog Friend', icon: 'ðŸ¸', type: 'discovery', desc: 'See a frog' },
+          { id: 'squirrel', name: 'Squirrel Scout', icon: 'ðŸ¿ï¸', type: 'discovery', desc: 'Spot a squirrel' },
+          { id: 'snake', name: 'Snake Spotter', icon: 'ðŸ', type: 'discovery', desc: 'See a snake' },
+          { id: 'turtle', name: 'Turtle Tracker', icon: 'ðŸ¢', type: 'discovery', desc: 'Find a turtle' },
+          { id: 'rabbit', name: 'Bunny Buddy', icon: 'ðŸ°', type: 'discovery', desc: 'Spot a rabbit' },
+          { id: 'fish', name: 'Fish Finder', icon: 'ðŸŸ', type: 'discovery', desc: 'See fish' },
+          { id: 'acorn', name: 'Acorn Collector', icon: 'ðŸŒ°', type: 'discovery', desc: 'Collect an acorn' },
+          { id: 'leaf', name: 'Leaf Lover', icon: 'ðŸ‚', type: 'discovery', desc: 'Find a pretty leaf' },
+          { id: 'stick', name: 'Walking Stick', icon: 'ðŸ¦¯', type: 'discovery', desc: 'Find a hiking stick' },
+          { id: 'bee', name: 'Bee Keeper', icon: 'ðŸ', type: 'discovery', desc: 'See a bee' },
+          { id: 'spider', name: 'Spider Scout', icon: 'ðŸ•·ï¸', type: 'discovery', desc: 'Find a spider web' },
+          { id: 'tracks', name: 'Track Finder', icon: 'ðŸ¾', type: 'discovery', desc: 'Find animal tracks' },
+          { id: 'berries', name: 'Berry Scout', icon: 'ðŸ«', type: 'discovery', desc: 'Find wild berries' },
+          { id: 'nest', name: 'Nest Finder', icon: 'ðŸª¹', type: 'discovery', desc: 'Find a bird nest' },
+          { id: 'fossil', name: 'Time Detective', icon: 'ðŸ¦´', type: 'discovery', desc: 'Find a fossil' },
+          { id: 'crystal', name: 'Crystal Hunter', icon: 'ðŸ’Ž', type: 'discovery', desc: 'Find crystals' },
+          { id: 'clouds', name: 'Cloud Watcher', icon: 'â˜ï¸', type: 'discovery', desc: 'Watch clouds' },
+          { id: 'wind', name: 'Wind Rider', icon: 'ðŸ’¨', type: 'discovery', desc: 'Hike in wind' },
+          { id: 'moon', name: 'Moon Gazer', icon: 'ðŸŒ™', type: 'discovery', desc: 'See the moon' },
+          { id: 'beach', name: 'Beach Comber', icon: 'ðŸ–ï¸', type: 'location', desc: 'Hike at beach' },
+          { id: 'desert', name: 'Desert Wanderer', icon: 'ðŸœï¸', type: 'location', desc: 'Hike in desert' },
+          { id: 'forest', name: 'Forest Friend', icon: 'ðŸŒ²', type: 'location', desc: 'Hike in forest' },
+          { id: 'mountain', name: 'Mountain Master', icon: 'â›°ï¸', type: 'location', desc: 'Hike mountains' },
+          { id: 'canyon', name: 'Canyon Explorer', icon: 'ðŸžï¸', type: 'location', desc: 'Hike in canyon' },
+          { id: 'lake', name: 'Lake Lover', icon: 'ðŸžï¸', type: 'location', desc: 'Hike around lake' },
+          { id: 'river', name: 'River Runner', icon: 'ðŸžï¸', type: 'location', desc: 'Hike along river' },
+          { id: 'statepark', name: 'Park Visitor', icon: 'ðŸ•ï¸', type: 'location', desc: 'Visit state park' },
+          { id: 'nationalpark', name: 'Park Ranger', icon: 'ðŸŽ–ï¸', type: 'location', desc: 'Visit national park' },
+          { id: 'meadow', name: 'Meadow Walker', icon: 'ðŸŒ¾', type: 'location', desc: 'Hike through meadow' },
+          { id: 'wetland', name: 'Wetland Explorer', icon: 'ðŸ¦†', type: 'location', desc: 'Visit wetland' },
+          { id: 'jungle', name: 'Jungle Trekker', icon: 'ðŸŒ´', type: 'location', desc: 'Hike in jungle' },
+          { id: 'prairie', name: 'Prairie Walker', icon: 'ðŸŒ»', type: 'location', desc: 'Hike prairie' },
+          { id: 'tundra', name: 'Tundra Explorer', icon: 'ðŸ§Š', type: 'location', desc: 'Hike in tundra' },
+          { id: 'volcano', name: 'Volcano Adventurer', icon: 'ðŸŒ‹', type: 'location', desc: 'Hike near volcano' },
+          { id: 'family', name: 'Family Time', icon: 'ðŸ‘¨â€ðŸ‘©â€ðŸ‘§â€ðŸ‘¦', type: 'special', desc: 'Family hikes together' },
+          { id: 'picnic', name: 'Trail Feast', icon: 'ðŸ§º', type: 'special', desc: 'Have trail picnic' },
+          { id: 'camping', name: 'Happy Camper', icon: 'â›º', type: 'special', desc: 'Camp overnight' },
+          { id: 'stargazing', name: 'Star Gazer', icon: 'â­', type: 'special', desc: 'Stargaze on trail' },
+          { id: 'geocache', name: 'Treasure Hunter', icon: 'ðŸ’Ž', type: 'special', desc: 'Find geocache' },
+          { id: 'summit', name: 'Summit Seeker', icon: 'ðŸŽ¯', type: 'special', desc: 'Reach a summit' },
+          { id: 'lighthouse', name: 'Light Keeper', icon: 'ðŸ—¼', type: 'special', desc: 'Visit lighthouse' },
+          { id: 'historic', name: 'Time Traveler', icon: 'ðŸ›ï¸', type: 'special', desc: 'Visit historic site' },
+          { id: 'photog', name: 'Photo Pro', icon: 'ðŸ“¸', type: 'special', desc: 'Take photos' },
+          { id: 'notrail', name: 'Off Beaten Path', icon: 'ðŸ§­', type: 'special', desc: 'Hike off-trail' },
+          { id: 'leader', name: 'Trail Leader', icon: 'ðŸ§‘â€ðŸ«', type: 'special', desc: 'Lead the group' },
+          { id: 'map', name: 'Navigator', icon: 'ðŸ—ºï¸', type: 'special', desc: 'Use map/compass' },
+          { id: 'journal', name: 'Nature Writer', icon: 'ðŸ““', type: 'special', desc: 'Write in journal' },
+          { id: 'art', name: 'Trail Artist', icon: 'ðŸŽ¨', type: 'special', desc: 'Draw/paint on trail' },
+          { id: 'song', name: 'Trail Singer', icon: 'ðŸŽµ', type: 'special', desc: 'Sing hiking songs' },
+          { id: 'story', name: 'Story Teller', icon: 'ðŸ“š', type: 'special', desc: 'Tell stories' },
+          { id: 'game', name: 'Trail Games', icon: 'ðŸŽ²', type: 'special', desc: 'Play trail games' },
+          { id: 'clean', name: 'Trail Keeper', icon: 'â™»ï¸', type: 'special', desc: 'Pick up litter' },
+          { id: 'help', name: 'Helpful Hiker', icon: 'ðŸ¤', type: 'special', desc: 'Help another hiker' },
+          { id: 'courage', name: 'Brave Heart', icon: 'ðŸ’ª', type: 'special', desc: 'Overcome a fear' },
+          { id: 'early', name: 'Morning Glory', icon: 'ðŸŒž', type: 'special', desc: 'Start before 7am' },
+          { id: 'long', name: 'Endurance Pro', icon: 'â±ï¸', type: 'special', desc: 'Hike 4+ hours' },
+          { id: 'quiet', name: 'Silent Steps', icon: 'ðŸ¤«', type: 'special', desc: 'Hike in silence' },
+          { id: 'backwards', name: 'Backwards Walker', icon: 'ðŸ”„', type: 'special', desc: 'Walk backwards' },
+          { id: 'barefoot', name: 'Nature Feet', icon: 'ðŸ¦¶', type: 'special', desc: 'Walk barefoot' },
+          { id: 'night', name: 'Night Hiker', icon: 'ðŸŒƒ', type: 'special', desc: 'Hike at night' },
+          { id: 'firstaid', name: 'Trail Medic', icon: 'ðŸ©¹', type: 'special', desc: 'Use first aid' },
+          { id: 'fire', name: 'Fire Starter', icon: 'ðŸ”¥', type: 'special', desc: 'Build safe fire' },
+          { id: 'knots', name: 'Knot Master', icon: 'ðŸª¢', type: 'special', desc: 'Tie useful knots' },
+          { id: 'binoculars', name: 'Far Seer', icon: 'ðŸ”­', type: 'special', desc: 'Use binoculars' },
+          { id: 'whistle', name: 'Signal Master', icon: 'ðŸ“£', type: 'special', desc: 'Use safety whistle' },
+          { id: 'fishing', name: 'Trail Fisher', icon: 'ðŸŽ£', type: 'special', desc: 'Fish on trail' },
+          { id: 'wade', name: 'Water Walker', icon: 'ðŸ‘£', type: 'special', desc: 'Wade through water' },
+          { id: 'climb', name: 'Rock Climber', icon: 'ðŸ§—â€â™€ï¸', type: 'special', desc: 'Climb rocks' },
+          { id: 'meditation', name: 'Trail Zen', icon: 'ðŸ§˜', type: 'special', desc: 'Meditate in nature' },
+        ];
+
+        // Map Component
+        const MapComponent = ({ hikes, currentMember }) => {
+          const mapRef = React.useRef(null);
+          const mapInstanceRef = React.useRef(null);
+          const [draggingHike, setDraggingHike] = React.useState(null);
+          
+          const updateHikeLocation = async (hikeId, newLat, newLng) => {
+            try {
+              const user = firebase.auth().currentUser;
+              if (!user) return;
+              
+              const familyId = localStorage.getItem('familyId');
+              await firebase.firestore().collection('families').doc(familyId).collection('hikes').doc(hikeId).update({
+                lat: newLat,
+                lng: newLng
+              });
+            } catch (error) {
+              console.error('Error updating location:', error);
+              alert('Failed to update marker location');
+            }
+          };
+          
+          React.useEffect(() => {
+            if (!mapRef.current || mapInstanceRef.current) return;
+            
+            // Initialize map
+            const map = L.map(mapRef.current).setView([39.8283, -98.5795], 4); // Center of USA
+            mapInstanceRef.current = map;
+            
+            // Add tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: 'Â© OpenStreetMap contributors',
+              maxZoom: 19
+            }).addTo(map);
+            
+            return () => {
+              if (mapInstanceRef.current) {
+                mapInstanceRef.current.remove();
+                mapInstanceRef.current = null;
+              }
+            };
+          }, []);
+          
+          React.useEffect(() => {
+            if (!mapInstanceRef.current) return;
+            
+            const map = mapInstanceRef.current;
+            
+            // Clear existing markers and marker clusters
+            map.eachLayer(layer => {
+              if (layer instanceof L.Marker || layer instanceof L.MarkerClusterGroup) {
+                map.removeLayer(layer);
+              }
+            });
+            
+            // Add markers for hikes with coordinates
+            const hikesWithCoords = hikes.filter(h => h.lat && h.lng);
+            
+            if (hikesWithCoords.length === 0) {
+              return;
+            }
+            
+            // Create marker cluster group
+            const markers = L.markerClusterGroup({
+              maxClusterRadius: 50,
+              spiderfyOnMaxZoom: true,
+              showCoverageOnHover: false,
+              zoomToBoundsOnClick: true
+            });
+            
+            hikesWithCoords.forEach(hike => {
+              const difficultyColors = {
+                easy: '#10b981',
+                medium: '#f59e0b',
+                hard: '#ef4444'
+              };
+              
+              const difficultyIcons = {
+                easy: 'ðŸŸ¢',
+                medium: 'ðŸŸ¡',
+                hard: 'ðŸ”´'
+              };
+              
+              const markerColor = difficultyColors[hike.difficulty] || '#6b7280';
+              
+              const customIcon = L.divIcon({
+                html: `<div style="background-color: ${markerColor}; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 16px;">${hike.hikerAvatar || 'ðŸ¥¾'}</div>`,
+                className: 'custom-marker',
+                iconSize: [30, 30],
+                iconAnchor: [15, 15]
+              });
+              
+              const marker = L.marker([hike.lat, hike.lng], { 
+                icon: customIcon,
+                draggable: true  // Make marker draggable
+              });
+              
+              // Handle marker drag events
+              marker.on('dragstart', () => {
+                setDraggingHike(hike.name);
+              });
+              
+              marker.on('dragend', async (e) => {
+                const newPos = e.target.getLatLng();
+                await updateHikeLocation(hike.id, newPos.lat, newPos.lng);
+                setDraggingHike(null);
+              });
+              
+              const popupContent = `
+                <div style="min-width: 200px;">
+                  <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px; color: #065f46;">
+                    ${hike.hikerAvatar || 'ðŸ¥¾'} ${hike.name}
+                  </div>
+                  ${hike.difficulty ? `<div style="margin-bottom: 4px;"><strong>${difficultyIcons[hike.difficulty] || ''} ${hike.difficulty.charAt(0).toUpperCase() + hike.difficulty.slice(1)}</strong></div>` : ''}
+                  <div style="margin-bottom: 4px;"><strong>Date:</strong> ${new Date(hike.date).toLocaleDateString()}</div>
+                  <div style="margin-bottom: 4px;"><strong>Distance:</strong> ${hike.distance} miles</div>
+                  ${hike.elevation ? `<div style="margin-bottom: 4px;"><strong>Elevation:</strong> ${hike.elevation} ft</div>` : ''}
+                  ${hike.location ? `<div style="margin-bottom: 4px;"><strong>Location:</strong> ${hike.location}</div>` : ''}
+                  ${hike.notes ? `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-style: italic; color: #6b7280;">${hike.notes}</div>` : ''}
+                  <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280;">
+                    ðŸ’¡ Drag marker to adjust location
+                  </div>
+                </div>
+              `;
+              
+              marker.bindPopup(popupContent);
+              markers.addLayer(marker);
+            });
+            
+            // Add the cluster group to the map
+            map.addLayer(markers);
+            
+            // Fit map to show all markers
+            if (hikesWithCoords.length > 0) {
+              const bounds = L.latLngBounds(hikesWithCoords.map(h => [h.lat, h.lng]));
+              map.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
+            }
+          }, [hikes]);
+          
+          const hikesWithCoords = hikes.filter(h => h.lat && h.lng);
+          
+          return (
+            <div>
+              {draggingHike && (
+                <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-lg text-sm mb-4">
+                  ðŸ“ Adjusting location for "{draggingHike}"... Release to save new position
+                </div>
+              )}
+              {hikesWithCoords.length === 0 ? (
+                <div className="text-center py-12">
+                  <MapPin className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                  <p className="text-xl text-gray-500 mb-2">No mapped hikes yet!</p>
+                  <p className="text-sm text-gray-400">Add a location when recording a hike to see it on the map.</p>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Showing {hikesWithCoords.length} of {hikes.length} hikes on the map
+                    {hikesWithCoords.length < hikes.length && ` (${hikes.length - hikesWithCoords.length} hike${hikes.length - hikesWithCoords.length > 1 ? 's' : ''} without location)`}
+                  </p>
+                  <div ref={mapRef} style={{ height: '500px', borderRadius: '8px' }} />
+                </div>
+              )}
+            </div>
+          );
+        };
+
+        function App() {
+          const [user, setUser] = useState(null);
+          const [authLoading, setAuthLoading] = useState(true);
+          const [familyId, setFamilyId] = useState(null);
+          const [familyName, setFamilyName] = useState('');
+          const [members, setMembers] = useState([]);
+          const [currentMember, setCurrentMember] = useState(null);
+          const [hikes, setHikes] = useState([]);
+          const [loading, setLoading] = useState(true);
+          const [showSetup, setShowSetup] = useState(false);
+          const [setupStep, setSetupStep] = useState('family');
+          const [newFamilyName, setNewFamilyName] = useState('');
+          const [joinCode, setJoinCode] = useState('');
+          const [newMemberName, setNewMemberName] = useState('');
+          const [newMemberAvatar, setNewMemberAvatar] = useState('ðŸ‘¦');
+          const [newMemberColor, setNewMemberColor] = useState('#4CAF50');
+          const [showMemberMenu, setShowMemberMenu] = useState(false);
+          const [showForm, setShowForm] = useState(false);
+          const [selectedBadge, setSelectedBadge] = useState(null);
+          const [activeView, setActiveView] = useState('list'); // 'list' or 'map' for hikes page, 'badges' for badges page
+          const [geocodingStatus, setGeocodingStatus] = useState('');
+          const [editingHike, setEditingHike] = useState(null); // Track which hike is being edited
+          const [currentPage, setCurrentPage] = useState('home'); // 'home', 'badges', 'profile', 'about'
+          const [showAllHikes, setShowAllHikes] = useState(false); // Show all hikes vs recent 5
+          const [expandedHike, setExpandedHike] = useState(null); // Track which hike is expanded
+          const [showEmbedModal, setShowEmbedModal] = useState(false); // Show embed widget modal
+          const [embedMode, setEmbedMode] = useState(false); // Is this an embed view?
+          const [showBadgeGuide, setShowBadgeGuide] = useState(false); // Show/hide badge guide
+          const [locationSearchResults, setLocationSearchResults] = useState([]);
+          const [showLocationPicker, setShowLocationPicker] = useState(false);
+          const [selectedLocation, setSelectedLocation] = useState(null);
+          const [familyUsers, setFamilyUsers] = useState([]); // Track user accounts in family
+          const [formData, setFormData] = useState({
+            name: '', date: new Date().toISOString().split('T')[0], distance: '', elevation: '', difficulty: 'easy', location: '', notes: '', activities: [], taggedMembers: []
+          });
+
+          useEffect(() => {
+            // Check if this is an embed view
+            const urlParams = new URLSearchParams(window.location.search);
+            const embedFamily = urlParams.get('embed');
+            const embedMember = urlParams.get('member');
+            const joinFamilyId = urlParams.get('join');
+            
+            if (embedFamily && embedMember) {
+              // This is embed mode
+              setEmbedMode(true);
+              auth.signInAnonymously().then(() => {
+                loadFamily(embedFamily, embedMember);
+              });
+              return; // Don't set up regular auth listener for embed mode
+            }
+            
+            // Regular mode
+            const unsubscribe = auth.onAuthStateChanged(async (user) => {
+              if (user) {
+                setUser(user);
+                // Track user in Sentry
+                Sentry.setUser({ id: user.uid, email: user.email });
+                analytics.logEvent('user_active');
+                
+                // Check if user clicked an invite link
+                if (joinFamilyId) {
+                  try {
+                    const familyDoc = await db.collection('families').doc(joinFamilyId).get();
+                    if (familyDoc.exists) {
+                      // Save to user profile
+                      await db.collection('users').doc(user.uid).set({
+                        familyId: joinFamilyId,
+                        email: user.email,
+                        joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+                      }, { merge: true });
+                      
+                      localStorage.setItem('familyId', joinFamilyId);
+                      analytics.logEvent('family_joined_via_link');
+                      
+                      // Clear the URL parameter
+                      window.history.replaceState({}, document.title, window.location.pathname);
+                      
+                      await loadFamily(joinFamilyId, null);
+                      return;
+                    }
+                  } catch (error) {
+                    console.error('Error joining via link:', error);
+                    Sentry.captureException(error);
+                  }
+                }
+                
+                // Check Firestore first for user's family
+                try {
+                  const userDoc = await db.collection('users').doc(user.uid).get();
+                  if (userDoc.exists && userDoc.data().familyId) {
+                    const familyId = userDoc.data().familyId;
+                    localStorage.setItem('familyId', familyId);
+                    const storedMemberId = localStorage.getItem('currentMemberId');
+                    await loadFamily(familyId, storedMemberId);
+                  } else {
+                    // Fallback to localStorage
+                    const storedFamilyId = localStorage.getItem('familyId');
+                    const storedMemberId = localStorage.getItem('currentMemberId');
+                    if (storedFamilyId) {
+                      await loadFamily(storedFamilyId, storedMemberId);
+                    } else {
+                      setShowSetup(true);
+                      setLoading(false);
+                    }
+                  }
+                } catch (error) {
+                  console.error('Error loading user data:', error);
+                  Sentry.captureException(error);
+                  setShowSetup(true);
+                  setLoading(false);
+                }
+              } else {
+                setUser(null);
+              }
+              setAuthLoading(false);
+            });
+            return unsubscribe;
+          }, []);
+
+          const loadFamily = async (famId, memberId) => {
+            try {
+              setFamilyId(famId);
+              const familyDoc = await db.collection('families').doc(famId).get();
+              if (familyDoc.exists) setFamilyName(familyDoc.data().name);
+              
+              const membersSnap = await db.collection('families').doc(famId).collection('members').get();
+              const membersList = membersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+              setMembers(membersList);
+              
+              // Get current authenticated user
+              const currentUser = auth.currentUser;
+              if (!currentUser) {
+                setLoading(false);
+                return;
+              }
+              
+              // For now, just add current user to the list
+              try {
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                if (userDoc.exists) {
+                  setFamilyUsers([{ id: currentUser.uid, ...userDoc.data() }]);
+                }
+              } catch (error) {
+                console.log('Could not load user data:', error);
+                setFamilyUsers([]);
+              }
+              
+              // Check if user has a member profile linked to their account
+              const userMemberSnap = await db.collection('families').doc(famId).collection('members')
+                .where('userId', '==', currentUser.uid).get();
+              
+              if (!userMemberSnap.empty) {
+                // User has a member profile - use it
+                const userMember = { id: userMemberSnap.docs[0].id, ...userMemberSnap.docs[0].data() };
+                setCurrentMember(userMember);
+                localStorage.setItem('currentMemberId', userMember.id);
+              } else if (memberId && membersList.find(m => m.id === memberId)) {
+                // Legacy: use provided memberId from localStorage
+                const legacyMember = membersList.find(m => m.id === memberId);
+                setCurrentMember(legacyMember);
+                
+                // Auto-link this legacy member to the current user for future logins
+                try {
+                  await db.collection('families').doc(famId).collection('members').doc(memberId).update({
+                    userId: currentUser.uid
+                  });
+                  console.log('Auto-linked legacy member to user account');
+                } catch (error) {
+                  console.log('Could not auto-link member:', error);
+                }
+              } else if (membersList.length > 0 && membersList.length === 1) {
+                // Only one member exists and no userId - probably the original creator
+                // Auto-link it and use it
+                const onlyMember = membersList[0];
+                setCurrentMember(onlyMember);
+                localStorage.setItem('currentMemberId', onlyMember.id);
+                
+                try {
+                  await db.collection('families').doc(famId).collection('members').doc(onlyMember.id).update({
+                    userId: currentUser.uid
+                  });
+                  console.log('Auto-linked sole member to user account');
+                } catch (error) {
+                  console.log('Could not auto-link member:', error);
+                }
+              } else if (membersList.length > 1) {
+                // Multiple members exist but none linked to this user
+                // This is a new user joining - they need to create their profile
+                setShowSetup(true);
+                setSetupStep('member');
+                setLoading(false);
+                return;
+              } else {
+                // No members at all - show setup
+                setShowSetup(true);
+                setSetupStep('member');
+                setLoading(false);
+                return;
+              }
+              
+              db.collection('families').doc(famId).collection('hikes').orderBy('date', 'desc').onSnapshot(snapshot => {
+                setHikes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+              });
+              setLoading(false);
+            } catch (error) {
+              console.error(error);
+              Sentry.captureException(error);
+              setLoading(false);
+            }
+          };
+
+          const searchLocation = async (query) => {
+            if (!query || query.length < 3) {
+              setLocationSearchResults([]);
+              return;
+            }
+            try {
+              const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`);
+              const data = await response.json();
+              setLocationSearchResults(data);
+            } catch (error) {
+              console.error('Location search failed:', error);
+              Sentry.captureException(error);
+            }
+          };
+
+          const selectLocation = (location) => {
+            setSelectedLocation({
+              name: location.display_name,
+              lat: parseFloat(location.lat),
+              lng: parseFloat(location.lon)
+            });
+            setFormData({
+              ...formData,
+              location: location.display_name
+            });
+            setShowLocationPicker(false);
+            setLocationSearchResults([]);
+          };
+
+          const handleLogin = (user) => {
+            setUser(user);
+          };
+
+          const handleLogout = async () => {
+            if (confirm('Are you sure you want to log out?')) {
+              const result = await signOutUser();
+              if (result.success) {
+                setFamilyId(null);
+                setMembers([]);
+                setCurrentMember(null);
+                setHikes([]);
+                setShowSetup(false);
+              }
+            }
+          };
+
+          const createFamily = async () => {
+            if (!newFamilyName.trim()) return;
+            try {
+              const currentUser = auth.currentUser;
+              if (!currentUser) return;
+              
+              const familyRef = db.collection('families').doc();
+              await familyRef.set({ name: newFamilyName, createdAt: firebase.firestore.FieldValue.serverTimestamp(), ownerId: currentUser.uid });
+              
+              // Save family to user profile
+              await db.collection('users').doc(currentUser.uid).set({
+                familyId: familyRef.id,
+                email: currentUser.email,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+              });
+              
+              localStorage.setItem('familyId', familyRef.id);
+              setFamilyId(familyRef.id);
+              setFamilyName(newFamilyName);
+              
+              analytics.logEvent('family_created');
+              
+              alert('ðŸŽ‰ Family created successfully!\n\nYou can now add family members and start logging hikes together!');
+              
+              setSetupStep('member');
+            } catch (error) {
+              Sentry.captureException(error);
+              alert('Error: ' + error.message);
+            }
+          };
+
+          const joinFamily = async () => {
+            if (!joinCode.trim()) return;
+            try {
+              const currentUser = auth.currentUser;
+              if (!currentUser) return;
+              
+              const familyDoc = await db.collection('families').doc(joinCode).get();
+              if (familyDoc.exists) {
+                // Save to user profile in Firestore
+                await db.collection('users').doc(currentUser.uid).set({
+                  familyId: joinCode,
+                  email: currentUser.email,
+                  joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+                
+                localStorage.setItem('familyId', joinCode);
+                await loadFamily(joinCode, null);
+                setShowSetup(false);
+                
+                analytics.logEvent('family_joined');
+              } else {
+                alert('Family not found. Please check the code and try again.');
+              }
+            } catch (error) {
+              Sentry.captureException(error);
+              alert('Error: ' + error.message);
+            }
+          };
+
+          const createMember = async () => {
+            if (!newMemberName.trim()) return;
+            try {
+              const currentUser = auth.currentUser;
+              if (!currentUser) return;
+              
+              const memberRef = await db.collection('families').doc(familyId).collection('members').add({
+                name: newMemberName, 
+                avatar: newMemberAvatar, 
+                color: newMemberColor, 
+                userId: currentUser.uid, // Link member to user account
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+              });
+              const newMember = { id: memberRef.id, name: newMemberName, avatar: newMemberAvatar, color: newMemberColor, userId: currentUser.uid };
+              setMembers([...members, newMember]);
+              setCurrentMember(newMember);
+              localStorage.setItem('currentMemberId', memberRef.id);
+              setShowSetup(false);
+              setNewMemberName('');
+              
+              analytics.logEvent('member_created', { avatar: newMemberAvatar });
+            } catch (error) {
+              Sentry.captureException(error);
+              alert('Error: ' + error.message);
+            }
+          };
+
+          const switchMember = (member) => {
+            setCurrentMember(member);
+            localStorage.setItem('currentMemberId', member.id);
+            setShowMemberMenu(false);
+          };
+
+          const deleteMember = async (memberId) => {
+            if (members.length === 1) {
+              alert('Cannot delete the last member. Use "Log Out" to remove all data instead.');
+              return;
+            }
+            
+            const confirmDelete = confirm('âš ï¸ DELETE MEMBER?\n\nThis will permanently delete this member and ALL their hikes. This action cannot be undone.\n\nAre you sure you want to continue?');
+            if (!confirmDelete) return;
+            
+            try {
+              // Delete all hikes for this member
+              const hikesSnapshot = await db.collection('families').doc(familyId).collection('hikes').where('hikerId', '==', memberId).get();
+              const deletePromises = hikesSnapshot.docs.map(doc => doc.ref.delete());
+              await Promise.all(deletePromises);
+              
+              // Delete the member
+              await db.collection('families').doc(familyId).collection('members').doc(memberId).delete();
+              
+              // Update local state
+              const remainingMembers = members.filter(m => m.id !== memberId);
+              setMembers(remainingMembers);
+              
+              // Switch to another member if current was deleted
+              if (currentMember.id === memberId) {
+                setCurrentMember(remainingMembers[0]);
+                localStorage.setItem('currentMemberId', remainingMembers[0].id);
+              }
+              
+              setShowMemberMenu(false);
+              alert('âœ… Member and all their hikes have been deleted.');
+            } catch (error) {
+              alert('Error deleting member: ' + error.message);
+            }
+          };
+
+          const logoutFamily = () => {
+            const confirmLogout = confirm('âš ï¸ LOG OUT OF FAMILY?\n\nThis will remove access to this family on this device. You will need your Family Code to log back in.\n\nFamily Code: ' + familyId + '\n\nðŸ’¾ Make sure you have saved this code!\n\nDo you want to log out?');
+            if (!confirmLogout) return;
+            
+            localStorage.removeItem('familyId');
+            localStorage.removeItem('currentMemberId');
+            window.location.reload();
+          };
+
+          const downloadHikes = () => {
+            const memberHikes = hikes.filter(h => h.hikerId === currentMember.id || (h.allHikers && h.allHikers.includes(currentMember.id)));
+            
+            if (memberHikes.length === 0) {
+              alert('No hikes to download for this member.');
+              return;
+            }
+            
+            // Create CSV content
+            let csv = 'Hike Name,Date,Difficulty,Distance (mi),Elevation (ft),Location,Notes,Activities\n';
+            
+            memberHikes.forEach(hike => {
+              const activities = hike.activities ? hike.activities.map(id => {
+                const badge = BADGES.find(b => b.id === id);
+                return badge ? badge.name : id;
+              }).join('; ') : '';
+              
+              const notes = (hike.notes || '').replace(/"/g, '""');
+              csv += '"' + hike.name + '","' + hike.date + '","' + (hike.difficulty || '') + '","' + hike.distance + '","' + (hike.elevation || 0) + '","' + (hike.location || '') + '","' + notes + '","' + activities + '"\n';
+            });
+            
+            // Create download link
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentMember.name}_hikes_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            alert('âœ… Hikes downloaded as CSV file!');
+          };
+
+          const saveHike = async () => {
+            if (!formData.name || !formData.distance || !currentMember) return;
+            try {
+              setGeocodingStatus(editingHike ? 'Updating hike...' : 'Saving hike...');
+              
+              // Geocode location if provided and changed
+              let lat = editingHike ? editingHike.lat : null;
+              let lng = editingHike ? editingHike.lng : null;
+              
+              if (formData.location && formData.location.trim()) {
+                // Only re-geocode if location changed or no coordinates exist
+                if (!editingHike || formData.location !== editingHike.location || !editingHike.lat) {
+                  setGeocodingStatus('Finding location on map...');
+                  try {
+                    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.location)}&limit=1`);
+                    const data = await response.json();
+                    if (data && data.length > 0) {
+                      lat = parseFloat(data[0].lat);
+                      lng = parseFloat(data[0].lon);
+                    }
+                  } catch (geoError) {
+                    console.log('Geocoding failed:', geoError);
+                    // Continue saving without new coordinates
+                  }
+                }
+              } else {
+                // Location cleared, remove coordinates
+                lat = null;
+                lng = null;
+              }
+
+              // Create list of all hikers (current member + tagged members)
+              const allHikerIds = [currentMember.id, ...(formData.taggedMembers || [])];
+              
+              const hikeData = {
+                name: formData.name,
+                date: formData.date,
+                distance: parseFloat(formData.distance),
+                elevation: parseFloat(formData.elevation) || 0,
+                difficulty: formData.difficulty,
+                location: formData.location,
+                notes: formData.notes,
+                activities: formData.activities || [],
+                lat: lat,
+                lng: lng,
+                hikerId: currentMember.id,
+                hikerName: currentMember.name,
+                hikerAvatar: currentMember.avatar,
+                allHikers: allHikerIds,
+                taggedMembers: formData.taggedMembers || []
+              };
+
+              if (editingHike) {
+                // Update existing hike
+                await db.collection('families').doc(familyId).collection('hikes').doc(editingHike.id).update(hikeData);
+                analytics.logEvent('hike_updated');
+              } else {
+                // Create new hike
+                await db.collection('families').doc(familyId).collection('hikes').add({
+                  ...hikeData,
+                  createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                analytics.logEvent('hike_created', {
+                  difficulty: formData.difficulty,
+                  distance: parseFloat(formData.distance)
+                });
+              }
+              
+              setFormData({ name: '', date: new Date().toISOString().split('T')[0], distance: '', elevation: '', difficulty: 'easy', location: '', notes: '', activities: [], taggedMembers: [] });
+              setGeocodingStatus('');
+              setShowForm(false);
+              setEditingHike(null);
+            } catch (error) {
+              Sentry.captureException(error);
+              alert('Error: ' + error.message);
+              setGeocodingStatus('');
+            }
+          };
+
+          const deleteHike = async (id) => {
+            try {
+              await db.collection('families').doc(familyId).collection('hikes').doc(id).delete();
+            } catch (error) {
+              alert('Error: ' + error.message);
+            }
+          };
+
+          const editHike = (hike) => {
+            setEditingHike(hike);
+            const taggedMembers = (hike.allHikers || hike.taggedMembers || []).filter(id => id !== hike.hikerId);
+            setFormData({
+              name: hike.name,
+              date: hike.date,
+              distance: hike.distance.toString(),
+              elevation: hike.elevation ? hike.elevation.toString() : '',
+              difficulty: hike.difficulty || 'easy',
+              location: hike.location || '',
+              notes: hike.notes || '',
+              activities: hike.activities || [],
+              taggedMembers: taggedMembers
+            });
+            setShowForm(true);
+            setCurrentPage('home'); // Switch to home page where the form is
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          };
+
+          const toggleActivity = (activityId) => {
+            const currentActivities = formData.activities || [];
+            const newActivities = currentActivities.includes(activityId) ? currentActivities.filter(id => id !== activityId) : [...currentActivities, activityId];
+            setFormData({ ...formData, activities: newActivities });
+          };
+
+          const generateEmbedCode = () => {
+            if (!currentMember || !familyId) return { url: '', iframe: '' };
+            const embedUrl = window.location.origin + window.location.pathname + '?embed=' + familyId + '&member=' + currentMember.id;
+            const iframeCode = '<iframe src="' + embedUrl + '" width="320" height="220" frameborder="0" style="border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"></iframe>';
+            return { url: embedUrl, iframe: iframeCode };
+          };
+
+          const copyEmbedCode = (code) => {
+            navigator.clipboard.writeText(code);
+            alert('âœ… Embed code copied to clipboard!');
+          };
+
+          const copyFamilyCode = () => {
+            navigator.clipboard.writeText(familyId);
+            alert('âœ… Family code copied to clipboard!');
+          };
+
+          const generateInviteLink = () => {
+            const baseUrl = window.location.origin + window.location.pathname;
+            const inviteUrl = `${baseUrl}?join=${familyId}`;
+            return inviteUrl;
+          };
+
+          const shareViaEmail = () => {
+            const inviteUrl = generateInviteLink();
+            const subject = `Join our family on Hike Together!`;
+            const body = `Hi! I'd like to invite you to join our family "${familyName}" on Hike Together - our family hiking tracker.\n\nClick this link to join:\n${inviteUrl}\n\nOr enter this family code after signing up: ${familyId}\n\nSee you on the trails! ðŸ¥¾`;
+            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            analytics.logEvent('invite_email_opened');
+          };
+
+          const shareViaSMS = () => {
+            const inviteUrl = generateInviteLink();
+            const message = `Join our family "${familyName}" on Hike Together! ${inviteUrl}`;
+            window.location.href = `sms:?body=${encodeURIComponent(message)}`;
+            analytics.logEvent('invite_sms_opened');
+          };
+
+          const copyInviteLink = () => {
+            const inviteUrl = generateInviteLink();
+            navigator.clipboard.writeText(inviteUrl);
+            alert('âœ… Invite link copied to clipboard!\n\nShare this link with family members. They can click it to automatically join your family after signing up.');
+            analytics.logEvent('invite_link_copied');
+          };
+
+          const shareFamily = () => {
+            const inviteUrl = generateInviteLink();
+            if (navigator.share) {
+              navigator.share({
+                title: 'Join Hike Together',
+                text: `Join our family "${familyName}" on Hike Together!`,
+                url: inviteUrl
+              }).then(() => {
+                analytics.logEvent('invite_shared');
+              }).catch(err => console.log('Share cancelled'));
+            } else {
+              copyInviteLink();
+            }
+          };
+
+          const memberHikes = hikes.filter(h => !currentMember || (h.hikerId === currentMember.id || (h.allHikers && h.allHikers.includes(currentMember.id))));
+          const totalDistance = memberHikes.reduce((sum, h) => sum + h.distance, 0);
+          const totalElevation = memberHikes.reduce((sum, h) => sum + h.elevation, 0);
+          const longestHike = memberHikes.length > 0 ? Math.max(...memberHikes.map(h => h.distance || 0)) : 0;
+          const highestElevation = memberHikes.length > 0 ? Math.max(...memberHikes.map(h => h.elevation || 0)) : 0;
+          
+          const activityCounts = {};
+          memberHikes.forEach(hike => {
+            if (hike.activities) {
+              hike.activities.forEach(activityId => {
+                activityCounts[activityId] = (activityCounts[activityId] || 0) + 1;
+              });
+            }
+          });
+          
+          // Calculate seasonal hikes
+          const seasonalHikes = { spring: 0, summer: 0, fall: 0, winter: 0 };
+          memberHikes.forEach(hike => {
+            const month = new Date(hike.date).getMonth() + 1;
+            if (month >= 3 && month <= 5) seasonalHikes.spring++;
+            else if (month >= 6 && month <= 8) seasonalHikes.summer++;
+            else if (month >= 9 && month <= 11) seasonalHikes.fall++;
+            else seasonalHikes.winter++;
+          });
+          
+          const badgeStats = BADGES.map(badge => {
+            let earned = false, count = 0;
+            if (badge.type === 'count') { 
+              earned = memberHikes.length >= badge.requirement; 
+              count = badge.milestone ? Math.min(memberHikes.length, badge.requirement) : memberHikes.length;
+            }
+            else if (badge.type === 'distance') { 
+              earned = totalDistance >= badge.requirement; 
+              count = badge.milestone ? Math.min(Math.floor(totalDistance), badge.requirement) : Math.floor(totalDistance);
+            }
+            else if (badge.type === 'elevation') { 
+              earned = totalElevation >= badge.requirement; 
+              count = badge.milestone ? Math.min(Math.floor(totalElevation), badge.requirement) : Math.floor(totalElevation);
+            }
+            else if (badge.type === 'seasonal') {
+              if (badge.id === 'spring') { count = seasonalHikes.spring; earned = count > 0; }
+              else if (badge.id === 'summer') { count = seasonalHikes.summer; earned = count > 0; }
+              else if (badge.id === 'fall') { count = seasonalHikes.fall; earned = count > 0; }
+              else if (badge.id === 'winter') { count = seasonalHikes.winter; earned = count > 0; }
+              else if (badge.id === 'fourseasons') {
+                const seasonsCompleted = [seasonalHikes.spring, seasonalHikes.summer, seasonalHikes.fall, seasonalHikes.winter].filter(s => s > 0).length;
+                count = seasonsCompleted;
+                earned = seasonsCompleted >= 4;
+              }
+            }
+            else if (badge.type === 'weather') {
+              count = activityCounts[badge.id] || 0; 
+              earned = count > 0;
+            }
+            else { count = activityCounts[badge.id] || 0; earned = count > 0; }
+            return { ...badge, earned, count };
+          });
+          
+          const earnedBadges = badgeStats.filter(b => b.earned);
+          const badgeCategories = {
+            'ðŸ”ï¸ Milestone Badges': [
+              ...badgeStats.filter(b => b.type === 'count'),
+              ...badgeStats.filter(b => b.type === 'distance'),
+              ...badgeStats.filter(b => b.type === 'elevation')
+            ],
+            'ðŸ“ Location Badges': badgeStats.filter(b => b.type === 'location'),
+            'ðŸŒ¸ Seasonal Badges': badgeStats.filter(b => b.type === 'seasonal'),
+            'â›ˆï¸ Weather Badges': badgeStats.filter(b => b.type === 'weather'),
+            'ðŸ¦Œ Discovery Badges': [
+              ...badgeStats.filter(b => ['wildlife','bird','butterfly','frog','squirrel','snake','turtle','rabbit','fish','bee','spider'].includes(b.id)),
+              ...badgeStats.filter(b => ['waterfall','mushroom','wildflower','treeclimb','pinecone','rock','feather','stream','cave','bridge','sunset','sunrise','rainbow','acorn','leaf','stick','tracks','berries','nest','fossil','crystal','clouds','moon'].includes(b.id)),
+              ...badgeStats.filter(b => b.type === 'special')
+            ]
+          };
+          const selectableActivities = BADGES.filter(b => b.type === 'discovery' || b.type === 'location' || b.type === 'special' || b.type === 'seasonal' || b.type === 'weather');
+
+          if (authLoading) {
+            return (
+              <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="text-6xl mb-4">ðŸ¥¾</div>
+                  <div className="text-xl text-gray-600">Loading...</div>
+                </div>
+              </div>
+            );
+          }
+
+          if (!user) {
+            return <LoginScreen onLogin={handleLogin} />;
+          }
+
+          if (loading) return <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center"><div className="text-2xl text-green-600">Loading...</div></div>;
+
+          // Embed Widget View
+          if (embedMode && currentMember) {
+            return (
+              <div className="bg-gradient-to-br from-green-50 to-blue-50 p-2 min-h-screen flex items-center justify-center">
+                <div className="max-w-sm w-full">
+                  <div className="bg-white rounded-lg shadow-lg p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="text-3xl">{currentMember.avatar}</span>
+                      <div className="flex-1">
+                        <h2 className="text-lg font-bold text-green-800 leading-tight">{currentMember.name}</h2>
+                        <p className="text-xs text-gray-500">{familyName}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-4 gap-2 mb-3">
+                      <div className="bg-gradient-to-br from-green-50 to-green-100 rounded p-2 text-center border border-green-200">
+                        <div className="text-xl font-bold text-green-800">{memberHikes.length}</div>
+                        <div className="text-xs text-gray-600">Hikes</div>
+                      </div>
+                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded p-2 text-center border border-blue-200">
+                        <div className="text-xl font-bold text-blue-800">{totalDistance.toFixed(1)}</div>
+                        <div className="text-xs text-gray-600">Miles</div>
+                      </div>
+                      <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded p-2 text-center border border-purple-200">
+                        <div className="text-xl font-bold text-purple-800">{totalElevation >= 1000 ? (totalElevation / 1000).toFixed(1) + 'k' : totalElevation}</div>
+                        <div className="text-xs text-gray-600">Feet</div>
+                      </div>
+                      <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded p-2 text-center border border-yellow-200">
+                        <div className="text-xl font-bold text-yellow-800">{earnedBadges.length}</div>
+                        <div className="text-xs text-gray-600">Badges</div>
+                      </div>
+                    </div>
+                    
+                    {earnedBadges.length > 0 && (
+                      <div className="border-t border-gray-200 pt-2">
+                        <div className="flex flex-wrap gap-1 justify-center">
+                          {earnedBadges.slice(0, 6).map(badge => (
+                            <span key={badge.id} className="text-lg" title={badge.name}>{badge.icon}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="mt-2 pt-2 border-t border-gray-200 text-center">
+                      <a 
+                        href={window.location.origin + window.location.pathname} 
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-green-600 hover:text-green-700 font-semibold text-xs inline-flex items-center gap-1"
+                      >
+                        <Mountain className="w-3 h-3" />
+                        Hike Together
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+
+          if (showSetup) {
+            if (setupStep === 'family') {
+              return (
+                <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+                    <div className="text-center mb-6">
+                      <Mountain className="w-16 h-16 mx-auto mb-4 text-green-600" />
+                      <h1 className="text-3xl font-bold text-green-800 mb-2">Welcome to Hike Together!</h1>
+                      <p className="text-gray-600">Create a family or join one</p>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4 mb-4">
+                        <p className="text-sm text-yellow-800 font-semibold mb-1">ðŸ’¡ Important Tip</p>
+                        <p className="text-xs text-yellow-800">After creating your family, you'll receive a family code. Save it somewhere safe! You'll need it to access your hikes on other devices or if you clear your browser data.</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Create New Family</label>
+                        <input type="text" placeholder="Family name" value={newFamilyName} onChange={(e) => setNewFamilyName(e.target.value)} className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none" />
+                        <button onClick={createFamily} className="w-full mt-2 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg">Create Family</button>
+                      </div>
+                      <div className="text-center text-gray-500 font-semibold">OR</div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Join Existing Family</label>
+                        <input type="text" placeholder="Enter family code" value={joinCode} onChange={(e) => setJoinCode(e.target.value)} className="w-full p-3 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none" />
+                        <button onClick={joinFamily} className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg">Join Family</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            } else {
+              return (
+                <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
+                    <div className="text-center mb-6">
+                      <h2 className="text-3xl font-bold text-green-800 mb-2">Create Your Profile</h2>
+                      <p className="text-gray-600">Choose your name and avatar</p>
+                    </div>
+                    <div className="space-y-4">
+                      <input type="text" placeholder="Your name" value={newMemberName} onChange={(e) => setNewMemberName(e.target.value)} className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none" />
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Choose Avatar</label>
+                        <div className="grid grid-cols-8 gap-2">
+                          {AVATARS.map(avatar => (
+                            <button key={avatar} onClick={() => setNewMemberAvatar(avatar)} className={`text-3xl p-2 rounded-lg border-2 ${newMemberAvatar === avatar ? 'border-green-500 bg-green-50' : 'border-gray-200'}`}>{avatar}</button>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Choose Color</label>
+                        <div className="grid grid-cols-4 gap-2">
+                          {COLORS.map(color => (
+                            <button key={color} onClick={() => setNewMemberColor(color)} className={`h-12 rounded-lg border-2 ${newMemberColor === color ? 'border-gray-800 scale-110' : 'border-gray-200'}`} style={{backgroundColor: color}} />
+                          ))}
+                        </div>
+                      </div>
+                      <button onClick={createMember} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg mt-6">Start Hiking!</button>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+          }
+
+          return (
+            <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-4">
+              {selectedBadge && <BadgeModal badge={selectedBadge} onClose={() => setSelectedBadge(null)} />}
+              
+              {/* Embed Widget Modal */}
+              {showEmbedModal && currentMember && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowEmbedModal(false)}>
+                  <div className="bg-white rounded-2xl p-6 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                    <div className="mb-6">
+                      <h2 className="text-2xl font-bold text-green-800 mb-2">ðŸŒ Embed Your Hiking Stats</h2>
+                      <p className="text-gray-600">Share your hiking achievements on your website or blog!</p>
+                    </div>
+                    
+                    {/* Preview */}
+                    <div className="mb-6">
+                      <h3 className="font-semibold text-gray-800 mb-2">Preview:</h3>
+                      <div className="border-2 border-gray-200 rounded-lg p-4 bg-gray-50">
+                        <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-lg p-4">
+                          <div className="text-center mb-3">
+                            <span className="text-4xl">{currentMember.avatar}</span>
+                            <h3 className="text-xl font-bold text-green-800 mt-2">{currentMember.name} Hiking Stats</h3>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-white rounded-lg p-3 text-center">
+                              <div className="text-2xl font-bold text-green-800">{memberHikes.length}</div>
+                              <div className="text-xs text-gray-600">Total Hikes</div>
+                            </div>
+                            <div className="bg-white rounded-lg p-3 text-center">
+                              <div className="text-2xl font-bold text-green-800">{totalDistance.toFixed(1)}</div>
+                              <div className="text-xs text-gray-600">Miles</div>
+                            </div>
+                            <div className="bg-white rounded-lg p-3 text-center">
+                              <div className="text-2xl font-bold text-green-800">{totalElevation.toLocaleString()}</div>
+                              <div className="text-xs text-gray-600">Feet Climbed</div>
+                            </div>
+                            <div className="bg-white rounded-lg p-3 text-center">
+                              <div className="text-2xl font-bold text-green-800">{earnedBadges.length}</div>
+                              <div className="text-xs text-gray-600">Badges</div>
+                            </div>
+                          </div>
+                          <div className="text-center mt-3 text-xs text-gray-500">Powered by Hike Together</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Shareable URL */}
+                    <div className="mb-6">
+                      <h3 className="font-semibold text-gray-800 mb-2">Shareable Link:</h3>
+                      <div className="flex gap-2">
+                        <input 
+                          type="text" 
+                          readOnly 
+                          value={generateEmbedCode().url}
+                          className="flex-1 p-3 border-2 border-gray-200 rounded-lg bg-gray-50 text-sm font-mono"
+                        />
+                        <button 
+                          onClick={() => copyEmbedCode(generateEmbedCode().url)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* iFrame Code */}
+                    <div className="mb-6">
+                      <h3 className="font-semibold text-gray-800 mb-2">iFrame Embed Code:</h3>
+                      <div className="relative">
+                        <textarea 
+                          readOnly 
+                          value={generateEmbedCode().iframe}
+                          className="w-full p-3 border-2 border-gray-200 rounded-lg bg-gray-50 text-xs font-mono h-24 resize-none"
+                        />
+                        <button 
+                          onClick={() => copyEmbedCode(generateEmbedCode().iframe)}
+                          className="absolute top-2 right-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-semibold"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">ðŸ’¡ Paste this code into your website HTML</p>
+                    </div>
+                    
+                    {/* Instructions */}
+                    <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 mb-6">
+                      <h4 className="font-semibold text-blue-800 mb-2">ðŸ“ How to Use:</h4>
+                      <ol className="text-sm text-blue-900 space-y-1 list-decimal list-inside">
+                        <li>Copy the shareable link to share on social media</li>
+                        <li>Or copy the iframe code to embed on your website</li>
+                        <li>Customize the width and height attributes as needed</li>
+                        <li>Your stats will update automatically as you log hikes!</li>
+                      </ol>
+                    </div>
+                    
+                    <button 
+                      onClick={() => setShowEmbedModal(false)} 
+                      className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              <div className="max-w-4xl mx-auto pb-20">
+                <div className="text-center mb-6">
+                  <h1 className="text-4xl font-bold text-green-800 mb-2 flex items-center justify-center gap-2"><Mountain />Hike Together</h1>
+                  <p className="text-green-600 mb-3">{familyName}</p>
+                </div>
+
+                {/* HOME PAGE */}
+                {currentPage === 'home' && (
+                  <>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+                  <div className="bg-white rounded-lg shadow-md p-6 text-center border-t-4 border-green-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 mx-auto mb-2 text-green-600"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>
+                    <div className="text-3xl font-bold text-green-800">{memberHikes.length}</div>
+                    <div className="text-gray-600 text-sm">Total Hikes</div>
+                  </div>
+                  <div className="bg-white rounded-lg shadow-md p-6 text-center border-t-4 border-green-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 mx-auto mb-2 text-green-600"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    <div className="text-3xl font-bold text-green-800">{totalDistance.toFixed(1)}</div>
+                    <div className="text-gray-600 text-sm">Miles Hiked</div>
+                  </div>
+                  <div className="bg-white rounded-lg shadow-md p-6 text-center border-t-4 border-green-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 mx-auto mb-2 text-green-600"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                    <div className="text-3xl font-bold text-green-800">{totalElevation.toLocaleString()}</div>
+                    <div className="text-gray-600 text-sm">Feet Climbed</div>
+                  </div>
+                  <div className="bg-white rounded-lg shadow-md p-6 text-center border-t-4 border-green-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 mx-auto mb-2 text-green-600"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+                    <div className="text-3xl font-bold text-green-800">{earnedBadges.length}</div>
+                    <div className="text-gray-600 text-sm">Badges Earned</div>
+                  </div>
+                  <div className="bg-white rounded-lg shadow-md p-6 text-center border-t-4 border-green-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 mx-auto mb-2 text-green-600"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    <div className="text-3xl font-bold text-green-800">{longestHike.toFixed(1)}</div>
+                    <div className="text-gray-600 text-sm">Longest Hike (mi)</div>
+                  </div>
+                  <div className="bg-white rounded-lg shadow-md p-6 text-center border-t-4 border-green-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-8 h-8 mx-auto mb-2 text-green-600"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                    <div className="text-3xl font-bold text-green-800">{highestElevation.toLocaleString()}</div>
+                    <div className="text-gray-600 text-sm">Highest Climb (ft)</div>
+                  </div>
+                </div>
+
+                <button onClick={() => { setShowForm(!showForm); setEditingHike(null); setFormData({ name: '', date: new Date().toISOString().split('T')[0], distance: '', elevation: '', difficulty: 'easy', location: '', notes: '', activities: [], taggedMembers: [] }); }} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-lg shadow-lg mb-6 flex items-center justify-center gap-2"><Plus />{showForm ? 'Close Form' : 'Add New Hike'}</button>
+
+                {showForm && (
+                  <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <h2 className="text-2xl font-bold text-green-800 mb-4">{editingHike ? 'Edit Hike' : 'Record Your Adventure'}</h2>
+                    <div className="space-y-4">
+                      <input type="text" placeholder="Hike Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none" />
+                      <input type="date" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none" />
+                      <select value={formData.difficulty} onChange={(e) => setFormData({...formData, difficulty: e.target.value})} className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none">
+                        <option value="easy">Easy ðŸŸ¢</option>
+                        <option value="medium">Medium ðŸŸ¡</option>
+                        <option value="hard">Hard ðŸ”´</option>
+                      </select>
+                      <input type="number" step="0.1" placeholder="Distance (miles)" value={formData.distance} onChange={(e) => setFormData({...formData, distance: e.target.value})} className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none" />
+                      <input type="number" placeholder="Elevation (feet)" value={formData.elevation} onChange={(e) => setFormData({...formData, elevation: e.target.value})} className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none" />
+                      
+                      {/* Enhanced Location Picker */}
+                      <div className="relative">
+                        <input 
+                          type="text" 
+                          placeholder="Location (type to search)" 
+                          value={formData.location} 
+                          onChange={(e) => {
+                            setFormData({...formData, location: e.target.value});
+                            searchLocation(e.target.value);
+                          }}
+                          onFocus={() => setShowLocationPicker(true)}
+                          className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none" 
+                        />
+                        {showLocationPicker && locationSearchResults.length > 0 && (
+                          <div className="absolute z-50 w-full mt-1 bg-white border-2 border-green-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            {locationSearchResults.map((location, index) => (
+                              <button
+                                key={index}
+                                type="button"
+                                onClick={() => selectLocation(location)}
+                                className="w-full text-left px-4 py-3 hover:bg-green-50 border-b border-gray-100 last:border-b-0"
+                              >
+                                <div className="font-semibold text-sm">{location.display_name.split(',')[0]}</div>
+                                <div className="text-xs text-gray-600">{location.display_name}</div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        {selectedLocation && (
+                          <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div className="text-xs text-blue-800 mb-2">ðŸ“ Selected location preview:</div>
+                            <div className="w-full h-32 bg-gray-200 rounded overflow-hidden">
+                              <iframe
+                                width="100%"
+                                height="100%"
+                                frameBorder="0"
+                                src={`https://www.openstreetmap.org/export/embed.html?bbox=${selectedLocation.lng-0.01},${selectedLocation.lat-0.01},${selectedLocation.lng+0.01},${selectedLocation.lat+0.01}&layer=mapnik&marker=${selectedLocation.lat},${selectedLocation.lng}`}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <textarea placeholder="Notes" value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} className="w-full p-3 border-2 border-green-200 rounded-lg focus:border-green-500 outline-none h-24" />
+                      
+                      {/* Family Member Tagging */}
+                      {members.length > 1 && (
+                        <div className="border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
+                          <h3 className="font-semibold text-blue-800 mb-2">ðŸ‘¨â€ðŸ‘©â€ðŸ‘§â€ðŸ‘¦ Who else was on this hike?</h3>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            {members.filter(m => m.id !== currentMember.id).map(member => {
+                              const isTagged = formData.taggedMembers && formData.taggedMembers.includes(member.id);
+                              return (
+                                <button 
+                                  key={member.id}
+                                  type="button"
+                                  onClick={() => {
+                                    const currentTagged = formData.taggedMembers || [];
+                                    const newTagged = isTagged 
+                                      ? currentTagged.filter(id => id !== member.id)
+                                      : [...currentTagged, member.id];
+                                    setFormData({...formData, taggedMembers: newTagged});
+                                  }}
+                                  className={`p-3 rounded-lg border-2 flex items-center gap-2 transition ${isTagged ? 'bg-blue-500 border-blue-600 text-white' : 'bg-white border-blue-300 text-gray-800 hover:border-blue-400'}`}
+                                >
+                                  <span className="text-2xl">{member.avatar}</span>
+                                  <span className="font-medium text-sm">{member.name}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <p className="text-xs text-blue-700 mt-2">ðŸ’¡ This hike will be added to both your profile and theirs!</p>
+                        </div>
+                      )}
+                      <div className="border-2 border-green-200 rounded-lg p-4">
+                        <h3 className="font-semibold text-green-800 mb-2">ðŸ† What did you do/see?</h3>
+                        {[
+                          {title:'Locations',type:'location'},
+                          {title:'Seasonal',type:'seasonal'},
+                          {title:'Weather',type:'weather'},
+                          {title:'Wildlife & Creatures',ids:['wildlife','bird','butterfly','frog','squirrel','snake','turtle','rabbit','fish','bee','spider']},
+                          {title:'Nature & Scenery',ids:['waterfall','mushroom','wildflower','treeclimb','pinecone','rock','feather','stream','cave','bridge','sunset','sunrise','rainbow','acorn','leaf','stick','tracks','berries','nest','fossil','crystal','clouds','moon']},
+                          {title:'Activities & Challenges',type:'special'}
+                        ].map(section => (
+                          <div key={section.title} className="mb-4">
+                            <h4 className="text-xs font-semibold text-gray-600 mb-2">{section.title}</h4>
+                            <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                              {selectableActivities.filter(b => section.type ? b.type === section.type : (section.ids && section.ids.includes(b.id))).map(badge => {
+                                const selected = formData.activities && formData.activities.includes(badge.id);
+                                return (
+                                  <button key={badge.id} type="button" onClick={() => toggleActivity(badge.id)} className={`p-2 rounded-lg border-2 ${selected ? 'bg-yellow-50 border-yellow-400 scale-105' : 'bg-white border-gray-200'}`} title={badge.desc}>
+                                    <div className="text-2xl mb-1">{badge.icon}</div>
+                                    <div className="text-xs font-medium leading-tight" style={{minHeight:'2rem'}}>{badge.name}</div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {geocodingStatus && (
+                        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2 rounded-lg text-sm">
+                          {geocodingStatus}
+                        </div>
+                      )}
+                      <div className="flex gap-2">
+                        <button onClick={saveHike} disabled={!!geocodingStatus} className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">{editingHike ? 'Update Hike' : 'Save Hike'}</button>
+                        <button onClick={() => { setShowForm(false); setEditingHike(null); setFormData({ name: '', date: new Date().toISOString().split('T')[0], distance: '', elevation: '', difficulty: 'easy', location: '', notes: '', activities: [], taggedMembers: [] }); }} className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 rounded-lg">Cancel</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                </>
+                )}
+
+                {/* BADGES PAGE */}
+                {currentPage === 'badges' && (
+                  <>
+                    <h2 className="text-2xl font-bold text-green-800 mb-4 flex items-center justify-center gap-2"><Award />Achievement Badges ({earnedBadges.length}/{BADGES.length})</h2>
+
+                {/* Helpful Badge Guide Banner - Collapsible */}
+                <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg shadow-md border-2 border-green-200 mb-6">
+                  <button 
+                    onClick={() => setShowBadgeGuide(!showBadgeGuide)}
+                    className="w-full p-4 flex items-center justify-between hover:bg-green-50 transition rounded-lg"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="text-3xl">ðŸŽ¯</div>
+                      <h3 className="text-lg font-bold text-green-800">How Badges Work</h3>
+                    </div>
+                    <div className="text-2xl text-green-600">
+                      {showBadgeGuide ? 'â–²' : 'â–¼'}
+                    </div>
+                  </button>
+                  {showBadgeGuide && (
+                    <div className="px-4 pb-4">
+                      <div className="text-sm text-gray-700 space-y-2 pl-11">
+                        <p>â€¢ <strong>Milestone Badges</strong> track your cumulative progress (hikes, distance, elevation)</p>
+                        <p>â€¢ <strong>Location Badges</strong> are earned by checking off where you hiked when you log a hike</p>
+                        <p>â€¢ <strong>Seasonal Badges</strong> are earned automatically based on when you hike</p>
+                        <p>â€¢ <strong>Weather Badges</strong> are earned by checking them off during a hike in those conditions</p>
+                        <p>â€¢ <strong>Discovery Badges</strong> are earned by checking off activities and sightings when you log a hike</p>
+                        <p className="mt-3 text-green-700">ðŸ’¡ <em>Click any badge to see how to earn it and track your progress!</em></p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                  {earnedBadges.length > 0 && (
+                    <div className="mb-8">
+                      <h3 className="text-xl font-semibold text-green-700 mb-4 pb-2 border-b-2 border-green-200">ðŸŽ‰ Earned Badges</h3>
+                      {Object.entries(badgeCategories).map(([category, badges]) => {
+                        const earnedInCategory = badges.filter(b => b.earned);
+                        if (earnedInCategory.length === 0) return null;
+                        return (
+                          <div key={category} className="mb-6">
+                            <h4 className="text-md font-semibold text-green-600 mb-3">{category}</h4>
+                            <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 pl-4">
+                              {earnedInCategory.map(badge => (
+                                <div key={badge.id} className="text-center p-3 rounded-lg bg-yellow-50 border-2 border-yellow-400 relative cursor-pointer hover:shadow-lg group" onClick={() => setSelectedBadge(badge)}>
+                                  <div className="text-3xl mb-1">{badge.icon}</div>
+                                  <div className="font-semibold text-[10px] sm:text-xs leading-tight overflow-hidden" style={{minHeight:'2.5rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical'}}>{badge.name}</div>
+                                  {badge.count > 0 && !badge.milestone && <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">{badge.count}</div>}
+                                  <div className="absolute top-1 right-1 bg-green-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100">?</div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-700 mb-4 pb-2 border-b-2 border-gray-200">ðŸ”’ Locked Badges</h3>
+                    {Object.entries(badgeCategories).map(([category, badges]) => {
+                      const lockedInCategory = badges.filter(b => !b.earned);
+                      if (lockedInCategory.length === 0) return null;
+                      return (
+                        <div key={category} className="mb-6">
+                          <h4 className="text-md font-semibold text-gray-600 mb-3">{category}</h4>
+                          <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-8 gap-3 pl-4">
+                            {lockedInCategory.map(badge => {
+                              const progress = badge.milestone && badge.requirement ? Math.min((badge.count / badge.requirement) * 100, 100) : 0;
+                              return (
+                                <div key={badge.id} className="text-center p-3 rounded-lg bg-gray-50 border-2 border-gray-200 relative cursor-pointer hover:shadow-md hover:border-gray-300 group transition" onClick={() => setSelectedBadge(badge)}>
+                                  <div className="text-3xl mb-1 opacity-50 group-hover:opacity-70">{badge.icon}</div>
+                                  <div className="font-semibold text-[10px] sm:text-xs leading-tight overflow-hidden opacity-70" style={{minHeight:'2.5rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical'}}>{badge.name}</div>
+                                  {badge.milestone && badge.requirement && progress > 0 && (
+                                    <div className="mt-1">
+                                      <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                        <div className="bg-green-500 h-1.5 rounded-full transition-all" style={{width: `${progress}%`}}></div>
+                                      </div>
+                                      <div className="text-xs text-gray-500 mt-0.5">{Math.floor(progress)}%</div>
+                                    </div>
+                                  )}
+                                  <div className="absolute top-1 right-1 bg-gray-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition">?</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                  </>
+                )}
+
+                {/* HIKES PAGE */}
+                {currentPage === 'hikes' && (
+                  <>
+                    <h2 className="text-2xl font-bold text-green-800 mb-4 flex items-center justify-center gap-2">ðŸ“‹ Your Hikes</h2>
+                    
+                    <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+                      <div className="flex justify-center gap-2 mb-6">
+                        <button onClick={() => setActiveView('list')} className={`px-4 py-2 rounded-lg font-semibold ${activeView === 'list' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
+                          ðŸ“‹ List
+                        </button>
+                        <button onClick={() => setActiveView('map')} className={`px-4 py-2 rounded-lg font-semibold ${activeView === 'map' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
+                          ðŸ—ºï¸ Map
+                        </button>
+                      </div>
+                      
+                      {activeView === 'list' && (
+                        <div>
+                          <div className="mb-4 text-center">
+                            <p className="text-gray-600 text-sm">
+                              Showing {showAllHikes ? 'all' : 'recent 5'} of <strong>{memberHikes.length}</strong> hikes
+                            </p>
+                          </div>
+                          
+                          {memberHikes.length === 0 ? (
+                            <div className="text-center py-12">
+                              <div className="text-6xl mb-4">ðŸ¥¾</div>
+                              <p className="text-xl text-gray-500 mb-2">No hikes yet!</p>
+                              <p className="text-sm text-gray-400">Go to Home and tap "Add New Hike" to get started.</p>
+                            </div>
+                          ) : (
+                            <>
+                            <div className="space-y-4">
+                              {(showAllHikes ? memberHikes : memberHikes.slice(0, 5)).sort((a, b) => new Date(b.date) - new Date(a.date)).map(hike => {
+                                const difficultyColors = { easy: 'bg-green-100 text-green-800', medium: 'bg-yellow-100 text-yellow-800', hard: 'bg-red-100 text-red-800' };
+                                const difficultyIcons = { easy: 'ðŸŸ¢', medium: 'ðŸŸ¡', hard: 'ðŸ”´' };
+                                const isExpanded = expandedHike === hike.id;
+                                const hikeActivities = hike.activities ? hike.activities.map(id => BADGES.find(b => b.id === id)).filter(b => b) : [];
+                                const taggedMemberNames = hike.taggedMembers ? hike.taggedMembers.map(id => members.find(m => m.id === id)).filter(m => m).map(m => m.name) : [];
+                                
+                                return (
+                                  <div key={hike.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition p-4 border-l-4 border-green-500">
+                                    <div className="flex justify-between items-start mb-2">
+                                      <div className="flex-1">
+                                        <h3 className="text-lg font-bold text-green-800">{hike.name}</h3>
+                                        <p className="text-sm text-gray-500">{new Date(hike.date).toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</p>
+                                      </div>
+                                      {hike.difficulty && (
+                                        <span className={`px-2 py-1 rounded text-xs font-semibold ${difficultyColors[hike.difficulty]}`}>
+                                          {difficultyIcons[hike.difficulty]} {hike.difficulty.charAt(0).toUpperCase() + hike.difficulty.slice(1)}
+                                        </span>
+                                      )}
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-2 mb-3">
+                                      <div className="bg-blue-50 rounded p-2">
+                                        <div className="text-xs text-gray-600">Distance</div>
+                                        <div className="text-lg font-bold text-blue-800">{hike.distance} mi</div>
+                                      </div>
+                                      {hike.elevation > 0 && (
+                                        <div className="bg-purple-50 rounded p-2">
+                                          <div className="text-xs text-gray-600">Elevation</div>
+                                          <div className="text-lg font-bold text-purple-800">{hike.elevation} ft</div>
+                                        </div>
+                                      )}
+                                    </div>
+                                    
+                                    {hike.location && (
+                                      <p className="text-sm text-gray-600 mb-2">
+                                        ðŸ“ {hike.location}
+                                      </p>
+                                    )}
+                                    
+                                    {taggedMemberNames.length > 0 && (
+                                      <div className="mb-2">
+                                        <p className="text-xs text-blue-600">
+                                          ðŸ‘¨â€ðŸ‘©â€ðŸ‘§â€ðŸ‘¦ With: {taggedMemberNames.join(', ')}
+                                        </p>
+                                      </div>
+                                    )}
+                                    
+                                    {isExpanded && (
+                                      <div className="mt-3 pt-3 border-t border-gray-200">
+                                        {hike.notes && (
+                                          <div className="mb-3">
+                                            <p className="text-xs font-semibold text-gray-700 mb-1">Notes:</p>
+                                            <p className="text-sm text-gray-600 italic">{hike.notes}</p>
+                                          </div>
+                                        )}
+                                        {hikeActivities.length > 0 && (
+                                          <div className="mb-3">
+                                            <p className="text-xs font-semibold text-gray-700 mb-2">Activities & Sightings:</p>
+                                            <div className="flex flex-wrap gap-2">
+                                              {hikeActivities.map(activity => (
+                                                <span key={activity.id} className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">
+                                                  {activity.icon} {activity.name}
+                                                </span>
+                                              ))}
+                                            </div>
+                                          </div>
+                                        )}
+                                        <div className="flex gap-2 mt-3">
+                                          <button onClick={() => editHike(hike)} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold py-2 px-3 rounded">
+                                            âœï¸ Edit
+                                          </button>
+                                          <button onClick={() => { if(confirm('Delete this hike?')) deleteHike(hike.id); }} className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold py-2 px-3 rounded">
+                                            ðŸ—‘ï¸ Delete
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )}
+                                    
+                                    <button 
+                                      onClick={() => setExpandedHike(isExpanded ? null : hike.id)}
+                                      className="w-full mt-3 text-green-600 hover:text-green-700 text-sm font-semibold"
+                                    >
+                                      {isExpanded ? 'â–² Show Less' : 'â–¼ Show More'}
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            
+                            {memberHikes.length > 5 && (
+                              <div className="text-center mt-6">
+                                <button 
+                                  onClick={() => setShowAllHikes(!showAllHikes)}
+                                  className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md"
+                                >
+                                  {showAllHikes ? 'â† Show Recent 5' : `View All ${memberHikes.length} Hikes â†’`}
+                                </button>
+                              </div>
+                            )}
+                            </>
+                          )}
+                        </div>
+                      )}
+                      
+                      {activeView === 'map' && (
+                        <MapComponent hikes={memberHikes} currentMember={currentMember} />
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* PROFILE PAGE */}
+                {currentPage === 'profile' && currentMember && (
+                  <div className="bg-white rounded-lg shadow-md p-8 max-w-3xl mx-auto">
+                    <h2 className="text-3xl font-bold text-green-800 mb-6">ðŸ‘¤ Profile & Settings</h2>
+                    
+                    <div className="mb-6 text-center">
+                      <div className="text-6xl mb-4">{currentMember.avatar}</div>
+                      <h3 className="text-2xl font-bold text-green-800 mb-2">{currentMember.name}</h3>
+                      <p className="text-gray-600">{familyName}</p>
+                    </div>
+                    
+                    <div className="space-y-6">
+                      {/* Stats Summary */}
+                      <div className="border-t-2 border-green-200 pt-6">
+                        <h4 className="font-semibold text-green-800 mb-3">ðŸ“Š Your Stats</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-green-50 rounded-lg p-4 text-center">
+                            <div className="text-3xl font-bold text-green-800">{memberHikes.length}</div>
+                            <div className="text-sm text-gray-600">Total Hikes</div>
+                          </div>
+                          <div className="bg-blue-50 rounded-lg p-4 text-center">
+                            <div className="text-3xl font-bold text-blue-800">{totalDistance.toFixed(1)}</div>
+                            <div className="text-sm text-gray-600">Miles</div>
+                          </div>
+                          <div className="bg-purple-50 rounded-lg p-4 text-center">
+                            <div className="text-3xl font-bold text-purple-800">{totalElevation.toLocaleString()}</div>
+                            <div className="text-sm text-gray-600">Feet Climbed</div>
+                          </div>
+                          <div className="bg-yellow-50 rounded-lg p-4 text-center">
+                            <div className="text-3xl font-bold text-yellow-800">{earnedBadges.length}</div>
+                            <div className="text-sm text-gray-600">Badges</div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Family Members */}
+                      {members.length > 1 && (
+                        <div className="border-t-2 border-green-200 pt-6">
+                          <h4 className="font-semibold text-green-800 mb-3">ðŸ‘¨â€ðŸ‘©â€ðŸ‘§â€ðŸ‘¦ Hiking Profiles</h4>
+                          <p className="text-xs text-gray-600 mb-3">Switch between different family members' hiking logs</p>
+                          <div className="space-y-2">
+                            {members.map(member => (
+                              <button 
+                                key={member.id}
+                                onClick={() => switchMember(member)}
+                                className={`w-full p-4 rounded-lg border-2 flex items-center gap-3 transition ${member.id === currentMember.id ? 'bg-green-50 border-green-500' : 'bg-white border-gray-200 hover:border-green-300'}`}
+                              >
+                                <span className="text-3xl">{member.avatar}</span>
+                                <span className="font-semibold text-lg">{member.name}</span>
+                                {member.id === currentMember.id && (
+                                  <span className="ml-auto bg-green-500 text-white px-2 py-1 rounded text-xs">Current</span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Family Users (Account Holders) - Derived from members with userId */}
+                      {members.filter(m => m.userId).length > 1 && (
+                        <div className="border-t-2 border-purple-200 pt-6">
+                          <h4 className="font-semibold text-purple-800 mb-3">ðŸ” Family Account Holders</h4>
+                          <p className="text-xs text-gray-600 mb-3">People with login access to this family</p>
+                          <div className="space-y-2">
+                            {members.filter(m => m.userId).map(member => {
+                              return (
+                                <div 
+                                  key={member.id}
+                                  className="p-4 rounded-lg border-2 border-purple-200 bg-purple-50 flex items-center gap-3"
+                                >
+                                  <span className="text-3xl">{member.avatar}</span>
+                                  <div className="flex-1">
+                                    <div className="font-semibold">{member.name}</div>
+                                    <div className="text-xs text-gray-600">Has login access</div>
+                                  </div>
+                                  {member.userId === auth.currentUser?.uid && (
+                                    <span className="bg-purple-500 text-white px-2 py-1 rounded text-xs">You</span>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <p className="text-xs text-gray-500 mt-3">Members without login access can be shared by switching profiles</p>
+                        </div>
+                      )}
+                      
+                      {/* Share Widget */}
+                      <div className="border-t-2 border-green-200 pt-6">
+                        <h4 className="font-semibold text-green-800 mb-3">ðŸŒ Share Your Progress</h4>
+                        <button onClick={() => setShowEmbedModal(true)} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2">
+                          <span>ðŸ“¤</span> Generate Embed Widget
+                        </button>
+                        <p className="text-xs text-gray-500 mt-2 text-center">Share your hiking stats on your website or blog</p>
+                      </div>
+                      
+                      {/* Export Data */}
+                      <div className="border-t-2 border-green-200 pt-6">
+                        <h4 className="font-semibold text-green-800 mb-3">ðŸ’¾ Export Data</h4>
+                        <button onClick={downloadHikes} className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2">
+                          <span>â¬‡ï¸</span> Download Hikes as CSV
+                        </button>
+                        <p className="text-xs text-gray-500 mt-2 text-center">Export all your hikes to a spreadsheet</p>
+                      </div>
+                      
+                      {/* Invite Family Members */}
+                      <div className="border-t-2 border-blue-200 pt-6">
+                        <h4 className="font-semibold text-blue-800 mb-3">ðŸ‘¨â€ðŸ‘©â€ðŸ‘§â€ðŸ‘¦ Invite Family Members</h4>
+                        <p className="text-sm text-gray-600 mb-4">
+                          Share your family with others so they can join and log hikes together!
+                        </p>
+                        
+                        <div className="space-y-2">
+                          <button onClick={shareFamily} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2">
+                            ðŸ“¤ Share Invite Link
+                          </button>
+                          
+                          <button onClick={shareViaEmail} className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2">
+                            âœ‰ï¸ Invite via Email
+                          </button>
+                          
+                          <button onClick={shareViaSMS} className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2">
+                            ðŸ’¬ Invite via Text Message
+                          </button>
+                          
+                          <button onClick={copyInviteLink} className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2">
+                            ðŸ”— Copy Invite Link
+                          </button>
+                        </div>
+                        
+                        <details className="mt-4">
+                          <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">
+                            Advanced: Show family code
+                          </summary>
+                          <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                            <p className="text-xs text-gray-600 mb-2">Family Code (for manual entry):</p>
+                            <div className="bg-white rounded px-2 py-1 font-mono text-xs break-all border border-gray-200 mb-2">
+                              {familyId}
+                            </div>
+                            <button onClick={copyFamilyCode} className="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold py-1 px-2 rounded text-xs">
+                              Copy Code
+                            </button>
+                          </div>
+                        </details>
+                      </div>
+                      
+                      {/* Danger Zone */}
+                      <div className="border-t-2 border-red-200 pt-6">
+                        <h4 className="font-semibold text-red-700 mb-3 text-sm">âš ï¸ Account Settings</h4>
+                        <button onClick={() => { deleteMember(currentMember.id); }} className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg mb-2 text-sm">
+                          ðŸ—‘ï¸ Delete This Member
+                        </button>
+                        <button onClick={handleLogout} className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2">
+                          <LogOut /> Log Out of Account
+                        </button>
+                        <p className="text-xs text-gray-500 mt-2 text-center">You'll need to sign in again to access your family</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ABOUT PAGE */}
+                {currentPage === 'about' && (
+                  <div className="bg-white rounded-lg shadow-md p-8 max-w-3xl mx-auto">
+                    
+                    <div className="space-y-6 text-gray-700 leading-relaxed">
+                      
+                      <p className="text-lg">
+                        Hike Together is a hiking tracker designed to make outdoor adventures more fun, memorable, and rewarding for families.
+                      </p>
+
+                      <div>
+                        <h3 className="text-xl font-bold text-green-700 mb-3">ðŸŒ² Our Mission</h3>
+                        <p>
+                          We believe that time spent in nature as a family creates lasting memories and fosters a love for the outdoors. Hike Together helps families track their adventures, celebrate milestones, and encourages exploring and trying new things.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h3 className="text-xl font-bold text-green-700 mb-3">âœ¨ Features</h3>
+                        <ul className="list-disc list-inside space-y-2 ml-4">
+                          <li>Track every family member's hikes together or individually</li>
+                          <li>Record distance, elevation, and difficulty</li>
+                          <li>Map your hiking locations</li>
+                          <li>Earn achievement badges for milestones and discoveries</li>
+                          <li>Log wildlife sightings, trail features, and special moments</li>
+                          <li>Build a digital scrapbook of your family's hiking journey</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h3 className="text-xl font-bold text-green-700 mb-3">ðŸ‘‹ About</h3>
+                        <p>
+                          Hi, my name is <a href="https://evannickel.com" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-700 font-semibold underline">Evan</a> and I've loved hiking for as long as I can remember. I'm also a new dad who is just starting to go on hikes with my young daughter. I built this app in the hopes that it will motivate us to hike more frequently and spend more time observing and learning about the things we see and do on every trail. And I hope it might do the same for you!
+                        </p>
+                      </div>
+
+                      <div>
+                        <h3 className="text-xl font-bold text-green-700 mb-3">ðŸŽ’ Recommended Hiking Gear & Tools</h3>
+                        <div className="space-y-3">
+                          
+                          <div className="border-l-4 border-green-500 pl-4 py-2">
+                            <p className="text-gray-800">
+                              <strong>Find nearby trails</strong> â†’ <a href="https://www.alltrails.com" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-700 underline">AllTrails</a>
+                            </p>
+                          </div>
+
+                          <div className="border-l-4 border-blue-500 pl-4 py-2">
+                            <p className="text-gray-800">
+                              <strong>Trail navigation</strong> â†’ <a href="https://www.gaiagps.com" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-700 underline">GaiaGPS</a>
+                            </p>
+                          </div>
+
+                          <div className="border-l-4 border-purple-500 pl-4 py-2">
+                            <p className="text-gray-800">
+                              <strong>Kid carrying backpack</strong> â†’ <a href="https://www.amazon.com/Deuter-Comfort-Child-Carrier-Backpack/dp/B08FF8ZSXB" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-700 underline">Deuter Kid Comfort</a>
+                            </p>
+                          </div>
+
+                          <div className="border-l-4 border-orange-500 pl-4 py-2">
+                            <p className="text-gray-800">
+                              <strong>Adult daypack</strong> â†’ <a href="https://www.osprey.com/stratos-24-stratos24s22-373?size=O%2FS&color=Seaweed+Matcha+Green" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-700 underline">Osprey Stratos 24</a>
+                            </p>
+                          </div>
+
+                          <div className="border-l-4 border-red-500 pl-4 py-2">
+                            <p className="text-gray-800">
+                              <strong>Trekking poles</strong> â†’ <a href="https://www.rei.com/product/216314/rei-co-op-trailmade-trekking-poles-pair" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-700 underline">REI Trailmade</a>
+                            </p>
+                          </div>
+
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <div className="mt-8 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border-2 border-green-200">
+                      <p className="text-center text-green-800 font-semibold">
+                        ðŸ”ï¸ Happy hiking!
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+              </div>
+              
+              {/* BOTTOM NAVIGATION BAR */}
+              <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-40">
+                <div className="max-w-4xl mx-auto flex justify-around items-center py-1">
+                  <button 
+                    onClick={() => { setCurrentPage('home'); setShowForm(false); }} 
+                    className={`flex flex-col items-center justify-center py-1 px-3 transition ${currentPage === 'home' ? 'text-green-600' : 'text-gray-500'}`}
+                  >
+                    <div className="text-xl mb-0.5">ðŸ </div>
+                    <div className="text-xs font-semibold">Home</div>
+                  </button>
+                  
+                  <button 
+                    onClick={() => { setCurrentPage('badges'); setShowForm(false); }} 
+                    className={`flex flex-col items-center justify-center py-1 px-3 transition ${currentPage === 'badges' ? 'text-green-600' : 'text-gray-500'}`}
+                  >
+                    <div className="text-xl mb-0.5">ðŸ†</div>
+                    <div className="text-xs font-semibold">Badges</div>
+                  </button>
+                  
+                  <button 
+                    onClick={() => { setCurrentPage('hikes'); setShowForm(false); }} 
+                    className={`flex flex-col items-center justify-center py-1 px-3 transition ${currentPage === 'hikes' ? 'text-green-600' : 'text-gray-500'}`}
+                  >
+                    <div className="text-xl mb-0.5">ðŸ“‹</div>
+                    <div className="text-xs font-semibold">Hikes</div>
+                  </button>
+                  
+                  <button 
+                    onClick={() => { setCurrentPage('profile'); setShowForm(false); }} 
+                    className={`flex flex-col items-center justify-center py-1 px-3 transition ${currentPage === 'profile' ? 'text-green-600' : 'text-gray-500'}`}
+                  >
+                    <div className="text-xl mb-0.5">{currentMember ? currentMember.avatar : 'ðŸ‘¤'}</div>
+                    <div className="text-xs font-semibold">Profile</div>
+                  </button>
+                  
+                  <button 
+                    onClick={() => { setCurrentPage('about'); setShowForm(false); }} 
+                    className={`flex flex-col items-center justify-center py-1 px-3 transition ${currentPage === 'about' ? 'text-green-600' : 'text-gray-500'}`}
+                  >
+                    <div className="text-xl mb-0.5">â„¹ï¸</div>
+                    <div className="text-xs font-semibold">About</div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
