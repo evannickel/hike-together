@@ -841,10 +841,9 @@
                       }
                     );
                     
-                  return () => {
-                    console.log('🧹 Cleaning up hikes listener');
-                    unsubscribeHikes();
-                  };
+                  // Note: We don't return the cleanup function here because this is inside the auth callback
+                  // The hikes listener will be cleaned up when the component unmounts or user logs out
+                  console.log('✅ Hikes listener set up successfully');
                 } catch (error) {
                   console.error('❌ Fatal error setting up hikes listener:', error);
                   Sentry.captureException(error);
