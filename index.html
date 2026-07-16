@@ -80,7 +80,7 @@
 <body>
     <div id="root"></div>
     <script type="text/babel">
-        // âš ï¸ REPLACE WITH YOUR FIREBASE CONFIG
+        // ⚠️ REPLACE WITH YOUR FIREBASE CONFIG
     const firebaseConfig = {
   apiKey: "AIzaSyDS6292P80pBlZ-rMVOAEwHfFEGo9RDDrk",
   authDomain: "hike-together-app.firebaseapp.com",
@@ -111,7 +111,7 @@
 
         const { useState, useEffect, useRef } = React;
 
-        const AVATARS = ['ðŸ‘¨', 'ðŸ‘©', 'ðŸ‘¦', 'ðŸ‘§', 'ðŸ§’', 'ðŸ‘¶', 'ðŸ§‘', 'ðŸ‘´', 'ðŸ‘µ', 'ðŸ¶', 'ðŸ±', 'ðŸ»', 'ðŸ¦Š', 'ðŸ¦', 'ðŸ¯', 'ðŸ¦„'];
+        const AVATARS = ['👨', '👩', '👦', '👧', '🧒', '👶', '🧑', '👴', '👵', '🐶', '🐱', '🐻', '🦊', '🦁', '🐯', '🦄'];
         const COLORS = ['#4CAF50', '#2196F3', '#FF9800', '#E91E63', '#9C27B0', '#00BCD4', '#FF5722', '#795548'];
 
         const Mountain = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></svg>;
@@ -235,7 +235,7 @@
                 <div className="min-h-screen flex items-center justify-center p-4">
                     <div className="w-full max-w-md">
                         <div className="text-center mb-6">
-                            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[var(--sunset)] patch sticker text-4xl mb-4">ðŸ¥¾</div>
+                            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[var(--sunset)] patch sticker text-4xl mb-4">🥾</div>
                             <h1 className="font-display text-4xl font-extrabold text-[var(--ink)]">Hike Together</h1>
                             <p className="text-[var(--ink)] opacity-70 mt-1 font-semibold">Track your family adventures</p>
                         </div>
@@ -307,7 +307,7 @@
                                 {mode === 'signin' && (
                                     <>
                                         <button onClick={() => setMode('signup')} className="text-[var(--sky)] hover:opacity-70 font-bold">Create an account</button>
-                                        <span className="mx-2 opacity-40">â€¢</span>
+                                        <span className="mx-2 opacity-40">•</span>
                                         <button onClick={() => setMode('reset')} className="text-[var(--sky)] hover:opacity-70 font-bold">Forgot password?</button>
                                     </>
                                 )}
@@ -337,10 +337,10 @@
                   {badge.milestone && badge.requirement && (
                     <div className="bg-[var(--sky)]/10 rounded-xl border-2 border-[var(--sky)] p-3 mb-3">
                       <p className="text-sm font-bold text-[var(--sky)]">Progress: {badge.count} / {badge.requirement}</p>
-                      {badge.earned && <p className="text-sm font-bold text-[var(--moss)] mt-1">âœ“ Achieved!</p>}
+                      {badge.earned && <p className="text-sm font-bold text-[var(--moss)] mt-1">✓ Achieved!</p>}
                     </div>
                   )}
-                  {!badge.milestone && badge.earned && badge.count > 0 && <div className="bg-[var(--gold)]/15 rounded-xl border-2 border-[var(--gold)] p-3 mb-3"><p className="text-sm font-bold text-[var(--ink)]">âœ¨ Achieved {badge.count} times!</p></div>}
+                  {!badge.milestone && badge.earned && badge.count > 0 && <div className="bg-[var(--gold)]/15 rounded-xl border-2 border-[var(--gold)] p-3 mb-3"><p className="text-sm font-bold text-[var(--ink)]">✨ Achieved {badge.count} times!</p></div>}
                   <button onClick={onClose} className="w-full bg-[var(--ink)] hover:brightness-110 text-white font-display font-bold py-3 rounded-2xl mt-2">Close</button>
                 </div>
               </div>
@@ -349,126 +349,126 @@
         };
 
         const BADGES = [
-          { id: 'first', name: 'First Steps', icon: 'ðŸ¥¾', type: 'count', requirement: 1, desc: 'Complete your first hike', milestone: true },
-          { id: 'explorer', name: 'Explorer', icon: 'ðŸ—ºï¸', type: 'count', requirement: 5, desc: 'Complete 5 hikes', milestone: true },
-          { id: 'adventurer', name: 'Adventurer', icon: 'â›°ï¸', type: 'count', requirement: 10, desc: 'Complete 10 hikes', milestone: true },
-          { id: 'trailblazer', name: 'Trailblazer', icon: 'ðŸ”¥', type: 'count', requirement: 25, desc: 'Complete 25 hikes', milestone: true },
-          { id: 'legend', name: 'Hiking Legend', icon: 'ðŸ‘‘', type: 'count', requirement: 50, desc: 'Complete 50 hikes', milestone: true },
-          { id: 'century', name: 'Century Club', icon: 'ðŸ’¯', type: 'count', requirement: 100, desc: 'Complete 100 hikes', milestone: true },
-          { id: 'distance10', name: 'First 10', icon: 'ðŸƒ', type: 'distance', requirement: 10, desc: 'Hike 10 total miles', milestone: true },
-          { id: 'distance25', name: 'Quarter Century', icon: 'ðŸš¶', type: 'distance', requirement: 25, desc: 'Hike 25 total miles', milestone: true },
-          { id: 'distance50', name: 'Half Century', icon: 'ðŸ¥‡', type: 'distance', requirement: 50, desc: 'Hike 50 total miles', milestone: true },
-          { id: 'distance100', name: 'Centurion', icon: 'â­', type: 'distance', requirement: 100, desc: 'Hike 100 total miles', milestone: true },
-          { id: 'distance250', name: 'Ultra Hiker', icon: 'ðŸ’ª', type: 'distance', requirement: 250, desc: 'Hike 250 total miles', milestone: true },
-          { id: 'distance500', name: 'Marathon Master', icon: 'ðŸ†', type: 'distance', requirement: 500, desc: 'Hike 500 total miles', milestone: true },
-          { id: 'climber1k', name: 'Hill Climber', icon: 'ðŸ§—', type: 'elevation', requirement: 1000, desc: 'Climb 1,000 feet', milestone: true },
-          { id: 'climber5k', name: 'Peak Climber', icon: 'ðŸ”ï¸', type: 'elevation', requirement: 5000, desc: 'Climb 5,000 feet', milestone: true },
-          { id: 'kosciuszko', name: 'Kosciuszko Climber', icon: 'ðŸ”ï¸', type: 'elevation', requirement: 7310, desc: 'Reach the height of Mt. Kosciuszko (Australia)', milestone: true },
-          { id: 'climber10k', name: 'Mountain Goat', icon: 'ðŸ', type: 'elevation', requirement: 10000, desc: 'Climb 10,000 feet', milestone: true },
-          { id: 'elbrus', name: 'Elbrus Achiever', icon: 'â›°ï¸', type: 'elevation', requirement: 18510, desc: 'Reach the height of Mt. Elbrus (Europe)', milestone: true },
-          { id: 'kilimanjaro', name: 'Kilimanjaro Conqueror', icon: 'ðŸ—»', type: 'elevation', requirement: 19341, desc: 'Reach the height of Mt. Kilimanjaro (Africa)', milestone: true },
-          { id: 'denali', name: 'Denali Master', icon: 'ðŸ”ï¸', type: 'elevation', requirement: 20310, desc: 'Reach the height of Denali (North America)', milestone: true },
-          { id: 'aconcagua', name: 'Aconcagua Champion', icon: 'â›°ï¸', type: 'elevation', requirement: 22838, desc: 'Reach the height of Aconcagua (South America)', milestone: true },
-          { id: 'everest', name: 'Everest Dreamer', icon: 'ðŸ”ï¸', type: 'elevation', requirement: 29032, desc: 'Reach the height of Mt. Everest (Asia)', milestone: true },
-          { id: 'climber50k', name: 'Sky Walker', icon: 'â˜ï¸', type: 'elevation', requirement: 50000, desc: 'Climb 50,000 feet', milestone: true },
-          { id: 'climber100k', name: 'Altitude King', icon: 'ðŸ‘‘', type: 'elevation', requirement: 100000, desc: 'Climb 100,000 feet', milestone: true },
-          { id: 'spring', name: 'Spring Awakening', icon: 'ðŸŒ¸', type: 'seasonal', desc: 'Complete a hike in spring (Mar-May)' },
-          { id: 'summer', name: 'Summer Solstice', icon: 'â˜€ï¸', type: 'seasonal', desc: 'Complete a hike in summer (Jun-Aug)' },
-          { id: 'fall', name: 'Fall Colors', icon: 'ðŸ‚', type: 'seasonal', desc: 'Complete a hike in autumn (Sep-Nov)' },
-          { id: 'winter', name: 'Winter Warrior', icon: 'â„ï¸', type: 'seasonal', desc: 'Complete a hike in winter (Dec-Feb)' },
-          { id: 'fourseasons', name: 'Four Seasons', icon: 'ðŸŒˆ', type: 'seasonal', desc: 'Complete hikes in all four seasons', requirement: 4, milestone: true },
-          { id: 'rainhiker', name: 'Rain Hiker', icon: 'ðŸŒ§ï¸', type: 'weather', desc: 'Complete a hike in the rain' },
-          { id: 'fogwalker', name: 'Fog Walker', icon: 'ðŸŒ«ï¸', type: 'weather', desc: 'Hike through fog or mist' },
-          { id: 'windrider', name: 'Wind Rider', icon: 'ðŸŒ¬ï¸', type: 'weather', desc: 'Hike on a windy day' },
-          { id: 'hotstepper', name: 'Hot Stepper', icon: 'ðŸŒ¡ï¸', type: 'weather', desc: 'Hike when it\'s over 85Â°F' },
-          { id: 'waterfall', name: 'Waterfall Finder', icon: 'ðŸ’¦', type: 'discovery', desc: 'Find a waterfall' },
-          { id: 'wildlife', name: 'Wildlife Spotter', icon: 'ðŸ¦Œ', type: 'discovery', desc: 'See a wild animal' },
-          { id: 'bird', name: 'Bird Watcher', icon: 'ðŸ¦…', type: 'discovery', desc: 'Spot a bird' },
-          { id: 'butterfly', name: 'Butterfly Hunter', icon: 'ðŸ¦‹', type: 'discovery', desc: 'See a butterfly' },
-          { id: 'mushroom', name: 'Fungi Finder', icon: 'ðŸ„', type: 'discovery', desc: 'Discover mushrooms' },
-          { id: 'wildflower', name: 'Flower Power', icon: 'ðŸŒ¸', type: 'discovery', desc: 'Find wildflowers' },
-          { id: 'treeclimb', name: 'Tree Hugger', icon: 'ðŸŒ³', type: 'discovery', desc: 'Hug a big tree' },
-          { id: 'pinecone', name: 'Pine Collector', icon: 'ðŸŒ²', type: 'discovery', desc: 'Collect a pinecone' },
-          { id: 'rock', name: 'Rock Hound', icon: 'ðŸª¨', type: 'discovery', desc: 'Find a cool rock' },
-          { id: 'feather', name: 'Feather Finder', icon: 'ðŸª¶', type: 'discovery', desc: 'Find a feather' },
-          { id: 'stream', name: 'Stream Crosser', icon: 'ðŸŒŠ', type: 'discovery', desc: 'Cross a stream' },
-          { id: 'cave', name: 'Cave Explorer', icon: 'ðŸ•³ï¸', type: 'discovery', desc: 'Explore a cave' },
-          { id: 'bridge', name: 'Bridge Walker', icon: 'ðŸŒ‰', type: 'discovery', desc: 'Cross a bridge' },
-          { id: 'sunset', name: 'Sunset Chaser', icon: 'ðŸŒ…', type: 'discovery', desc: 'Watch a sunset' },
-          { id: 'sunrise', name: 'Early Bird', icon: 'ðŸŒ„', type: 'discovery', desc: 'Watch a sunrise' },
-          { id: 'rainbow', name: 'Rainbow Finder', icon: 'ðŸŒˆ', type: 'discovery', desc: 'See a rainbow' },
-          { id: 'fog', name: 'Mist Walker', icon: 'ðŸŒ«ï¸', type: 'discovery', desc: 'Hike in fog' },
-          { id: 'snow', name: 'Snow Trekker', icon: 'â„ï¸', type: 'discovery', desc: 'Hike in snow' },
-          { id: 'rain', name: 'Rain Ranger', icon: 'ðŸŒ§ï¸', type: 'discovery', desc: 'Hike in rain' },
-          { id: 'frog', name: 'Frog Friend', icon: 'ðŸ¸', type: 'discovery', desc: 'See a frog' },
-          { id: 'squirrel', name: 'Squirrel Scout', icon: 'ðŸ¿ï¸', type: 'discovery', desc: 'Spot a squirrel' },
-          { id: 'snake', name: 'Snake Spotter', icon: 'ðŸ', type: 'discovery', desc: 'See a snake' },
-          { id: 'turtle', name: 'Turtle Tracker', icon: 'ðŸ¢', type: 'discovery', desc: 'Find a turtle' },
-          { id: 'rabbit', name: 'Bunny Buddy', icon: 'ðŸ°', type: 'discovery', desc: 'Spot a rabbit' },
-          { id: 'fish', name: 'Fish Finder', icon: 'ðŸŸ', type: 'discovery', desc: 'See fish' },
-          { id: 'acorn', name: 'Acorn Collector', icon: 'ðŸŒ°', type: 'discovery', desc: 'Collect an acorn' },
-          { id: 'leaf', name: 'Leaf Lover', icon: 'ðŸ‚', type: 'discovery', desc: 'Find a pretty leaf' },
-          { id: 'stick', name: 'Walking Stick', icon: 'ðŸ¦¯', type: 'discovery', desc: 'Find a hiking stick' },
-          { id: 'bee', name: 'Bee Keeper', icon: 'ðŸ', type: 'discovery', desc: 'See a bee' },
-          { id: 'spider', name: 'Spider Scout', icon: 'ðŸ•·ï¸', type: 'discovery', desc: 'Find a spider web' },
-          { id: 'tracks', name: 'Track Finder', icon: 'ðŸ¾', type: 'discovery', desc: 'Find animal tracks' },
-          { id: 'berries', name: 'Berry Scout', icon: 'ðŸ«', type: 'discovery', desc: 'Find wild berries' },
-          { id: 'nest', name: 'Nest Finder', icon: 'ðŸª¹', type: 'discovery', desc: 'Find a bird nest' },
-          { id: 'fossil', name: 'Time Detective', icon: 'ðŸ¦´', type: 'discovery', desc: 'Find a fossil' },
-          { id: 'crystal', name: 'Crystal Hunter', icon: 'ðŸ’Ž', type: 'discovery', desc: 'Find crystals' },
-          { id: 'clouds', name: 'Cloud Watcher', icon: 'â˜ï¸', type: 'discovery', desc: 'Watch clouds' },
-          { id: 'wind', name: 'Wind Rider', icon: 'ðŸ’¨', type: 'discovery', desc: 'Hike in wind' },
-          { id: 'moon', name: 'Moon Gazer', icon: 'ðŸŒ™', type: 'discovery', desc: 'See the moon' },
-          { id: 'beach', name: 'Beach Comber', icon: 'ðŸ–ï¸', type: 'location', desc: 'Hike at beach' },
-          { id: 'desert', name: 'Desert Wanderer', icon: 'ðŸœï¸', type: 'location', desc: 'Hike in desert' },
-          { id: 'forest', name: 'Forest Friend', icon: 'ðŸŒ²', type: 'location', desc: 'Hike in forest' },
-          { id: 'mountain', name: 'Mountain Master', icon: 'â›°ï¸', type: 'location', desc: 'Hike mountains' },
-          { id: 'canyon', name: 'Canyon Explorer', icon: 'ðŸžï¸', type: 'location', desc: 'Hike in canyon' },
-          { id: 'lake', name: 'Lake Lover', icon: 'ðŸžï¸', type: 'location', desc: 'Hike around lake' },
-          { id: 'river', name: 'River Runner', icon: 'ðŸžï¸', type: 'location', desc: 'Hike along river' },
-          { id: 'statepark', name: 'Park Visitor', icon: 'ðŸ•ï¸', type: 'location', desc: 'Visit state park' },
-          { id: 'nationalpark', name: 'Park Ranger', icon: 'ðŸŽ–ï¸', type: 'location', desc: 'Visit national park' },
-          { id: 'meadow', name: 'Meadow Walker', icon: 'ðŸŒ¾', type: 'location', desc: 'Hike through meadow' },
-          { id: 'wetland', name: 'Wetland Explorer', icon: 'ðŸ¦†', type: 'location', desc: 'Visit wetland' },
-          { id: 'jungle', name: 'Jungle Trekker', icon: 'ðŸŒ´', type: 'location', desc: 'Hike in jungle' },
-          { id: 'prairie', name: 'Prairie Walker', icon: 'ðŸŒ»', type: 'location', desc: 'Hike prairie' },
-          { id: 'tundra', name: 'Tundra Explorer', icon: 'ðŸ§Š', type: 'location', desc: 'Hike in tundra' },
-          { id: 'volcano', name: 'Volcano Adventurer', icon: 'ðŸŒ‹', type: 'location', desc: 'Hike near volcano' },
-          { id: 'family', name: 'Family Time', icon: 'ðŸ‘¨â€ðŸ‘©â€ðŸ‘§â€ðŸ‘¦', type: 'special', desc: 'Family hikes together' },
-          { id: 'picnic', name: 'Trail Feast', icon: 'ðŸ§º', type: 'special', desc: 'Have trail picnic' },
-          { id: 'camping', name: 'Happy Camper', icon: 'â›º', type: 'special', desc: 'Camp overnight' },
-          { id: 'stargazing', name: 'Star Gazer', icon: 'â­', type: 'special', desc: 'Stargaze on trail' },
-          { id: 'geocache', name: 'Treasure Hunter', icon: 'ðŸ’Ž', type: 'special', desc: 'Find geocache' },
-          { id: 'summit', name: 'Summit Seeker', icon: 'ðŸŽ¯', type: 'special', desc: 'Reach a summit' },
-          { id: 'lighthouse', name: 'Light Keeper', icon: 'ðŸ—¼', type: 'special', desc: 'Visit lighthouse' },
-          { id: 'historic', name: 'Time Traveler', icon: 'ðŸ›ï¸', type: 'special', desc: 'Visit historic site' },
-          { id: 'photog', name: 'Photo Pro', icon: 'ðŸ“¸', type: 'special', desc: 'Take photos' },
-          { id: 'notrail', name: 'Off Beaten Path', icon: 'ðŸ§­', type: 'special', desc: 'Hike off-trail' },
-          { id: 'leader', name: 'Trail Leader', icon: 'ðŸ§‘â€ðŸ«', type: 'special', desc: 'Lead the group' },
-          { id: 'map', name: 'Navigator', icon: 'ðŸ—ºï¸', type: 'special', desc: 'Use map/compass' },
-          { id: 'journal', name: 'Nature Writer', icon: 'ðŸ““', type: 'special', desc: 'Write in journal' },
-          { id: 'art', name: 'Trail Artist', icon: 'ðŸŽ¨', type: 'special', desc: 'Draw/paint on trail' },
-          { id: 'song', name: 'Trail Singer', icon: 'ðŸŽµ', type: 'special', desc: 'Sing hiking songs' },
-          { id: 'story', name: 'Story Teller', icon: 'ðŸ“š', type: 'special', desc: 'Tell stories' },
-          { id: 'game', name: 'Trail Games', icon: 'ðŸŽ²', type: 'special', desc: 'Play trail games' },
-          { id: 'clean', name: 'Trail Keeper', icon: 'â™»ï¸', type: 'special', desc: 'Pick up litter' },
-          { id: 'help', name: 'Helpful Hiker', icon: 'ðŸ¤', type: 'special', desc: 'Help another hiker' },
-          { id: 'courage', name: 'Brave Heart', icon: 'ðŸ’ª', type: 'special', desc: 'Overcome a fear' },
-          { id: 'early', name: 'Morning Glory', icon: 'ðŸŒž', type: 'special', desc: 'Start before 7am' },
-          { id: 'long', name: 'Endurance Pro', icon: 'â±ï¸', type: 'special', desc: 'Hike 4+ hours' },
-          { id: 'quiet', name: 'Silent Steps', icon: 'ðŸ¤«', type: 'special', desc: 'Hike in silence' },
-          { id: 'backwards', name: 'Backwards Walker', icon: 'ðŸ”„', type: 'special', desc: 'Walk backwards' },
-          { id: 'barefoot', name: 'Nature Feet', icon: 'ðŸ¦¶', type: 'special', desc: 'Walk barefoot' },
-          { id: 'night', name: 'Night Hiker', icon: 'ðŸŒƒ', type: 'special', desc: 'Hike at night' },
-          { id: 'firstaid', name: 'Trail Medic', icon: 'ðŸ©¹', type: 'special', desc: 'Use first aid' },
-          { id: 'fire', name: 'Fire Starter', icon: 'ðŸ”¥', type: 'special', desc: 'Build safe fire' },
-          { id: 'knots', name: 'Knot Master', icon: 'ðŸª¢', type: 'special', desc: 'Tie useful knots' },
-          { id: 'binoculars', name: 'Far Seer', icon: 'ðŸ”­', type: 'special', desc: 'Use binoculars' },
-          { id: 'whistle', name: 'Signal Master', icon: 'ðŸ“£', type: 'special', desc: 'Use safety whistle' },
-          { id: 'fishing', name: 'Trail Fisher', icon: 'ðŸŽ£', type: 'special', desc: 'Fish on trail' },
-          { id: 'wade', name: 'Water Walker', icon: 'ðŸ‘£', type: 'special', desc: 'Wade through water' },
-          { id: 'climb', name: 'Rock Climber', icon: 'ðŸ§—â€â™€ï¸', type: 'special', desc: 'Climb rocks' },
-          { id: 'meditation', name: 'Trail Zen', icon: 'ðŸ§˜', type: 'special', desc: 'Meditate in nature' },
+          { id: 'first', name: 'First Steps', icon: '🥾', type: 'count', requirement: 1, desc: 'Complete your first hike', milestone: true },
+          { id: 'explorer', name: 'Explorer', icon: '🗺️', type: 'count', requirement: 5, desc: 'Complete 5 hikes', milestone: true },
+          { id: 'adventurer', name: 'Adventurer', icon: '⛰️', type: 'count', requirement: 10, desc: 'Complete 10 hikes', milestone: true },
+          { id: 'trailblazer', name: 'Trailblazer', icon: '🔥', type: 'count', requirement: 25, desc: 'Complete 25 hikes', milestone: true },
+          { id: 'legend', name: 'Hiking Legend', icon: '👑', type: 'count', requirement: 50, desc: 'Complete 50 hikes', milestone: true },
+          { id: 'century', name: 'Century Club', icon: '💯', type: 'count', requirement: 100, desc: 'Complete 100 hikes', milestone: true },
+          { id: 'distance10', name: 'First 10', icon: '🏃', type: 'distance', requirement: 10, desc: 'Hike 10 total miles', milestone: true },
+          { id: 'distance25', name: 'Quarter Century', icon: '🚶', type: 'distance', requirement: 25, desc: 'Hike 25 total miles', milestone: true },
+          { id: 'distance50', name: 'Half Century', icon: '🥇', type: 'distance', requirement: 50, desc: 'Hike 50 total miles', milestone: true },
+          { id: 'distance100', name: 'Centurion', icon: '⭐', type: 'distance', requirement: 100, desc: 'Hike 100 total miles', milestone: true },
+          { id: 'distance250', name: 'Ultra Hiker', icon: '💪', type: 'distance', requirement: 250, desc: 'Hike 250 total miles', milestone: true },
+          { id: 'distance500', name: 'Marathon Master', icon: '🏆', type: 'distance', requirement: 500, desc: 'Hike 500 total miles', milestone: true },
+          { id: 'climber1k', name: 'Hill Climber', icon: '🧗', type: 'elevation', requirement: 1000, desc: 'Climb 1,000 feet', milestone: true },
+          { id: 'climber5k', name: 'Peak Climber', icon: '🏔️', type: 'elevation', requirement: 5000, desc: 'Climb 5,000 feet', milestone: true },
+          { id: 'kosciuszko', name: 'Kosciuszko Climber', icon: '🏔️', type: 'elevation', requirement: 7310, desc: 'Reach the height of Mt. Kosciuszko (Australia)', milestone: true },
+          { id: 'climber10k', name: 'Mountain Goat', icon: '🐐', type: 'elevation', requirement: 10000, desc: 'Climb 10,000 feet', milestone: true },
+          { id: 'elbrus', name: 'Elbrus Achiever', icon: '⛰️', type: 'elevation', requirement: 18510, desc: 'Reach the height of Mt. Elbrus (Europe)', milestone: true },
+          { id: 'kilimanjaro', name: 'Kilimanjaro Conqueror', icon: '🗻', type: 'elevation', requirement: 19341, desc: 'Reach the height of Mt. Kilimanjaro (Africa)', milestone: true },
+          { id: 'denali', name: 'Denali Master', icon: '🏔️', type: 'elevation', requirement: 20310, desc: 'Reach the height of Denali (North America)', milestone: true },
+          { id: 'aconcagua', name: 'Aconcagua Champion', icon: '⛰️', type: 'elevation', requirement: 22838, desc: 'Reach the height of Aconcagua (South America)', milestone: true },
+          { id: 'everest', name: 'Everest Dreamer', icon: '🏔️', type: 'elevation', requirement: 29032, desc: 'Reach the height of Mt. Everest (Asia)', milestone: true },
+          { id: 'climber50k', name: 'Sky Walker', icon: '☁️', type: 'elevation', requirement: 50000, desc: 'Climb 50,000 feet', milestone: true },
+          { id: 'climber100k', name: 'Altitude King', icon: '👑', type: 'elevation', requirement: 100000, desc: 'Climb 100,000 feet', milestone: true },
+          { id: 'spring', name: 'Spring Awakening', icon: '🌸', type: 'seasonal', desc: 'Complete a hike in spring (Mar-May)' },
+          { id: 'summer', name: 'Summer Solstice', icon: '☀️', type: 'seasonal', desc: 'Complete a hike in summer (Jun-Aug)' },
+          { id: 'fall', name: 'Fall Colors', icon: '🍂', type: 'seasonal', desc: 'Complete a hike in autumn (Sep-Nov)' },
+          { id: 'winter', name: 'Winter Warrior', icon: '❄️', type: 'seasonal', desc: 'Complete a hike in winter (Dec-Feb)' },
+          { id: 'fourseasons', name: 'Four Seasons', icon: '🌈', type: 'seasonal', desc: 'Complete hikes in all four seasons', requirement: 4, milestone: true },
+          { id: 'rainhiker', name: 'Rain Hiker', icon: '🌧️', type: 'weather', desc: 'Complete a hike in the rain' },
+          { id: 'fogwalker', name: 'Fog Walker', icon: '🌫️', type: 'weather', desc: 'Hike through fog or mist' },
+          { id: 'windrider', name: 'Wind Rider', icon: '🌬️', type: 'weather', desc: 'Hike on a windy day' },
+          { id: 'hotstepper', name: 'Hot Stepper', icon: '🌡️', type: 'weather', desc: 'Hike when it\'s over 85°F' },
+          { id: 'waterfall', name: 'Waterfall Finder', icon: '💦', type: 'discovery', desc: 'Find a waterfall' },
+          { id: 'wildlife', name: 'Wildlife Spotter', icon: '🦌', type: 'discovery', desc: 'See a wild animal' },
+          { id: 'bird', name: 'Bird Watcher', icon: '🦅', type: 'discovery', desc: 'Spot a bird' },
+          { id: 'butterfly', name: 'Butterfly Hunter', icon: '🦋', type: 'discovery', desc: 'See a butterfly' },
+          { id: 'mushroom', name: 'Fungi Finder', icon: '🍄', type: 'discovery', desc: 'Discover mushrooms' },
+          { id: 'wildflower', name: 'Flower Power', icon: '🌸', type: 'discovery', desc: 'Find wildflowers' },
+          { id: 'treeclimb', name: 'Tree Hugger', icon: '🌳', type: 'discovery', desc: 'Hug a big tree' },
+          { id: 'pinecone', name: 'Pine Collector', icon: '🌲', type: 'discovery', desc: 'Collect a pinecone' },
+          { id: 'rock', name: 'Rock Hound', icon: '🪨', type: 'discovery', desc: 'Find a cool rock' },
+          { id: 'feather', name: 'Feather Finder', icon: '🪶', type: 'discovery', desc: 'Find a feather' },
+          { id: 'stream', name: 'Stream Crosser', icon: '🌊', type: 'discovery', desc: 'Cross a stream' },
+          { id: 'cave', name: 'Cave Explorer', icon: '🕳️', type: 'discovery', desc: 'Explore a cave' },
+          { id: 'bridge', name: 'Bridge Walker', icon: '🌉', type: 'discovery', desc: 'Cross a bridge' },
+          { id: 'sunset', name: 'Sunset Chaser', icon: '🌅', type: 'discovery', desc: 'Watch a sunset' },
+          { id: 'sunrise', name: 'Early Bird', icon: '🌄', type: 'discovery', desc: 'Watch a sunrise' },
+          { id: 'rainbow', name: 'Rainbow Finder', icon: '🌈', type: 'discovery', desc: 'See a rainbow' },
+          { id: 'fog', name: 'Mist Walker', icon: '🌫️', type: 'discovery', desc: 'Hike in fog' },
+          { id: 'snow', name: 'Snow Trekker', icon: '❄️', type: 'discovery', desc: 'Hike in snow' },
+          { id: 'rain', name: 'Rain Ranger', icon: '🌧️', type: 'discovery', desc: 'Hike in rain' },
+          { id: 'frog', name: 'Frog Friend', icon: '🐸', type: 'discovery', desc: 'See a frog' },
+          { id: 'squirrel', name: 'Squirrel Scout', icon: '🐿️', type: 'discovery', desc: 'Spot a squirrel' },
+          { id: 'snake', name: 'Snake Spotter', icon: '🐍', type: 'discovery', desc: 'See a snake' },
+          { id: 'turtle', name: 'Turtle Tracker', icon: '🐢', type: 'discovery', desc: 'Find a turtle' },
+          { id: 'rabbit', name: 'Bunny Buddy', icon: '🐰', type: 'discovery', desc: 'Spot a rabbit' },
+          { id: 'fish', name: 'Fish Finder', icon: '🐟', type: 'discovery', desc: 'See fish' },
+          { id: 'acorn', name: 'Acorn Collector', icon: '🌰', type: 'discovery', desc: 'Collect an acorn' },
+          { id: 'leaf', name: 'Leaf Lover', icon: '🍂', type: 'discovery', desc: 'Find a pretty leaf' },
+          { id: 'stick', name: 'Walking Stick', icon: '🦯', type: 'discovery', desc: 'Find a hiking stick' },
+          { id: 'bee', name: 'Bee Keeper', icon: '🐝', type: 'discovery', desc: 'See a bee' },
+          { id: 'spider', name: 'Spider Scout', icon: '🕷️', type: 'discovery', desc: 'Find a spider web' },
+          { id: 'tracks', name: 'Track Finder', icon: '🐾', type: 'discovery', desc: 'Find animal tracks' },
+          { id: 'berries', name: 'Berry Scout', icon: '🫐', type: 'discovery', desc: 'Find wild berries' },
+          { id: 'nest', name: 'Nest Finder', icon: '🪹', type: 'discovery', desc: 'Find a bird nest' },
+          { id: 'fossil', name: 'Time Detective', icon: '🦴', type: 'discovery', desc: 'Find a fossil' },
+          { id: 'crystal', name: 'Crystal Hunter', icon: '💎', type: 'discovery', desc: 'Find crystals' },
+          { id: 'clouds', name: 'Cloud Watcher', icon: '☁️', type: 'discovery', desc: 'Watch clouds' },
+          { id: 'wind', name: 'Wind Rider', icon: '💨', type: 'discovery', desc: 'Hike in wind' },
+          { id: 'moon', name: 'Moon Gazer', icon: '🌙', type: 'discovery', desc: 'See the moon' },
+          { id: 'beach', name: 'Beach Comber', icon: '🏖️', type: 'location', desc: 'Hike at beach' },
+          { id: 'desert', name: 'Desert Wanderer', icon: '🏜️', type: 'location', desc: 'Hike in desert' },
+          { id: 'forest', name: 'Forest Friend', icon: '🌲', type: 'location', desc: 'Hike in forest' },
+          { id: 'mountain', name: 'Mountain Master', icon: '⛰️', type: 'location', desc: 'Hike mountains' },
+          { id: 'canyon', name: 'Canyon Explorer', icon: '🏞️', type: 'location', desc: 'Hike in canyon' },
+          { id: 'lake', name: 'Lake Lover', icon: '🏞️', type: 'location', desc: 'Hike around lake' },
+          { id: 'river', name: 'River Runner', icon: '🏞️', type: 'location', desc: 'Hike along river' },
+          { id: 'statepark', name: 'Park Visitor', icon: '🏕️', type: 'location', desc: 'Visit state park' },
+          { id: 'nationalpark', name: 'Park Ranger', icon: '🎖️', type: 'location', desc: 'Visit national park' },
+          { id: 'meadow', name: 'Meadow Walker', icon: '🌾', type: 'location', desc: 'Hike through meadow' },
+          { id: 'wetland', name: 'Wetland Explorer', icon: '🦆', type: 'location', desc: 'Visit wetland' },
+          { id: 'jungle', name: 'Jungle Trekker', icon: '🌴', type: 'location', desc: 'Hike in jungle' },
+          { id: 'prairie', name: 'Prairie Walker', icon: '🌻', type: 'location', desc: 'Hike prairie' },
+          { id: 'tundra', name: 'Tundra Explorer', icon: '🧊', type: 'location', desc: 'Hike in tundra' },
+          { id: 'volcano', name: 'Volcano Adventurer', icon: '🌋', type: 'location', desc: 'Hike near volcano' },
+          { id: 'family', name: 'Family Time', icon: '👨‍👩‍👧‍👦', type: 'special', desc: 'Family hikes together' },
+          { id: 'picnic', name: 'Trail Feast', icon: '🧺', type: 'special', desc: 'Have trail picnic' },
+          { id: 'camping', name: 'Happy Camper', icon: '⛺', type: 'special', desc: 'Camp overnight' },
+          { id: 'stargazing', name: 'Star Gazer', icon: '⭐', type: 'special', desc: 'Stargaze on trail' },
+          { id: 'geocache', name: 'Treasure Hunter', icon: '💎', type: 'special', desc: 'Find geocache' },
+          { id: 'summit', name: 'Summit Seeker', icon: '🎯', type: 'special', desc: 'Reach a summit' },
+          { id: 'lighthouse', name: 'Light Keeper', icon: '🗼', type: 'special', desc: 'Visit lighthouse' },
+          { id: 'historic', name: 'Time Traveler', icon: '🏛️', type: 'special', desc: 'Visit historic site' },
+          { id: 'photog', name: 'Photo Pro', icon: '📸', type: 'special', desc: 'Take photos' },
+          { id: 'notrail', name: 'Off Beaten Path', icon: '🧭', type: 'special', desc: 'Hike off-trail' },
+          { id: 'leader', name: 'Trail Leader', icon: '🧑‍🏫', type: 'special', desc: 'Lead the group' },
+          { id: 'map', name: 'Navigator', icon: '🗺️', type: 'special', desc: 'Use map/compass' },
+          { id: 'journal', name: 'Nature Writer', icon: '📓', type: 'special', desc: 'Write in journal' },
+          { id: 'art', name: 'Trail Artist', icon: '🎨', type: 'special', desc: 'Draw/paint on trail' },
+          { id: 'song', name: 'Trail Singer', icon: '🎵', type: 'special', desc: 'Sing hiking songs' },
+          { id: 'story', name: 'Story Teller', icon: '📚', type: 'special', desc: 'Tell stories' },
+          { id: 'game', name: 'Trail Games', icon: '🎲', type: 'special', desc: 'Play trail games' },
+          { id: 'clean', name: 'Trail Keeper', icon: '♻️', type: 'special', desc: 'Pick up litter' },
+          { id: 'help', name: 'Helpful Hiker', icon: '🤝', type: 'special', desc: 'Help another hiker' },
+          { id: 'courage', name: 'Brave Heart', icon: '💪', type: 'special', desc: 'Overcome a fear' },
+          { id: 'early', name: 'Morning Glory', icon: '🌞', type: 'special', desc: 'Start before 7am' },
+          { id: 'long', name: 'Endurance Pro', icon: '⏱️', type: 'special', desc: 'Hike 4+ hours' },
+          { id: 'quiet', name: 'Silent Steps', icon: '🤫', type: 'special', desc: 'Hike in silence' },
+          { id: 'backwards', name: 'Backwards Walker', icon: '🔄', type: 'special', desc: 'Walk backwards' },
+          { id: 'barefoot', name: 'Nature Feet', icon: '🦶', type: 'special', desc: 'Walk barefoot' },
+          { id: 'night', name: 'Night Hiker', icon: '🌃', type: 'special', desc: 'Hike at night' },
+          { id: 'firstaid', name: 'Trail Medic', icon: '🩹', type: 'special', desc: 'Use first aid' },
+          { id: 'fire', name: 'Fire Starter', icon: '🔥', type: 'special', desc: 'Build safe fire' },
+          { id: 'knots', name: 'Knot Master', icon: '🪢', type: 'special', desc: 'Tie useful knots' },
+          { id: 'binoculars', name: 'Far Seer', icon: '🔭', type: 'special', desc: 'Use binoculars' },
+          { id: 'whistle', name: 'Signal Master', icon: '📣', type: 'special', desc: 'Use safety whistle' },
+          { id: 'fishing', name: 'Trail Fisher', icon: '🎣', type: 'special', desc: 'Fish on trail' },
+          { id: 'wade', name: 'Water Walker', icon: '👣', type: 'special', desc: 'Wade through water' },
+          { id: 'climb', name: 'Rock Climber', icon: '🧗‍♀️', type: 'special', desc: 'Climb rocks' },
+          { id: 'meditation', name: 'Trail Zen', icon: '🧘', type: 'special', desc: 'Meditate in nature' },
         ];
 
         // Map Component
@@ -493,7 +493,7 @@
             const map = L.map(mapRef.current).setView([39.8283, -98.5795], 4);
             mapInstanceRef.current = map;
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-              attribution: 'Â© OpenStreetMap contributors',
+              attribution: '© OpenStreetMap contributors',
               maxZoom: 19
             }).addTo(map);
             return () => {
@@ -526,11 +526,11 @@
 
             hikesWithCoords.forEach(hike => {
               const difficultyColors = { easy: '#10b981', medium: '#f59e0b', hard: '#ef4444' };
-              const difficultyIcons = { easy: 'ðŸŸ¢', medium: 'ðŸŸ¡', hard: 'ðŸ”´' };
+              const difficultyIcons = { easy: '🟢', medium: '🟡', hard: '🔴' };
               const markerColor = difficultyColors[hike.difficulty] || '#6b7280';
 
               const customIcon = L.divIcon({
-                html: `<div style="background-color: ${markerColor}; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 16px;">${hike.hikerAvatar || 'ðŸ¥¾'}</div>`,
+                html: `<div style="background-color: ${markerColor}; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 16px;">${hike.hikerAvatar || '🥾'}</div>`,
                 className: 'custom-marker',
                 iconSize: [30, 30],
                 iconAnchor: [15, 15]
@@ -548,7 +548,7 @@
               const popupContent = `
                 <div style="min-width: 200px;">
                   <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px; color: #065f46;">
-                    ${hike.hikerAvatar || 'ðŸ¥¾'} ${hike.name}
+                    ${hike.hikerAvatar || '🥾'} ${hike.name}
                   </div>
                   ${hike.difficulty ? `<div style="margin-bottom: 4px;"><strong>${difficultyIcons[hike.difficulty] || ''} ${hike.difficulty.charAt(0).toUpperCase() + hike.difficulty.slice(1)}</strong></div>` : ''}
                   <div style="margin-bottom: 4px;"><strong>Date:</strong> ${new Date(hike.date).toLocaleDateString()}</div>
@@ -557,7 +557,7 @@
                   ${hike.location ? `<div style="margin-bottom: 4px;"><strong>Location:</strong> ${hike.location}</div>` : ''}
                   ${hike.notes ? `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-style: italic; color: #6b7280;">${hike.notes}</div>` : ''}
                   <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280;">
-                    ðŸ’¡ Drag marker to adjust location
+                    💡 Drag marker to adjust location
                   </div>
                 </div>
               `;
@@ -576,7 +576,7 @@
             <div>
               {draggingHike && (
                 <div className="bg-[var(--sky)]/10 border-2 border-[var(--sky)] text-[var(--sky)] px-4 py-2 rounded-2xl text-sm font-bold mb-4">
-                  ðŸ“ Adjusting location for "{draggingHike}"... Release to save new position
+                  📍 Adjusting location for "{draggingHike}"... Release to save new position
                 </div>
               )}
               {hikesWithCoords.length === 0 ? (
@@ -606,7 +606,7 @@
           const [loading, setLoading] = useState(true);
           const [showSetup, setShowSetup] = useState(false);
           const [newProfileName, setNewProfileName] = useState('');
-          const [newProfileAvatar, setNewProfileAvatar] = useState('ðŸ‘¦');
+          const [newProfileAvatar, setNewProfileAvatar] = useState('👦');
           const [newProfileColor, setNewProfileColor] = useState('#4CAF50');
           const [showForm, setShowForm] = useState(false);
           const [selectedBadge, setSelectedBadge] = useState(null);
@@ -751,7 +751,7 @@
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
-            alert('âœ… Hikes downloaded as CSV file!');
+            alert('✅ Hikes downloaded as CSV file!');
           };
 
           const saveHike = async () => {
@@ -943,15 +943,15 @@
 
           const earnedBadges = badgeStats.filter(b => b.earned);
           const badgeCategories = {
-            'ðŸ”ï¸ Milestone Badges': [
+            '🏔️ Milestone Badges': [
               ...badgeStats.filter(b => b.type === 'count'),
               ...badgeStats.filter(b => b.type === 'distance'),
               ...badgeStats.filter(b => b.type === 'elevation')
             ],
-            'ðŸ“ Location Badges': badgeStats.filter(b => b.type === 'location'),
-            'ðŸŒ¸ Seasonal Badges': badgeStats.filter(b => b.type === 'seasonal'),
-            'â›ˆï¸ Weather Badges': badgeStats.filter(b => b.type === 'weather'),
-            'ðŸ¦Œ Discovery Badges': [
+            '📍 Location Badges': badgeStats.filter(b => b.type === 'location'),
+            '🌸 Seasonal Badges': badgeStats.filter(b => b.type === 'seasonal'),
+            '⛈️ Weather Badges': badgeStats.filter(b => b.type === 'weather'),
+            '🦌 Discovery Badges': [
               ...badgeStats.filter(b => ['wildlife','bird','butterfly','frog','squirrel','snake','turtle','rabbit','fish','bee','spider'].includes(b.id)),
               ...badgeStats.filter(b => ['waterfall','mushroom','wildflower','treeclimb','pinecone','rock','feather','stream','cave','bridge','sunset','sunrise','rainbow','acorn','leaf','stick','tracks','berries','nest','fossil','crystal','clouds','moon'].includes(b.id)),
               ...badgeStats.filter(b => b.type === 'special')
@@ -963,7 +963,7 @@
             return (
               <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[var(--sunset)] patch sticker text-4xl mb-4 animate-bounce">ðŸ¥¾</div>
+                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[var(--sunset)] patch sticker text-4xl mb-4 animate-bounce">🥾</div>
                   <div className="text-xl font-display font-bold text-[var(--ink)]">Loading...</div>
                 </div>
               </div>
@@ -1067,9 +1067,9 @@
                       <input type="text" placeholder="Hike Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full p-3 border-2 border-[var(--ink)] rounded-2xl focus:ring-2 focus:ring-[var(--sunset)] outline-none font-semibold" />
                       <input type="date" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} className="w-full p-3 border-2 border-[var(--ink)] rounded-2xl focus:ring-2 focus:ring-[var(--sunset)] outline-none font-semibold" />
                       <select value={formData.difficulty} onChange={(e) => setFormData({...formData, difficulty: e.target.value})} className="w-full p-3 border-2 border-[var(--ink)] rounded-2xl focus:ring-2 focus:ring-[var(--sunset)] outline-none font-semibold">
-                        <option value="easy">Easy ðŸŸ¢</option>
-                        <option value="medium">Medium ðŸŸ¡</option>
-                        <option value="hard">Hard ðŸ”´</option>
+                        <option value="easy">Easy 🟢</option>
+                        <option value="medium">Medium 🟡</option>
+                        <option value="hard">Hard 🔴</option>
                       </select>
                       <input type="number" step="0.1" placeholder="Distance (miles)" value={formData.distance} onChange={(e) => setFormData({...formData, distance: e.target.value})} className="w-full p-3 border-2 border-[var(--ink)] rounded-2xl focus:ring-2 focus:ring-[var(--sunset)] outline-none font-semibold" />
                       <input type="number" placeholder="Elevation (feet)" value={formData.elevation} onChange={(e) => setFormData({...formData, elevation: e.target.value})} className="w-full p-3 border-2 border-[var(--ink)] rounded-2xl focus:ring-2 focus:ring-[var(--sunset)] outline-none font-semibold" />
@@ -1096,7 +1096,7 @@
                         )}
                         {selectedLocation && (
                           <div className="mt-2 p-3 bg-[var(--sky)]/10 border-2 border-[var(--sky)] rounded-2xl">
-                            <div className="text-xs text-[var(--sky)] font-bold mb-2">ðŸ“ Selected location preview:</div>
+                            <div className="text-xs text-[var(--sky)] font-bold mb-2">📍 Selected location preview:</div>
                             <div className="w-full h-32 bg-[var(--paper-dim)] rounded-xl overflow-hidden border-2 border-[var(--ink)]">
                               <iframe width="100%" height="100%" frameBorder="0" src={`https://www.openstreetmap.org/export/embed.html?bbox=${selectedLocation.lng-0.01},${selectedLocation.lat-0.01},${selectedLocation.lng+0.01},${selectedLocation.lat+0.01}&layer=mapnik&marker=${selectedLocation.lat},${selectedLocation.lng}`} />
                             </div>
@@ -1107,7 +1107,7 @@
                       <textarea placeholder="Notes" value={formData.notes} onChange={(e) => setFormData({...formData, notes: e.target.value})} className="w-full p-3 border-2 border-[var(--ink)] rounded-2xl focus:ring-2 focus:ring-[var(--sunset)] outline-none h-24 font-semibold" />
 
                       <div className="patch p-4">
-                        <h3 className="font-display font-bold text-[var(--ink)] mb-2">ðŸ† What did you do/see?</h3>
+                        <h3 className="font-display font-bold text-[var(--ink)] mb-2">🏆 What did you do/see?</h3>
                         {[
                           {title:'Locations',type:'location'},
                           {title:'Seasonal',type:'seasonal'},
@@ -1153,20 +1153,20 @@
                 <div className="bg-white patch sticker-sm mb-6 overflow-hidden">
                   <button onClick={() => setShowBadgeGuide(!showBadgeGuide)} className="w-full p-4 flex items-center justify-between hover:bg-[var(--paper-dim)] transition">
                     <div className="flex items-center gap-3">
-                      <div className="text-3xl">ðŸŽ¯</div>
+                      <div className="text-3xl">🎯</div>
                       <h3 className="font-display text-lg font-bold text-[var(--ink)]">How Badges Work</h3>
                     </div>
-                    <div className="text-2xl text-[var(--sunset)]">{showBadgeGuide ? 'â–²' : 'â–¼'}</div>
+                    <div className="text-2xl text-[var(--sunset)]">{showBadgeGuide ? '▲' : '▼'}</div>
                   </button>
                   {showBadgeGuide && (
                     <div className="px-4 pb-4">
                       <div className="text-sm font-semibold text-[var(--ink)] opacity-80 space-y-2 pl-11">
-                        <p>â€¢ <strong>Milestone Badges</strong> track your cumulative progress (hikes, distance, elevation)</p>
-                        <p>â€¢ <strong>Location Badges</strong> are earned by checking off where you hiked when you log a hike</p>
-                        <p>â€¢ <strong>Seasonal Badges</strong> are earned automatically based on when you hike</p>
-                        <p>â€¢ <strong>Weather Badges</strong> are earned by checking them off during a hike in those conditions</p>
-                        <p>â€¢ <strong>Discovery Badges</strong> are earned by checking off activities and sightings when you log a hike</p>
-                        <p className="mt-3 text-[var(--sunset)]">ðŸ’¡ <em>Click any badge to see how to earn it and track your progress!</em></p>
+                        <p>• <strong>Milestone Badges</strong> track your cumulative progress (hikes, distance, elevation)</p>
+                        <p>• <strong>Location Badges</strong> are earned by checking off where you hiked when you log a hike</p>
+                        <p>• <strong>Seasonal Badges</strong> are earned automatically based on when you hike</p>
+                        <p>• <strong>Weather Badges</strong> are earned by checking them off during a hike in those conditions</p>
+                        <p>• <strong>Discovery Badges</strong> are earned by checking off activities and sightings when you log a hike</p>
+                        <p className="mt-3 text-[var(--sunset)]">💡 <em>Click any badge to see how to earn it and track your progress!</em></p>
                       </div>
                     </div>
                   )}
@@ -1175,7 +1175,7 @@
                 <div className="bg-white patch sticker p-6 mb-8">
                   {earnedBadges.length > 0 && (
                     <div className="mb-8">
-                      <h3 className="font-display text-xl font-extrabold text-[var(--ink)] mb-4 pb-2 border-b-4 border-dashed border-[var(--gold)] inline-block">ðŸŽ‰ Earned Badges</h3>
+                      <h3 className="font-display text-xl font-extrabold text-[var(--ink)] mb-4 pb-2 border-b-4 border-dashed border-[var(--gold)] inline-block">🎉 Earned Badges</h3>
                       {Object.entries(badgeCategories).map(([category, badges]) => {
                         const earnedInCategory = badges.filter(b => b.earned);
                         if (earnedInCategory.length === 0) return null;
@@ -1197,7 +1197,7 @@
                     </div>
                   )}
                   <div>
-                    <h3 className="font-display text-xl font-extrabold text-[var(--ink)] opacity-60 mb-4 pb-2 border-b-4 border-dashed border-[var(--line)] inline-block">ðŸ”’ Locked Badges</h3>
+                    <h3 className="font-display text-xl font-extrabold text-[var(--ink)] opacity-60 mb-4 pb-2 border-b-4 border-dashed border-[var(--line)] inline-block">🔒 Locked Badges</h3>
                     {Object.entries(badgeCategories).map(([category, badges]) => {
                       const lockedInCategory = badges.filter(b => !b.earned);
                       if (lockedInCategory.length === 0) return null;
@@ -1234,12 +1234,12 @@
                 {/* HIKES PAGE */}
                 {currentPage === 'hikes' && (
                   <>
-                    <h2 className="font-display text-2xl font-extrabold text-[var(--ink)] mb-4 flex items-center justify-center gap-2">ðŸ“‹ Your Hikes</h2>
+                    <h2 className="font-display text-2xl font-extrabold text-[var(--ink)] mb-4 flex items-center justify-center gap-2">📋 Your Hikes</h2>
 
                     <div className="bg-white patch sticker p-6 mb-8">
                       <div className="flex justify-center gap-2 mb-6">
-                        <button onClick={() => setActiveView('list')} className={`px-4 py-2 rounded-xl font-bold border-2 border-[var(--ink)] ${activeView === 'list' ? 'bg-[var(--sunset)] text-white sticker-sm' : 'bg-white text-[var(--ink)]'}`}>ðŸ“‹ List</button>
-                        <button onClick={() => setActiveView('map')} className={`px-4 py-2 rounded-xl font-bold border-2 border-[var(--ink)] ${activeView === 'map' ? 'bg-[var(--sunset)] text-white sticker-sm' : 'bg-white text-[var(--ink)]'}`}>ðŸ—ºï¸ Map</button>
+                        <button onClick={() => setActiveView('list')} className={`px-4 py-2 rounded-xl font-bold border-2 border-[var(--ink)] ${activeView === 'list' ? 'bg-[var(--sunset)] text-white sticker-sm' : 'bg-white text-[var(--ink)]'}`}>📋 List</button>
+                        <button onClick={() => setActiveView('map')} className={`px-4 py-2 rounded-xl font-bold border-2 border-[var(--ink)] ${activeView === 'map' ? 'bg-[var(--sunset)] text-white sticker-sm' : 'bg-white text-[var(--ink)]'}`}>🗺️ Map</button>
                       </div>
 
                       {activeView === 'list' && (
@@ -1250,7 +1250,7 @@
 
                           {hikes.length === 0 ? (
                             <div className="text-center py-12">
-                              <div className="text-6xl mb-4">ðŸ¥¾</div>
+                              <div className="text-6xl mb-4">🥾</div>
                               <p className="text-xl font-display font-bold text-[var(--ink)] mb-2">No hikes yet!</p>
                               <p className="text-sm opacity-60 font-semibold">Go to Home and tap "Add New Hike" to get started.</p>
                             </div>
@@ -1259,7 +1259,7 @@
                             <div className="space-y-4">
                               {(showAllHikes ? hikes : hikes.slice(0, 5)).sort((a, b) => new Date(b.date) - new Date(a.date)).map(hike => {
                                 const difficultyColors = { easy: 'bg-[var(--moss)]/15 text-[var(--moss)]', medium: 'bg-[var(--gold)]/20 text-[var(--ink)]', hard: 'bg-[var(--berry)]/15 text-[var(--berry)]' };
-                                const difficultyIcons = { easy: 'ðŸŸ¢', medium: 'ðŸŸ¡', hard: 'ðŸ”´' };
+                                const difficultyIcons = { easy: '🟢', medium: '🟡', hard: '🔴' };
                                 const isExpanded = expandedHike === hike.id;
                                 const hikeActivities = hike.activities ? hike.activities.map(id => BADGES.find(b => b.id === id)).filter(b => b) : [];
 
@@ -1288,7 +1288,7 @@
                                       )}
                                     </div>
 
-                                    {hike.location && (<p className="text-sm opacity-70 font-semibold mb-2">ðŸ“ {hike.location}</p>)}
+                                    {hike.location && (<p className="text-sm opacity-70 font-semibold mb-2">📍 {hike.location}</p>)}
 
                                     {isExpanded && (
                                       <div className="mt-3 pt-3 border-t-2 border-dashed border-[var(--line)]">
@@ -1309,13 +1309,13 @@
                                           </div>
                                         )}
                                         <div className="flex gap-2 mt-3">
-                                          <button onClick={() => editHike(hike)} className="flex-1 bg-[var(--sky)] text-white text-sm font-bold py-2 px-3 rounded-xl border-2 border-[var(--ink)]">âœï¸ Edit</button>
-                                          <button onClick={() => { if(confirm('Delete this hike?')) deleteHike(hike.id); }} className="flex-1 bg-[var(--berry)] text-white text-sm font-bold py-2 px-3 rounded-xl border-2 border-[var(--ink)]">ðŸ—‘ï¸ Delete</button>
+                                          <button onClick={() => editHike(hike)} className="flex-1 bg-[var(--sky)] text-white text-sm font-bold py-2 px-3 rounded-xl border-2 border-[var(--ink)]">✏️ Edit</button>
+                                          <button onClick={() => { if(confirm('Delete this hike?')) deleteHike(hike.id); }} className="flex-1 bg-[var(--berry)] text-white text-sm font-bold py-2 px-3 rounded-xl border-2 border-[var(--ink)]">🗑️ Delete</button>
                                         </div>
                                       </div>
                                     )}
 
-                                    <button onClick={() => setExpandedHike(isExpanded ? null : hike.id)} className="w-full mt-3 text-[var(--sunset)] hover:opacity-70 text-sm font-bold">{isExpanded ? 'â–² Show Less' : 'â–¼ Show More'}</button>
+                                    <button onClick={() => setExpandedHike(isExpanded ? null : hike.id)} className="w-full mt-3 text-[var(--sunset)] hover:opacity-70 text-sm font-bold">{isExpanded ? '▲ Show Less' : '▼ Show More'}</button>
                                   </div>
                                 );
                               })}
@@ -1323,7 +1323,7 @@
 
                             {hikes.length > 5 && (
                               <div className="text-center mt-6">
-                                <button onClick={() => setShowAllHikes(!showAllHikes)} className="bg-[var(--sunset)] text-white font-display font-bold py-3 px-6 rounded-2xl border-2 border-[var(--ink)] sticker-sm">{showAllHikes ? 'â† Show Recent 5' : `View All ${hikes.length} Hikes â†’`}</button>
+                                <button onClick={() => setShowAllHikes(!showAllHikes)} className="bg-[var(--sunset)] text-white font-display font-bold py-3 px-6 rounded-2xl border-2 border-[var(--ink)] sticker-sm">{showAllHikes ? '← Show Recent 5' : `View All ${hikes.length} Hikes →`}</button>
                               </div>
                             )}
                             </>
@@ -1339,7 +1339,7 @@
                 {/* PROFILE PAGE */}
                 {currentPage === 'profile' && profile && (
                   <div className="bg-white patch sticker p-8 max-w-3xl mx-auto">
-                    <h2 className="font-display text-3xl font-extrabold text-[var(--ink)] mb-6">ðŸ‘¤ Profile & Settings</h2>
+                    <h2 className="font-display text-3xl font-extrabold text-[var(--ink)] mb-6">👤 Profile & Settings</h2>
 
                     <div className="mb-6 text-center">
                       <div className="inline-flex items-center justify-center w-24 h-24 rounded-full text-6xl mb-4" style={{border:'3px solid var(--ink)', backgroundColor: profile.color ? `${profile.color}33` : 'var(--gold)'}}>{profile.avatar}</div>
@@ -1349,7 +1349,7 @@
 
                     <div className="space-y-6">
                       <div className="border-t-2 border-dashed border-[var(--line)] pt-6">
-                        <h4 className="font-display font-bold text-[var(--ink)] mb-3">ðŸ“Š Your Stats</h4>
+                        <h4 className="font-display font-bold text-[var(--ink)] mb-3">📊 Your Stats</h4>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="bg-[var(--sunset)]/10 rounded-2xl border-2 border-[var(--sunset)] p-4 text-center">
                             <div className="text-3xl font-display font-extrabold text-[var(--sunset)]">{hikes.length}</div>
@@ -1371,9 +1371,9 @@
                       </div>
 
                       <div className="border-t-2 border-dashed border-[var(--line)] pt-6">
-                        <h4 className="font-display font-bold text-[var(--ink)] mb-3">ðŸ’¾ Export Data</h4>
+                        <h4 className="font-display font-bold text-[var(--ink)] mb-3">💾 Export Data</h4>
                         <button onClick={downloadHikes} className="w-full bg-[var(--moss)] text-white font-bold py-3 px-4 rounded-2xl border-2 border-[var(--ink)] sticker-sm flex items-center justify-center gap-2">
-                          <span>â¬‡ï¸</span> Download Hikes as CSV
+                          <span>⬇️</span> Download Hikes as CSV
                         </button>
                         <p className="text-xs opacity-50 font-semibold mt-2 text-center">Export all your hikes to a spreadsheet</p>
                       </div>
@@ -1386,10 +1386,10 @@
 
                       {/* Danger Zone */}
                       <div className="border-t-2 border-dashed border-[var(--berry)] pt-6">
-                        <h4 className="font-bold text-[var(--berry)] mb-3 text-sm eyebrow">âš ï¸ Danger Zone</h4>
+                        <h4 className="font-bold text-[var(--berry)] mb-3 text-sm eyebrow">⚠️ Danger Zone</h4>
                         {!showDeleteAccount ? (
                           <button onClick={() => { setShowDeleteAccount(true); setDeleteError(''); setDeleteNeedsReauth(false); }} className="w-full bg-[var(--berry)] text-white font-bold py-3 px-4 rounded-2xl border-2 border-[var(--ink)] sticker-sm">
-                            ðŸ—‘ï¸ Delete My Account
+                            🗑️ Delete My Account
                           </button>
                         ) : (
                           <div className="bg-[var(--berry)]/10 border-2 border-[var(--berry)] rounded-2xl p-4">
@@ -1431,11 +1431,11 @@
                     <div className="space-y-6 text-[var(--ink)] opacity-90 leading-relaxed font-semibold">
                       <p className="text-lg font-bold text-[var(--ink)] opacity-100">Hike Together is a hiking tracker designed to make outdoor adventures more fun, memorable, and rewarding.</p>
                       <div>
-                        <h3 className="font-display text-xl font-extrabold text-[var(--moss)] mb-3">ðŸŒ² Our Mission</h3>
+                        <h3 className="font-display text-xl font-extrabold text-[var(--moss)] mb-3">🌲 Our Mission</h3>
                         <p>We believe that time spent in nature creates lasting memories and fosters a love for the outdoors. Hike Together helps you track your adventures, celebrate milestones, and keep exploring and trying new things.</p>
                       </div>
                       <div>
-                        <h3 className="font-display text-xl font-extrabold text-[var(--sunset)] mb-3">âœ¨ Features</h3>
+                        <h3 className="font-display text-xl font-extrabold text-[var(--sunset)] mb-3">✨ Features</h3>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                           <li>Track your hikes over time</li>
                           <li>Record distance, elevation, and difficulty</li>
@@ -1446,22 +1446,22 @@
                         </ul>
                       </div>
                       <div>
-                        <h3 className="font-display text-xl font-extrabold text-[var(--sky)] mb-3">ðŸ‘‹ About</h3>
+                        <h3 className="font-display text-xl font-extrabold text-[var(--sky)] mb-3">👋 About</h3>
                         <p>Hi, my name is <a href="https://evannickel.com" target="_blank" rel="noopener noreferrer" className="text-[var(--sunset)] hover:opacity-70 font-bold underline">Evan</a> and I've loved hiking for as long as I can remember. I'm also a new dad who is just starting to go on hikes with my young daughter. I built this app in the hopes that it will motivate us to hike more frequently and spend more time observing and learning about the things we see and do on every trail. And I hope it might do the same for you!</p>
                       </div>
                       <div>
-                        <h3 className="font-display text-xl font-extrabold text-[#7C5CBF] mb-3">ðŸŽ’ Recommended Hiking Gear & Tools</h3>
+                        <h3 className="font-display text-xl font-extrabold text-[#7C5CBF] mb-3">🎒 Recommended Hiking Gear & Tools</h3>
                         <div className="space-y-3">
-                          <div className="border-l-4 border-[var(--moss)] bg-[var(--paper-dim)] rounded-r-xl pl-4 py-2"><p><strong>Find nearby trails</strong> â†’ <a href="https://www.alltrails.com" target="_blank" rel="noopener noreferrer" className="text-[var(--sunset)] hover:opacity-70 underline font-bold">AllTrails</a></p></div>
-                          <div className="border-l-4 border-[var(--sky)] bg-[var(--paper-dim)] rounded-r-xl pl-4 py-2"><p><strong>Trail navigation</strong> â†’ <a href="https://www.gaiagps.com" target="_blank" rel="noopener noreferrer" className="text-[var(--sunset)] hover:opacity-70 underline font-bold">GaiaGPS</a></p></div>
-                          <div className="border-l-4 border-[#7C5CBF] bg-[var(--paper-dim)] rounded-r-xl pl-4 py-2"><p><strong>Kid carrying backpack</strong> â†’ <a href="https://www.amazon.com/Deuter-Comfort-Child-Carrier-Backpack/dp/B08FF8ZSXB" target="_blank" rel="noopener noreferrer" className="text-[var(--sunset)] hover:opacity-70 underline font-bold">Deuter Kid Comfort</a></p></div>
-                          <div className="border-l-4 border-[var(--sunset)] bg-[var(--paper-dim)] rounded-r-xl pl-4 py-2"><p><strong>Adult daypack</strong> â†’ <a href="https://www.osprey.com/stratos-24-stratos24s22-373?size=O%2FS&color=Seaweed+Matcha+Green" target="_blank" rel="noopener noreferrer" className="text-[var(--sunset)] hover:opacity-70 underline font-bold">Osprey Stratos 24</a></p></div>
-                          <div className="border-l-4 border-[var(--berry)] bg-[var(--paper-dim)] rounded-r-xl pl-4 py-2"><p><strong>Trekking poles</strong> â†’ <a href="https://www.rei.com/product/216314/rei-co-op-trailmade-trekking-poles-pair" target="_blank" rel="noopener noreferrer" className="text-[var(--sunset)] hover:opacity-70 underline font-bold">REI Trailmade</a></p></div>
+                          <div className="border-l-4 border-[var(--moss)] bg-[var(--paper-dim)] rounded-r-xl pl-4 py-2"><p><strong>Find nearby trails</strong> → <a href="https://www.alltrails.com" target="_blank" rel="noopener noreferrer" className="text-[var(--sunset)] hover:opacity-70 underline font-bold">AllTrails</a></p></div>
+                          <div className="border-l-4 border-[var(--sky)] bg-[var(--paper-dim)] rounded-r-xl pl-4 py-2"><p><strong>Trail navigation</strong> → <a href="https://www.gaiagps.com" target="_blank" rel="noopener noreferrer" className="text-[var(--sunset)] hover:opacity-70 underline font-bold">GaiaGPS</a></p></div>
+                          <div className="border-l-4 border-[#7C5CBF] bg-[var(--paper-dim)] rounded-r-xl pl-4 py-2"><p><strong>Kid carrying backpack</strong> → <a href="https://www.amazon.com/Deuter-Comfort-Child-Carrier-Backpack/dp/B08FF8ZSXB" target="_blank" rel="noopener noreferrer" className="text-[var(--sunset)] hover:opacity-70 underline font-bold">Deuter Kid Comfort</a></p></div>
+                          <div className="border-l-4 border-[var(--sunset)] bg-[var(--paper-dim)] rounded-r-xl pl-4 py-2"><p><strong>Adult daypack</strong> → <a href="https://www.osprey.com/stratos-24-stratos24s22-373?size=O%2FS&color=Seaweed+Matcha+Green" target="_blank" rel="noopener noreferrer" className="text-[var(--sunset)] hover:opacity-70 underline font-bold">Osprey Stratos 24</a></p></div>
+                          <div className="border-l-4 border-[var(--berry)] bg-[var(--paper-dim)] rounded-r-xl pl-4 py-2"><p><strong>Trekking poles</strong> → <a href="https://www.rei.com/product/216314/rei-co-op-trailmade-trekking-poles-pair" target="_blank" rel="noopener noreferrer" className="text-[var(--sunset)] hover:opacity-70 underline font-bold">REI Trailmade</a></p></div>
                         </div>
                       </div>
                     </div>
                     <div className="mt-8 p-4 bg-[var(--gold)]/15 rounded-2xl border-2 border-[var(--gold)]">
-                      <p className="text-center text-[var(--ink)] font-display font-bold">ðŸ”ï¸ Happy hiking!</p>
+                      <p className="text-center text-[var(--ink)] font-display font-bold">🏔️ Happy hiking!</p>
                     </div>
                   </div>
                 )}
@@ -1472,23 +1472,23 @@
               <div className="fixed bottom-3 left-0 right-0 z-40 px-3">
                 <div className="max-w-md mx-auto bg-white patch sticker flex justify-around items-center py-2 px-1" style={{borderRadius:'28px'}}>
                   <button onClick={() => { setCurrentPage('home'); setShowForm(false); }} className="flex flex-col items-center justify-center py-1 px-2 transition">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg mb-0.5 ${currentPage === 'home' ? 'bg-[var(--sunset)]' : ''}`}>ðŸ </div>
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg mb-0.5 ${currentPage === 'home' ? 'bg-[var(--sunset)]' : ''}`}>🏠</div>
                     <div className={`text-[10px] font-bold ${currentPage === 'home' ? 'text-[var(--sunset)]' : 'opacity-50'}`}>Home</div>
                   </button>
                   <button onClick={() => { setCurrentPage('badges'); setShowForm(false); }} className="flex flex-col items-center justify-center py-1 px-2 transition">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg mb-0.5 ${currentPage === 'badges' ? 'bg-[var(--gold)]' : ''}`}>ðŸ†</div>
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg mb-0.5 ${currentPage === 'badges' ? 'bg-[var(--gold)]' : ''}`}>🏆</div>
                     <div className={`text-[10px] font-bold ${currentPage === 'badges' ? 'text-[var(--ink)]' : 'opacity-50'}`}>Badges</div>
                   </button>
                   <button onClick={() => { setCurrentPage('hikes'); setShowForm(false); }} className="flex flex-col items-center justify-center py-1 px-2 transition">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg mb-0.5 ${currentPage === 'hikes' ? 'bg-[var(--sky)]' : ''}`}>ðŸ“‹</div>
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg mb-0.5 ${currentPage === 'hikes' ? 'bg-[var(--sky)]' : ''}`}>📋</div>
                     <div className={`text-[10px] font-bold ${currentPage === 'hikes' ? 'text-[var(--sky)]' : 'opacity-50'}`}>Hikes</div>
                   </button>
                   <button onClick={() => { setCurrentPage('profile'); setShowForm(false); }} className="flex flex-col items-center justify-center py-1 px-2 transition">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg mb-0.5 ${currentPage === 'profile' ? 'bg-[var(--berry)]' : ''}`}>{profile ? profile.avatar : 'ðŸ‘¤'}</div>
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg mb-0.5 ${currentPage === 'profile' ? 'bg-[var(--berry)]' : ''}`}>{profile ? profile.avatar : '👤'}</div>
                     <div className={`text-[10px] font-bold ${currentPage === 'profile' ? 'text-[var(--berry)]' : 'opacity-50'}`}>Profile</div>
                   </button>
                   <button onClick={() => { setCurrentPage('about'); setShowForm(false); }} className="flex flex-col items-center justify-center py-1 px-2 transition">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg mb-0.5 ${currentPage === 'about' ? 'bg-[#7C5CBF]' : ''}`}>â„¹ï¸</div>
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg mb-0.5 ${currentPage === 'about' ? 'bg-[#7C5CBF]' : ''}`}>ℹ️</div>
                     <div className={`text-[10px] font-bold ${currentPage === 'about' ? 'text-[#7C5CBF]' : 'opacity-50'}`}>About</div>
                   </button>
                 </div>
